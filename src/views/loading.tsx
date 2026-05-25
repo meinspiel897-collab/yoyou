@@ -104,13 +104,15 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
   return (
     <div className="w-full h-full flex flex-col bg-appleLight-bg dark:bg-appleDark-bg overflow-hidden relative select-none">
       
-      {/* КРАСНОЕ ПРОСТРАНСТВО (ШАПКА / ЭКРАН ЗАГРУЗКИ) */}
+      {/* КРАСНОЕ ПРОСТРАНСТВО (ШАПКА С КРУГЛЫМИ НИЖНИМИ УГЛАМИ) */}
       <div 
         className="w-full bg-[#FC062D] relative flex flex-col px-6 box-border z-[99] overflow-hidden justify-center items-center"
         style={{
-          height: isFullRed ? "100%" : "20%",
-          minHeight: isFullRed ? "100%" : "130px",
-          transition: "height 450ms cubic-bezier(0.25, 1, 0.2, 1), min-height 450ms cubic-bezier(0.25, 1, 0.2, 1)"
+          height: isFullRed ? "100%" : "22%",
+          minHeight: isFullRed ? "100%" : "140px",
+          // Закругляем только нижние углы при переходе к шагам выбора
+          borderRadius: isFullRed ? "0px" : "0px 0px 32px 32px",
+          transition: "all 500ms cubic-bezier(0.16, 1, 0.3, 1)"
         }}
       >
         {/* ФОНОВЫЙ ПУЛЬСИРУЮЩИЙ СЛОЙ ДЛЯ ЭФФЕКТА ГЛАЗОК */}
@@ -158,7 +160,7 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
             className="h-12 relative overflow-hidden"
             style={{
               flex: isFullRed ? "0 0 0px" : "1 1 0%",
-              marginLeft: isFullRed ? "0px" : "14px",
+              marginLeft: isFullRed ? "14px" : "0px",
               display: isFullRed ? "none" : "block",
               opacity: isFullRed ? 0 : 1,
               visibility: isFullRed ? "hidden" : "visible",
@@ -195,7 +197,7 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
 
       {/* НИЖНЯЯ ЧАСТЬ С КОНТЕНТОМ И КНОПКАМИ */}
       {!isFullRed && (
-        <div className="flex-1 w-full flex flex-col justify-between pt-2 pb-10 px-6 box-border">
+        <div className="flex-1 w-full flex flex-col justify-between pt-4 pb-10 px-6 box-border">
           
           {/* ЗОНА СЛАЙДЕРОВ: СТРОГО ПО ЦЕНТРУ СВОБОДНОГО МЕСТА */}
           <div className="w-full max-w-[340px] mx-auto relative overflow-hidden flex-1">
@@ -285,18 +287,8 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
             </div>
           </div>
 
-          {/* СТАТИЧНЫЙ НИЖНИЙ БЛОК: НЕ ЛЕТАЕТ И НЕ ДВИГАЕТСЯ */}
-          <div className="w-full max-w-[340px] mx-auto flex flex-col items-center">
-            
-            {/* ИНФО-ТЕКСТ: НА ОДИНАКОВОМ РАССТОЯНИИ СВЕРХУ И СНИЗУ ЗА СЧЕТ ОДНОРОДНОГО PY */}
-            <div className="w-full flex items-start space-x-1.5 py-4 opacity-75">
-              <img src="/icons/info.png" alt="Info" className="w-3.5 h-3.5 object-contain shrink-0 mt-0.5" />
-              <span className="text-xs font-medium text-appleLight-text/75 dark:text-appleDark-text/75 leading-tight">
-                Ты всегда сможешь поменять свой выбор в настройках, йоу
-              </span>
-            </div>
-
-            {/* КНОПКА */}
+          {/* СТАТИЧНЫЙ НИЖНИЙ БЛОК: КНОПКА КРАСИВО ПРИЖАТА К НИЗУ С ОДНОРОДНЫМ ОТСТУПОМ */}
+          <div className="w-full max-w-[340px] mx-auto pt-4 flex flex-col items-center">
             {stage === "style-select" ? (
               <button
                 onClick={handleNextStep}
