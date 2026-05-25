@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import EmptyState from "@/views/main/empty";
 
 export default function MainView() {
   useEffect(() => {
@@ -23,13 +24,14 @@ export default function MainView() {
             alt="Логотип" 
             className="w-5 h-5 object-contain"
           />
-          <h1 className="text-base font-semibold tracking-tight text-appleLight-text dark:text-appleDark-text">
+          <h1 className="text-base font-extrabold tracking-tight text-appleLight-text dark:text-appleDark-text">
             ЙОУЙОУ
           </h1>
         </div>
       </header>
       
       <main className="flex-1 w-full pt-[calc(var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))+44px)] overflow-hidden">
+        <EmptyState />
       </main>
     </div>
   );
