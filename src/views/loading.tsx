@@ -12,6 +12,10 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
   const [stage, setStage] = useState<Stage>("pure-loading");
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [selectedAnim, setSelectedAnim] = useState<string | null>(null);
+  
+  // Состояния для динамической смены логотипа
+  const [useGif, setUseGif] = useState(false);
+  const [gifTrigger, setGifTrigger] = useState(0);
 
   const triggerHaptic = (style: "light" | "medium" | "heavy" | "rigid" | "soft") => {
     if (typeof window !== "undefined") {
@@ -74,6 +78,30 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
     }
   }, [stage]);
 
+  const isFullRed = stage === "pure-loading" || stage === "final-loading";
+
+  // Интерактивный цикл логотипа: работает ТОЛЬКО во время настроек (!isFullRed)
+  useEffect(() => {
+    if (isFullRed) {
+      setUseGif(false);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setGifTrigger((prev) => prev + 1); // Сбрасываем кэш анимации гифки
+      setUseGif(true);
+
+      // Через 1.5 секунды (время проигрывания) возвращаем статичную PNG
+      const timeout = setTimeout(() => {
+        setUseGif(false);
+      }, 1500);
+
+      return () => clearTimeout(timeout);
+    }, 3000); // Повторяем каждые 3 секунды
+
+    return () => clearInterval(interval);
+  }, [isFullRed]);
+
   const handleSelectStyle = (id: string) => {
     triggerHaptic("light");
     setSelectedStyle(id);
@@ -99,8 +127,6 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
     }
   };
 
-  const isFullRed = stage === "pure-loading" || stage === "final-loading";
-
   return (
     <div className="w-full h-full flex flex-col bg-appleLight-bg dark:bg-appleDark-bg overflow-hidden relative select-none">
       
@@ -111,7 +137,7 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
           height: isFullRed ? "100%" : "22%",
           minHeight: isFullRed ? "100%" : "140px",
           borderRadius: isFullRed ? "0px" : "0px 0px 32px 32px",
-          transition: "all 350ms cubic-bezier(0.1, 1, 0.1, 1)" // Сжатие шапки тоже стало чуть резче
+          transition: "all 350ms cubic-bezier(0.1, 1, 0.1, 1)"
         }}
       >
         {/* ФОНОВЫЙ ПУЛЬСИРУЮЩИЙ СЛОЙ ДЛЯ ЭФФЕКТА ГЛАЗОК */}
@@ -132,7 +158,7 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
             height: "48px"
           }}
         >
-          {/* ЕДИНЫЙ ЛОГОТИП ГЛАЗОК */}
+          {/* ЕДИНЫЙ ЛОГОТИП ГЛАЗОК (РАЗМЕРЫ И ГЕОМЕТРИЯ ЖЕСТКО ЗАФИКСИРОВАНЫ) */}
           <div
             className="transition-all duration-[350ms] cubic-bezier(0.1, 1, 0.1, 1) z-20 shrink-0"
             style={{
@@ -148,7 +174,7 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
             }}
           >
             <img 
-              src="/icons/logo.png" 
+              src={useGif ? `/icons/logo.gif?t=${gifTrigger}` : "/icons/logo.png"} 
               alt="Logo" 
               className="w-full h-full object-contain block"
             />
@@ -159,7 +185,7 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
             className="h-12 relative overflow-hidden"
             style={{
               flex: isFullRed ? "0 0 0px" : "1 1 0%",
-              marginLeft: isFullRed ? "0px" : "18px", // Слегка увеличили расстояние до текста для воздуха
+              marginLeft: isFullRed ? "0px" : "18px", // Ровно 18px свободного места между лого и строкой
               display: isFullRed ? "none" : "block",
               opacity: isFullRed ? 0 : 1,
               visibility: isFullRed ? "hidden" : "visible",
@@ -171,7 +197,7 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
               style={{
                 transform: stage === "style-select" ? "translateY(0)" : "translateY(-120%)",
                 opacity: stage === "style-select" ? 1 : 0,
-                transition: "all 160ms cubic-bezier(0.1, 1, 0.1, 1)" // Быстрый и дерганый влет текста
+                transition: "all 160ms cubic-bezier(0.1, 1, 0.1, 1)"
               }}
             >
               <h2 className="text-white text-base font-bold leading-tight tracking-tight text-left">
@@ -183,7 +209,7 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
               style={{
                 transform: stage === "anim-select" ? "translateY(0)" : "translateY(120%)",
                 opacity: stage === "anim-select" ? 1 : 0,
-                transition: "all 160ms cubic-bezier(0.1, 1, 0.1, 1)" // Быстрый и дерганый влет текста
+                transition: "all 160ms cubic-bezier(0.1, 1, 0.1, 1)"
               }}
             >
               <h2 className="text-white text-base font-bold leading-tight tracking-tight text-left">
@@ -208,7 +234,7 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
                 transform: stage === "style-select" ? "translateY(-50%)" : "translateY(110%)",
                 opacity: stage === "style-select" ? 1 : 0,
                 pointerEvents: stage === "style-select" ? "auto" : "none",
-                transition: "all 180ms cubic-bezier(0.1, 1, 0.1, 1)" // Ультра-быстрый механический отскок блоков
+                transition: "all 180ms cubic-bezier(0.1, 1, 0.1, 1)"
               }}
             >
               {[
@@ -250,7 +276,7 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
                 transform: stage === "anim-select" ? "translateY(-50%)" : "translateY(-160%)",
                 opacity: stage === "anim-select" ? 1 : 0,
                 pointerEvents: stage === "anim-select" ? "auto" : "none",
-                transition: "all 180ms cubic-bezier(0.1, 1, 0.1, 1)" // Ультра-быстрый механический отскок блоков
+                transition: "all 180ms cubic-bezier(0.1, 1, 0.1, 1)"
               }}
             >
               {[
