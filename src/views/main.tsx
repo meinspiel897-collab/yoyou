@@ -24,7 +24,7 @@ export default function MainView() {
             alt="Логотип" 
             className="w-5 h-5 object-contain"
           />
-          <h1 className="text-base font-extrabold tracking-tight text-appleLight-text dark:text-appleDark-text">
+          <h1 className="text-base font-extrabold tracking-tight text-appleLight-text dark:text-appleDark-text" style={{ fontFamily: "'Manrope', sans-serif" }}>
             ЙОУЙОУ
           </h1>
         </div>
