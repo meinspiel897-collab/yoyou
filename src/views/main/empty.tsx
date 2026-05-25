@@ -2,10 +2,13 @@
 
 export default function EmptyState() {
   const handleTryAgain = () => {
-    if (typeof window !== "undefined" && window.Telegram?.WebApp?.HapticFeedback) {
-      try {
-        window.Telegram.WebApp.HapticFeedback.impactOccurred("medium");
-      } catch (e) {}
+    if (typeof window !== "undefined") {
+      const anyWindow = window as any;
+      if (anyWindow.Telegram?.WebApp?.HapticFeedback) {
+        try {
+          anyWindow.Telegram.WebApp.HapticFeedback.impactOccurred("medium");
+        } catch (e) {}
+      }
     }
   };
 
