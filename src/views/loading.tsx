@@ -39,20 +39,13 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
     }
   }, [stage]);
 
-  // Увеличенные тайминги загрузки
+  // Чистый таймер без предварительных вибраций
   useEffect(() => {
     if (stage === "pure-loading") {
-      const hapticTimer = setTimeout(() => {
-        triggerHaptic("light");
-      }, 2750); // Вибрация чуть раньше конца первой загрузки
-
       const timer = setTimeout(() => {
         setStage("style-select");
-      }, 3000); // Первая загрузка теперь 3 секунды
-      return () => {
-        clearTimeout(hapticTimer);
-        clearTimeout(timer);
-      };
+      }, 3000);
+      return () => clearTimeout(timer);
     }
   }, [stage]);
 
@@ -73,19 +66,11 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
 
   const handleFinish = () => {
     if (selectedAnim) {
-      if (typeof window !== "undefined") {
-        const anyWindow = window as any;
-        if (anyWindow.Telegram?.WebApp?.HapticFeedback) {
-          try {
-            anyWindow.Telegram.WebApp.HapticFeedback.notificationOccurred("error");
-          } catch (e) {}
-        }
-      }
       setStage("final-loading");
       setTimeout(() => {
         sessionStorage.setItem("yoyou_fully_loaded", "true");
         onComplete();
-      }, 3000); // Финальная загрузка тоже теперь 3 секунды для солидности
+      }, 3000);
     }
   };
 
@@ -94,16 +79,17 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
   return (
     <div className="w-full h-full flex flex-col bg-appleLight-bg dark:bg-appleDark-bg overflow-hidden relative select-none">
       
-      {/* КРАСНОЕ ПРОСТРАНСТВО (ШАПКА / ЭКРАН ЗАГРУЗКИ) */}
+      {/* КРАСНОЕ ПРОСТРАНСТВО */}
       <div 
         className="w-full bg-[#FC062D] relative flex items-center px-6 box-border z-[99] overflow-hidden"
         style={{
           height: isFullRed ? "100%" : "20%",
           minHeight: isFullRed ? "100%" : "130px",
+          justifyContent: isFullRed ? "center" : "flex-start",
           transition: "all 650ms cubic-bezier(0.25, 1, 0.5, 1)"
         }}
       >
-        {/* Паттерн из знаков вопроса (убирается/скрывается в фуллскрине маской) */}
+        {/* Паттерн из знаков вопроса */}
         {!isFullRed && (
           <div 
             className="absolute inset-0 opacity-100 pointer-events-none mix-blend-screen"
@@ -111,7 +97,6 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
               backgroundImage: "url('/icons/question.png')",
               backgroundSize: "24px 24px",
               backgroundRepeat: "repeat",
-              // Радиальная маска: в центре прозрачность выше (opacity меньше), по краям — плотнее
               maskImage: "radial-gradient(circle, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.23) 70%)",
               WebkitMaskImage: "radial-gradient(circle, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.23) 70%)",
             }}
@@ -126,25 +111,33 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
             transition: "all 650ms cubic-bezier(0.25, 1, 0.5, 1)"
           }}
         >
-          {/* ЛОГОТИП: ОН ОДИН, ОН НЕ ИСЧЕЗАЕТ, А ЕЗДИТ И МЕНЯЕТ РАЗМЕР */}
-          <img 
-            src="/icons/logo.png" 
-            alt="Logo" 
-            className="object-contain shrink-0"
+          {/* ЛОГОТИП: Теперь центруется идеально по экрану в full-red режиме */}
+          <div
+            className="flex items-center justify-center transition-all duration-[650ms] cubic-bezier(0.25, 1, 0.5, 1)"
             style={{
-              width: isFullRed ? "96px" : "48px",
-              height: isFullRed ? "96px" : "48px",
-              // Хитрая трансформация смещения: если экран полный — лого строго по центру, если шапка — сдвига влево нет
-              transform: isFullRed ? "translateX(0)" : "translateX(0)", 
-              transition: "all 650ms cubic-bezier(0.25, 1, 0.5, 1)"
+              position: isFullRed ? "absolute" : "relative",
+              left: isFullRed ? "50%" : "0",
+              top: isFullRed ? "50%" : "auto",
+              transform: isFullRed ? "translate(-50%, -50%)" : "translate(0, 0)",
             }}
-          />
+          >
+            <img 
+              src="/icons/logo.png" 
+              alt="Logo" 
+              className="object-contain shrink-0"
+              style={{
+                width: isFullRed ? "96px" : "48px",
+                height: isFullRed ? "96px" : "48px",
+                transition: "all 650ms cubic-bezier(0.25, 1, 0.5, 1)"
+              }}
+            />
+          </div>
           
-          {/* Блок с текстом вопросов — появляется только на этапах выбора */}
+          {/* Блок с текстом вопросов */}
           <div 
             className="flex-1 h-12 relative overflow-hidden"
             style={{
-              marginLeft: isFullRed ? "0px" : "16px",
+              marginLeft: isFullRed ? "0px" : "64px", // Отступ с учетом ширины логотипа
               opacity: isFullRed ? 0 : 1,
               visibility: isFullRed ? "hidden" : "visible",
               transition: "all 400ms cubic-bezier(0.25, 1, 0.5, 1)"
@@ -182,7 +175,6 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
       {!isFullRed && (
         <div className="flex-1 w-full bg-appleLight-bg dark:bg-appleDark-bg flex flex-col justify-between pt-2 pb-10 px-6 box-border">
           
-          {/* Крупные отцентрованные блоки */}
           <div className="w-full max-w-[340px] mx-auto flex flex-col justify-center relative overflow-hidden flex-1">
             
             {/* ЭТАП 1: ВЫБОР СТИЛЯ */}
@@ -270,7 +262,7 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
             </div>
           </div>
 
-          {/* Высокая кнопка внизу */}
+          {/* Кнопка внизу */}
           <div className="w-full max-w-[340px] mx-auto mt-4">
             {stage === "style-select" ? (
               <button
