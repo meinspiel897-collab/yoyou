@@ -12,14 +12,19 @@ export default function Home() {
       const hasLoaded = sessionStorage.getItem("yoyou_fully_loaded");
       if (hasLoaded) {
         setShowMain(true);
-        if (window.Telegram?.WebApp) {
-          try {
-            window.Telegram.WebApp.requestFullscreen();
-          } catch (e) {}
-        }
       }
     }
   }, []);
+
+  useEffect(() => {
+    if (showMain && typeof window !== "undefined" && window.Telegram?.WebApp) {
+      setTimeout(() => {
+        try {
+          window.Telegram.WebApp.requestFullscreen();
+        } catch (e) {}
+      }, 50);
+    }
+  }, [showMain]);
 
   if (showMain) return <MainView />;
   return <LoadingView onComplete={() => setShowMain(true)} />;
