@@ -8,7 +8,6 @@ export default function MainView() {
       const webApp = window.Telegram.WebApp;
       const theme = webApp.colorScheme || "dark";
       const bgColor = theme === "dark" ? "#000000" : "#FFFFFF";
-      const textColor = theme === "dark" ? "#FFFFFF" : "#000000";
       
       webApp.setHeaderColor(bgColor);
       webApp.setBackgroundColor(bgColor);
@@ -17,16 +16,16 @@ export default function MainView() {
 
   return (
     <div className="flex flex-col w-full h-full bg-appleLight-bg dark:bg-appleDark-bg transition-colors duration-300">
-      <header className="flex items-center justify-center w-full h-14 pt-[env(safe-area-inset-top)] bg-transparent">
-        <div className="flex items-center gap-2">
-          <h1 className="text-xl font-extrabold tracking-tight select-none">
-            ЙОУЙОУ
-          </h1>
+      <header className="flex items-center justify-center w-full h-[calc(48px+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] px-4 bg-transparent select-none">
+        <div className="flex items-center justify-center gap-1.5 h-12">
           <img 
             src="/icons/logo.png" 
             alt="Logo" 
-            className="w-6 h-6 object-contain"
+            className="w-5 h-5 object-contain"
           />
+          <h1 className="text-xl font-extrabold tracking-tight leading-none">
+            ЙОУЙОУ
+          </h1>
         </div>
       </header>
       
