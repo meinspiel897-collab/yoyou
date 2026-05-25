@@ -13,34 +13,49 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [selectedAnim, setSelectedAnim] = useState<string | null>(null);
 
+  // Железно рабочий хелпер для вибрации
   const triggerHaptic = (style: "light" | "medium" | "heavy" | "rigid" | "soft") => {
-    if (typeof window !== "undefined") {
-      const anyWindow = window as any;
-      if (anyWindow.Telegram?.WebApp?.HapticFeedback) {
-        try {
-          anyWindow.Telegram.WebApp.HapticFeedback.impactOccurred(style);
-        } catch (e) {}
+    try {
+      if (typeof window !== "undefined") {
+        const tg = (window as any).Telegram?.WebApp;
+        if (tg?.HapticFeedback?.impactOccurred) {
+          tg.HapticFeedback.impactOccurred(style);
+        }
       }
-    }
+    } catch (e) {}
+  };
+
+  const triggerNotification = (type: "error" | "success" | "warning") => {
+    try {
+      if (typeof window !== "undefined") {
+        const tg = (window as any).Telegram?.WebApp;
+        if (tg?.HapticFeedback?.notificationOccurred) {
+          tg.HapticFeedback.notificationOccurred(type);
+        }
+      }
+    } catch (e) {}
   };
 
   useEffect(() => {
-    if (typeof window !== "undefined" && window.Telegram?.WebApp) {
-      const webApp = window.Telegram.WebApp;
-      if (stage === "pure-loading" || stage === "final-loading") {
-        webApp.setHeaderColor("#FC062D");
-        webApp.setBackgroundColor("#FC062D");
-      } else {
-        const theme = webApp.colorScheme || "dark";
-        const bgColor = theme === "dark" ? "#000000" : "#FFFFFF";
-        webApp.setHeaderColor("#FC062D");
-        webApp.setBackgroundColor(bgColor);
+    if (typeof window !== "undefined") {
+      const tg = (window as any).Telegram?.WebApp;
+      if (tg) {
+        if (stage === "pure-loading" || stage === "final-loading") {
+          tg.setHeaderColor("#FC062D");
+          tg.setBackgroundColor("#FC062D");
+        } else {
+          const theme = tg.colorScheme || "dark";
+          const bgColor = theme === "dark" ? "#000000" : "#FFFFFF";
+          tg.setHeaderColor("#FC062D");
+          tg.setBackgroundColor(bgColor);
+        }
       }
     }
   }, [stage]);
 
   useEffect(() => {
     if (stage === "pure-loading") {
+      // Вибрация за 150мс до того, как шапка улетит вверх
       const hapticTimer = setTimeout(() => {
         triggerHaptic("light");
       }, 1850);
@@ -56,30 +71,23 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
   }, [stage]);
 
   const handleSelectStyle = (id: string) => {
-    triggerHaptic("light");
+    triggerHaptic("light"); // Вибрация при тапе на карточку стиля
     setSelectedStyle(id);
   };
 
   const handleSelectAnim = (id: string) => {
-    triggerHaptic("light");
+    triggerHaptic("light"); // Вибрация при тапе на карточку анимации
     setSelectedAnim(id);
   };
 
   const handleNextStep = () => {
-    triggerHaptic("medium");
+    triggerHaptic("medium"); // Вибрация при переходе между экранами интерактива
     setStage("anim-select");
   };
 
   const handleFinish = () => {
     if (selectedAnim) {
-      if (typeof window !== "undefined") {
-        const anyWindow = window as any;
-        if (anyWindow.Telegram?.WebApp?.HapticFeedback) {
-          try {
-            anyWindow.Telegram.WebApp.HapticFeedback.notificationOccurred("error");
-          } catch (e) {}
-        }
-      }
+      triggerNotification("success"); // Красивый финальный аккорд
       setStage("final-loading");
       setTimeout(() => {
         sessionStorage.setItem("yoyou_fully_loaded", "true");
@@ -164,7 +172,7 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
               }}
             >
               {[
-                { id: "zoomer", emoji: "𫪪", name: "Зумерский", desc: "оч популярный вариант, классный вайб" },
+                { id: "zoomer", emoji: "🫪", name: "Зумерский", desc: "оч популярный вариант, классный вайб" },
                 { id: "official", emoji: "👔", name: "Официальный", desc: "ох уж эти миллениалы" },
                 { id: "nefor", emoji: "🕷️", name: "Нефорский", desc: "ее, шаришь за это? а я нет, но постараюсь сделать вид, что тоже в теме, бро!" }
               ].map((item) => (
