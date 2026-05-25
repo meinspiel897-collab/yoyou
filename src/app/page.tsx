@@ -19,7 +19,6 @@ export default function Home() {
 
   useEffect(() => {
     if (showMain && typeof window !== "undefined") {
-      // Сохраняем ссылку локально для TypeScript
       const tgWebApp = (window as any).Telegram?.WebApp;
       
       if (tgWebApp?.requestFullscreen) {
@@ -32,13 +31,12 @@ export default function Home() {
     }
   }, [showMain]);
 
-  // Триггер плавного перехода
+  // Быстрый триггер перехода без эффекта "желейности"
   const handleOnboardingComplete = () => {
-    setFade(true); // Включаем затемнение
+    setFade(true); // Моментальный запуск затемнения загрузки
     setTimeout(() => {
-      setShowMain(true); // Переключаем экран
-      // Затемнение уберется автоматически, так как MainView отрендерится "чистым"
-    }, 600); // Тайминг CSS-перехода
+      setShowMain(true); // Быстро переключаем экран на MainView
+    }, 200); // Быстрый тайминг iOS-вспышки (200мс)
   };
 
   return (
@@ -53,13 +51,14 @@ export default function Home() {
         <MainView />
       )}
 
-      {/* ОВЕРЛЕЙ ДЛЯ ПЛАВНОГО ЗАТЕМНЕНИЯ (iOS style transition) */}
+      {/* ОВЕРЛЕЙ ДЛЯ МГНОВЕННОЙ СМЕНЫ КАДРА */}
       <div 
         className="absolute inset-0 bg-black pointer-events-none z-[99999]"
         style={{
           opacity: fade ? 1 : 0,
           visibility: fade ? "visible" : "hidden",
-          transition: "opacity 600ms cubic-bezier(0.4, 0, 0.2, 1), visibility 600ms cubic-bezier(0.4, 0, 0.2, 1)"
+          // Изменено на 220мс с кривой мгновенного разгона cubic-bezier(0.215, 0.610, 0.355, 1)
+          transition: "opacity 220ms cubic-bezier(0.215, 0.610, 0.355, 1), visibility 220ms cubic-bezier(0.215, 0.610, 0.355, 1)"
         }}
       />
     </div>
