@@ -16,20 +16,20 @@ export default function MainView() {
 
   return (
     <div className="flex flex-col w-full h-full bg-appleLight-bg dark:bg-appleDark-bg transition-colors duration-300">
-      <header className="flex items-center justify-center w-full h-[calc(48px+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] px-4 bg-transparent select-none">
-        <div className="flex items-center justify-center gap-1.5 h-12">
+      <header className="absolute top-[env(safe-area-inset-top)] left-0 right-0 flex items-center justify-center h-12 bg-transparent select-none">
+        <div className="flex items-center gap-1.5">
           <img 
             src="/icons/logo.png" 
             alt="Logo" 
             className="w-5 h-5 object-contain"
           />
-          <h1 className="text-xl font-extrabold tracking-tight leading-none">
+          <h1 className="text-xl font-extrabold tracking-tight">
             ЙОУЙОУ
           </h1>
         </div>
       </header>
       
-      <main className="flex-1 w-full overflow-hidden">
+      <main className="flex-1 w-full pt-[calc(48px+env(safe-area-inset-top))] overflow-hidden">
       </main>
     </div>
   );
