@@ -21,6 +21,11 @@ declare global {
             language_code?: string;
           };
         };
+        HapticFeedback: {
+          impactOccurred: (style: "light" | "medium" | "heavy" | "rigid" | "soft") => void;
+          notificationOccurred: (type: "error" | "success" | "warning") => void;
+          selectionChanged: () => void;
+        };
       };
     };
   }
@@ -63,7 +68,7 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
         <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
       </head>
-      <body className="bg-appleLight-bg text-appleLight-text dark:bg-appleDark-bg dark:text-appleDark-text antialiased w-full h-full overflow-hidden fixed select-none font(['Inter',sans-serif])">
+      <body className="bg-appleLight-bg text-appleLight-text dark:bg-appleDark-bg dark:text-appleDark-text antialiased w-full h-full font-inter">
         {children}
       </body>
     </html>
