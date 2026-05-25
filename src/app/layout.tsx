@@ -9,10 +9,13 @@ declare global {
       WebApp: {
         ready: () => void;
         expand: () => void;
+        requestFullscreen: () => void;
         isVerticalSwipesEnabled: boolean;
         setHeaderColor: (color: string) => void;
         setBackgroundColor: (color: string) => void;
         colorScheme: "light" | "dark";
+        headerColor: string;
+        backgroundColor: string;
         initDataUnsafe?: {
           user?: {
             language_code?: string;
@@ -54,10 +57,13 @@ export default function RootLayout({
   return (
     <html lang={lang} className="dark">
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;800&display=swap" rel="stylesheet" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
         <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
       </head>
-      <body className="bg-appleLight-bg text-appleLight-text dark:bg-appleDark-bg dark:text-appleDark-text antialiased w-full h-full overflow-hidden fixed select-none">
+      <body className="bg-appleLight-bg text-appleLight-text dark:bg-appleDark-bg dark:text-appleDark-text antialiased w-full h-full overflow-hidden fixed select-none font-manrope">
         {children}
       </body>
     </html>
