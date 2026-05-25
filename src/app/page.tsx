@@ -8,16 +8,30 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (typeof window !== "undefined" && window.Telegram?.WebApp) {
-        try {
-          window.Telegram.WebApp.requestFullscreen();
-        } catch (e) {}
-      }
-      setIsLoading(false);
-    }, 2500);
+    if (typeof window !== "undefined") {
+      const hasLoaded = sessionStorage.getItem("yoyou_loaded");
+      
+      const enterFullscreen = () => {
+        if (window.Telegram?.WebApp) {
+          try {
+            window.Telegram.WebApp.requestFullscreen();
+          } catch (e) {}
+        }
+      };
 
-    return () => clearTimeout(timer);
+      if (hasLoaded) {
+        setIsLoading(false);
+        setTimeout(enterFullscreen, 100);
+      } else {
+        const timer = setTimeout(() => {
+          sessionStorage.setItem("yoyou_loaded", "true");
+          setIsLoading(false);
+          setTimeout(enterFullscreen, 50);
+        }, 2000);
+
+        return () => clearTimeout(timer);
+      }
+    }
   }, []);
 
   return isLoading ? <LoadingView /> : <MainView />;
