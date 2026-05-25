@@ -18,16 +18,18 @@ export default function Home() {
 
   useEffect(() => {
     if (showMain && typeof window !== "undefined") {
-      setTimeout(() => {
-        try {
-          const tg = (window as any).Telegram?.WebApp;
-          if (tg && typeof tg.requestFullscreen === "function") {
-            tg.requestFullscreen();
+      // Сохраняем ссылку локально, чтобы TypeScript не терял сужение типов внутри таймаута
+      const tgWebApp = (window as any).Telegram?.WebApp;
+      
+      if (tgWebApp?.requestFullscreen) {
+        setTimeout(() => {
+          try {
+            tgWebApp.requestFullscreen();
+          } catch (e) {
+            console.error("Failed to open fullscreen:", e);
           }
-        } catch (e) {
-          console.error("Failed to go fullscreen:", e);
-        }
-      }, 50);
+        }, 50);
+      }
     }
   }, [showMain]);
 
