@@ -6,7 +6,6 @@ import MainView from "@/views/main";
 
 export default function Home() {
   const [showMain, setShowMain] = useState(false);
-  const [fade, setFade] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -31,12 +30,9 @@ export default function Home() {
     }
   }, [showMain]);
 
-  // Быстрый триггер перехода без эффекта "желейности"
+  // Мгновенное переключение без задержек и оверлеев
   const handleOnboardingComplete = () => {
-    setFade(true); // Моментальный запуск затемнения загрузки
-    setTimeout(() => {
-      setShowMain(true); // Быстро переключаем экран на MainView
-    }, 200); // Быстрый тайминг iOS-вспышки (200мс)
+    setShowMain(true);
   };
 
   return (
@@ -50,17 +46,6 @@ export default function Home() {
       {showMain && (
         <MainView />
       )}
-
-      {/* ОВЕРЛЕЙ ДЛЯ МГНОВЕННОЙ СМЕНЫ КАДРА */}
-      <div 
-        className="absolute inset-0 bg-black pointer-events-none z-[99999]"
-        style={{
-          opacity: fade ? 1 : 0,
-          visibility: fade ? "visible" : "hidden",
-          // Изменено на 220мс с кривой мгновенного разгона cubic-bezier(0.215, 0.610, 0.355, 1)
-          transition: "opacity 220ms cubic-bezier(0.215, 0.610, 0.355, 1), visibility 220ms cubic-bezier(0.215, 0.610, 0.355, 1)"
-        }}
-      />
     </div>
   );
 }
