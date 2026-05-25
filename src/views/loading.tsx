@@ -12,7 +12,7 @@ export default function LoadingView() {
   }, []);
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-[#FC062D] w-full h-full select-none">
+    <div className="fixed inset-0 flex items-center justify-center bg-[#FC062D] w-full h-full select-none z-[9999]">
       <img 
         src="/icons/logo.png" 
         alt="Logo" 
