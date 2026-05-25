@@ -8,6 +8,9 @@ const config: Config = {
   darkMode: "class",
   theme: {
     extend: {
+      fontFamily: {
+        manrope: ["Manrope", "sans-serif"],
+      },
       colors: {
         accent: "#FC062D",
         appleLight: {
