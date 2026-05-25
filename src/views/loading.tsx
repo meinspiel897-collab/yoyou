@@ -91,7 +91,7 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
       setGifTrigger((prev) => prev + 1); // Сбрасываем кэш анимации гифки
       setUseGif(true);
 
-      // Через 1.5 секунды (время проигрывания) возвращаем статичную PNG
+      // Через 1.5 секунды возвращаем статичную PNG
       const timeout = setTimeout(() => {
         setUseGif(false);
       }, 1500);
@@ -149,72 +149,76 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
           }}
         />
 
-        {/* СВЯЗКА ЛОГО + ТЕКСТ: ИДЕАЛЬНЫЙ СТАТИЧНЫЙ ЦЕНТР */}
+        {/* СВЯЗКА ЛОГО + ТЕКСТ: ПЕРЕНЕСЕНО В АБСОЛЮТНЫЙ ПРЯМОУГОЛЬНЫЙ ЦЕНТР */}
         <div 
-          className="flex items-center justify-center relative transition-all duration-[350ms] cubic-bezier(0.1, 1, 0.1, 1)"
-          style={{
-            width: isFullRed ? "48px" : "100%",
-            maxWidth: "340px",
-            height: "48px"
-          }}
+          className="flex items-center justify-center w-full transition-all duration-[350ms] cubic-bezier(0.1, 1, 0.1, 1)"
+          style={{ height: "48px" }}
         >
-          {/* ЕДИНЫЙ ЛОГОТИП ГЛАЗОК (РАЗМЕРЫ И ГЕОМЕТРИЯ ЖЕСТКО ЗАФИКСИРОВАНЫ) */}
           <div
-            className="transition-all duration-[350ms] cubic-bezier(0.1, 1, 0.1, 1) z-20 shrink-0"
+            className="flex items-center transition-all duration-[350ms] cubic-bezier(0.1, 1, 0.1, 1) relative"
             style={{
-              position: isFullRed ? "absolute" : "relative",
-              left: isFullRed ? "50%" : "auto",
-              top: isFullRed ? "50%" : "auto",
-              transform: isFullRed 
-                ? "translate(-50%, -50%) scale(1.08)" 
-                : "translate(0, 0) scale(1)",
-              transformOrigin: "center center",
-              width: "48px",
-              height: "48px"
+              // Сумма всех элементов (48 лого + 18 отступ + 240 текст) дает монолитный блок в 306px, который центрируется целиком
+              width: isFullRed ? "48px" : "306px"
             }}
           >
-            <img 
-              src={useGif ? `/icons/logo.gif?t=${gifTrigger}` : "/icons/logo.png"} 
-              alt="Logo" 
-              className="w-full h-full object-contain block"
-            />
-          </div>
-          
-          {/* Блок с текстом вопросов */}
-          <div 
-            className="h-12 relative overflow-hidden"
-            style={{
-              flex: isFullRed ? "0 0 0px" : "1 1 0%",
-              marginLeft: isFullRed ? "0px" : "18px", // Ровно 18px свободного места между лого и строкой
-              display: isFullRed ? "none" : "block",
-              opacity: isFullRed ? 0 : 1,
-              visibility: isFullRed ? "hidden" : "visible",
-              transition: "opacity 100ms default, visibility 100ms default"
-            }}
-          >
-            <div 
-              className="absolute inset-x-0 top-0 bottom-0 flex items-center"
+            {/* ЕДИНЫЙ ЛОГОТИП ГЛАЗОК */}
+            <div
+              className="transition-all duration-[350ms] cubic-bezier(0.1, 1, 0.1, 1) z-20 shrink-0"
               style={{
-                transform: stage === "style-select" ? "translateY(0)" : "translateY(-120%)",
-                opacity: stage === "style-select" ? 1 : 0,
-                transition: "all 160ms cubic-bezier(0.1, 1, 0.1, 1)"
+                position: isFullRed ? "absolute" : "relative",
+                left: isFullRed ? "50%" : "auto",
+                top: isFullRed ? "50%" : "auto",
+                transform: isFullRed 
+                  ? "translate(-50%, -50%) scale(1.08)" 
+                  : "translate(0, 0) scale(1)",
+                transformOrigin: "center center",
+                width: "48px",
+                height: "48px"
               }}
             >
-              <h2 className="text-white text-base font-bold leading-tight tracking-tight text-left">
-                Выбери стиль, который тебе больше всего нравится
-              </h2>
+              <img 
+                src={useGif ? `/icons/logo.gif?t=${gifTrigger}` : "/icons/logo.png"} 
+                alt="Logo" 
+                className="w-full h-full object-contain block"
+              />
             </div>
+            
+            {/* Фиксированный блок текста — больше не раздувается и не смещает логотип */}
             <div 
-              className="absolute inset-x-0 top-0 bottom-0 flex items-center"
+              className="h-12 relative overflow-hidden shrink-0"
               style={{
-                transform: stage === "anim-select" ? "translateY(0)" : "translateY(120%)",
-                opacity: stage === "anim-select" ? 1 : 0,
-                transition: "all 160ms cubic-bezier(0.1, 1, 0.1, 1)"
+                width: isFullRed ? "0px" : "240px",
+                marginLeft: isFullRed ? "0px" : "18px",
+                display: isFullRed ? "none" : "block",
+                opacity: isFullRed ? 0 : 1,
+                visibility: isFullRed ? "hidden" : "visible",
+                transition: "opacity 100ms default, visibility 100ms default"
               }}
             >
-              <h2 className="text-white text-base font-bold leading-tight tracking-tight text-left">
-                Слушай, а хочешь включить анимацию?
-              </h2>
+              <div 
+                className="absolute inset-x-0 top-0 bottom-0 flex items-center"
+                style={{
+                  transform: stage === "style-select" ? "translateY(0)" : "translateY(-120%)",
+                  opacity: stage === "style-select" ? 1 : 0,
+                  transition: "all 160ms cubic-bezier(0.1, 1, 0.1, 1)"
+                }}
+              >
+                <h2 className="text-white text-base font-bold leading-tight tracking-tight text-left">
+                  Выбери стиль, который тебе больше всего нравится
+                </h2>
+              </div>
+              <div 
+                className="absolute inset-x-0 top-0 bottom-0 flex items-center"
+                style={{
+                  transform: stage === "anim-select" ? "translateY(0)" : "translateY(120%)",
+                  opacity: stage === "anim-select" ? 1 : 0,
+                  transition: "all 160ms cubic-bezier(0.1, 1, 0.1, 1)"
+                }}
+              >
+                <h2 className="text-white text-base font-bold leading-tight tracking-tight text-left">
+                  Слушай, а хочешь включить анимацию?
+                </h2>
+              </div>
             </div>
           </div>
         </div>
