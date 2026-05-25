@@ -106,7 +106,7 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
       
       {/* КРАСНОЕ ПРОСТРАНСТВО (ШАПКА / ЭКРАН ЗАГРУЗКИ) */}
       <div 
-        className="w-full bg-[#FC062D] relative flex flex-col px-6 box-border z-[99] overflow-hidden"
+        className="w-full bg-[#FC062D] relative flex flex-col px-6 box-border z-[99] overflow-hidden justify-center items-center"
         style={{
           height: isFullRed ? "100%" : "20%",
           minHeight: isFullRed ? "100%" : "130px",
@@ -122,76 +122,74 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
           }}
         />
 
-        {/* Контейнер-привязка (340px) */}
-        <div className="w-full max-w-[340px] h-full mx-auto relative flex items-center justify-center">
-          
-          {/* ОБЩИЙ КОНТЕЙНЕР ДЛЯ ВЫРАВНИВАНИЯ ВСЕЙ СВЯЗКИ ТЕКСТ+ЛОГО ПО ЦЕНТРУ */}
-          <div 
-            className="flex items-center w-full relative"
+        {/* СВЯЗКА ЛОГО + ТЕКСТ: ВСЕГДА В ЦЕНТРЕ Х-ОСИ */}
+        <div 
+          className="flex items-center justify-center relative transition-all duration-[450ms] cubic-bezier(0.25, 1, 0.2, 1)"
+          style={{
+            width: isFullRed ? "48px" : "100%",
+            maxWidth: "340px",
+            height: "48px"
+          }}
+        >
+          {/* ЕДИНЫЙ ЛОГОТИП ГЛАЗОК */}
+          <div
+            className="transition-all duration-[450ms] cubic-bezier(0.25, 1, 0.2, 1) z-20 shrink-0"
             style={{
-              justifyContent: isFullRed ? "center" : "flex-start",
+              position: isFullRed ? "absolute" : "relative",
+              left: isFullRed ? "50%" : "auto",
+              top: isFullRed ? "50%" : "auto",
+              transform: isFullRed 
+                ? "translate(-50%, -50%) scale(1.08)" 
+                : "translate(0, 0) scale(1)",
+              transformOrigin: "center center",
+              width: "48px",
+              height: "48px"
             }}
           >
-            {/* ЕДИНЫЙ ЛОГОТИП ГЛАЗОК */}
-            <div
-              className="transition-all duration-[450ms] cubic-bezier(0.25, 1, 0.2, 1) z-20 shrink-0"
-              style={{
-                position: isFullRed ? "absolute" : "relative",
-                left: isFullRed ? "50%" : "auto",
-                top: isFullRed ? "50%" : "auto",
-                transform: isFullRed 
-                  ? "translate(-50%, -50%) scale(1.08)" 
-                  : "translate(0, 0) scale(1)",
-                transformOrigin: "center center",
-                width: "48px",
-                height: "48px"
-              }}
-            >
-              <img 
-                src="/icons/logo.png" 
-                alt="Logo" 
-                className="w-full h-full object-contain block"
-              />
-            </div>
-            
-            {/* Блок с текстом вопросов */}
+            <img 
+              src="/icons/logo.png" 
+              alt="Logo" 
+              className="w-full h-full object-contain block"
+            />
+          </div>
+          
+          {/* Блок с текстом вопросов (дополняет группу до идеального центра) */}
+          <div 
+            className="h-12 relative overflow-hidden"
+            style={{
+              flex: isFullRed ? "0 0 0px" : "1 1 0%",
+              marginLeft: isFullRed ? "0px" : "14px",
+              display: isFullRed ? "none" : "block",
+              opacity: isFullRed ? 0 : 1,
+              visibility: isFullRed ? "hidden" : "visible",
+              transition: "opacity 200ms ease, visibility 200ms ease"
+            }}
+          >
             <div 
-              className="flex-1 h-12 relative overflow-hidden"
+              className="absolute inset-x-0 top-0 bottom-0 flex items-center"
               style={{
-                marginLeft: isFullRed ? "0px" : "14px",
-                display: isFullRed ? "none" : "block",
-                opacity: isFullRed ? 0 : 1,
-                visibility: isFullRed ? "hidden" : "visible",
-                transition: "opacity 200ms ease, visibility 200ms ease"
+                transform: stage === "style-select" ? "translateY(0)" : "translateY(-120%)",
+                opacity: stage === "style-select" ? 1 : 0,
+                transition: "all 450ms cubic-bezier(0.16, 1, 0.3, 1)"
               }}
             >
-              <div 
-                className="absolute inset-x-0 top-0 bottom-0 flex items-center"
-                style={{
-                  transform: stage === "style-select" ? "translateY(0)" : "translateY(-120%)",
-                  opacity: stage === "style-select" ? 1 : 0,
-                  transition: "all 450ms cubic-bezier(0.16, 1, 0.3, 1)"
-                }}
-              >
-                <h2 className="text-white text-base font-bold leading-tight tracking-tight text-left">
-                  Выбери стиль, который тебе больше всего нравится
-                </h2>
-              </div>
-              <div 
-                className="absolute inset-x-0 top-0 bottom-0 flex items-center"
-                style={{
-                  transform: stage === "anim-select" ? "translateY(0)" : "translateY(120%)",
-                  opacity: stage === "anim-select" ? 1 : 0,
-                  transition: "all 450ms cubic-bezier(0.16, 1, 0.3, 1)"
-                }}
-              >
-                <h2 className="text-white text-base font-bold leading-tight tracking-tight text-left">
-                  Хочешь включить анимации?
-                </h2>
-              </div>
+              <h2 className="text-white text-base font-bold leading-tight tracking-tight text-left">
+                Выбери стиль, который тебе больше всего нравится
+              </h2>
+            </div>
+            <div 
+              className="absolute inset-x-0 top-0 bottom-0 flex items-center"
+              style={{
+                transform: stage === "anim-select" ? "translateY(0)" : "translateY(120%)",
+                opacity: stage === "anim-select" ? 1 : 0,
+                transition: "all 450ms cubic-bezier(0.16, 1, 0.3, 1)"
+              }}
+            >
+              <h2 className="text-white text-base font-bold leading-tight tracking-tight text-left">
+                Хочешь включить анимации?
+              </h2>
             </div>
           </div>
-
         </div>
       </div>
 
@@ -203,89 +201,108 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
             
             {/* ЭТАП 1: ВЫБОР СТИЛЯ */}
             <div 
-              className="w-full flex flex-col space-y-4 absolute inset-x-0"
+              className="w-full flex flex-col absolute inset-x-0"
               style={{
                 transform: stage === "style-select" ? "translateY(0)" : "translateY(130%)",
                 opacity: stage === "style-select" ? 1 : 0,
                 pointerEvents: stage === "style-select" ? "auto" : "none",
-                // Изменен на премиальный Apple кубик Безье со стильным торможением в конце
                 transition: "all 550ms cubic-bezier(0.16, 1, 0.3, 1)"
               }}
             >
-              {[
-                { id: "zoomer", emoji: "🫪", name: "Зумерский", desc: "оч популярный вариант, классный вайб" },
-                { id: "official", emoji: "👔", name: "Официальный", desc: "ох уж эти миллениалы" },
-                { id: "nefor", emoji: "🕷️", name: "Нефорский", desc: "ее, шаришь за это? а я нет, но постараюсь сделать вид, что тоже в теме, бро!" }
-              ].map((item) => (
-                <div 
-                  key={item.id}
-                  onClick={() => handleSelectStyle(item.id)}
-                  className={`w-full p-5 flex items-center justify-between border rounded-[24px] transition-all duration-200 ${
-                    selectedStyle === item.id 
-                      ? "border-[#FC062D]" 
-                      : "border-appleLight-border/75 dark:border-appleDark-border/75 opacity-80" 
-                  }`}
-                  style={{
-                    borderWidth: "1px",
-                    borderColor: selectedStyle === item.id ? "#FC062D" : undefined
-                  }}
-                >
-                  <div className="flex items-start space-x-3.5 pr-2">
-                    <span className="text-2xl pt-0.5">{item.emoji}</span>
-                    <div className="flex flex-col">
-                      <span className="text-base font-bold text-appleLight-text dark:text-appleDark-text leading-none">{item.name}</span>
-                      <span className="text-xs font-medium text-appleLight-text/75 dark:text-appleDark-text/75 mt-1.5 leading-tight">{item.desc}</span>
+              <div className="flex flex-col space-y-4">
+                {[
+                  { id: "zoomer", emoji: "🫪", name: "Зумерский", desc: "оч популярный вариант, классный вайб" },
+                  { id: "official", emoji: "👔", name: "Официальный", desc: "ох уж эти миллениалы" },
+                  { id: "nefor", emoji: "🕷️", name: "Нефорский", desc: "ее, шаришь за это? а я нет, но постараюсь сделать вид, что тоже в теме, бро!" }
+                ].map((item) => (
+                  <div 
+                    key={item.id}
+                    onClick={() => handleSelectStyle(item.id)}
+                    className={`w-full p-5 flex items-center justify-between border rounded-[24px] transition-all duration-200 ${
+                      selectedStyle === item.id 
+                        ? "border-[#FC062D]" 
+                        : "border-appleLight-border/75 dark:border-appleDark-border/75 opacity-80" 
+                    }`}
+                    style={{
+                      borderWidth: "1px",
+                      borderColor: selectedStyle === item.id ? "#FC062D" : undefined
+                    }}
+                  >
+                    <div className="flex items-start space-x-3.5 pr-2">
+                      <span className="text-2xl pt-0.5">{item.emoji}</span>
+                      <div className="flex flex-col">
+                        <span className="text-base font-bold text-appleLight-text dark:text-appleDark-text leading-none">{item.name}</span>
+                        <span className="text-xs font-medium text-appleLight-text/75 dark:text-appleDark-text/75 mt-1.5 leading-tight">{item.desc}</span>
+                      </div>
+                    </div>
+                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-colors duration-200 ${selectedStyle === item.id ? "border-[#FC062D] bg-[#FC062D]" : "border-appleLight-border/75 dark:border-appleDark-border/75"}`}>
+                      {selectedStyle === item.id && <div className="w-2 h-2 rounded-full bg-white" />}
                     </div>
                   </div>
-                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-colors duration-200 ${selectedStyle === item.id ? "border-[#FC062D] bg-[#FC062D]" : "border-appleLight-border/75 dark:border-appleDark-border/75"}`}>
-                    {selectedStyle === item.id && <div className="w-2 h-2 rounded-full bg-white" />}
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
+
+              {/* МЕЛКИЙ ПОДСКАЗОЧНЫЙ ТЕКСТ С ИКОНКОЙ */}
+              <div className="w-full flex items-start space-x-1.5 mt-4 px-1 opacity-75">
+                <img src="/icons/info.png" alt="Info" className="w-3.5 h-3.5 object-contain shrink-0 mt-0.5" />
+                <span className="text-xs font-medium text-appleLight-text/75 dark:text-appleDark-text/75 leading-tight">
+                  Ты всегда сможешь поменять свой выбор в настройках, йоу
+                </span>
+              </div>
             </div>
 
             {/* ЭТАП 2: ВЫБОР АНИМАЦИИ */}
             <div 
-              className="w-full flex flex-col space-y-4 absolute inset-x-0"
+              className="w-full flex flex-col absolute inset-x-0"
               style={{
                 transform: stage === "anim-select" ? "translateY(0)" : "translateY(-130%)",
                 opacity: stage === "anim-select" ? 1 : 0,
                 pointerEvents: stage === "anim-select" ? "auto" : "none",
-                // Изменен на премиальный Apple кубик Безье со стильным торможением в конце
                 transition: "all 550ms cubic-bezier(0.16, 1, 0.3, 1)"
               }}
             >
-              {[
-                { id: "yes", emoji: "✅", name: "Кнш включим", desc: "Куда же без них, верно?" },
-                { id: "no", emoji: "😱", name: "НИ В КОЕМ СЛУЧАЕ!", desc: "эти вечно движущиеся штуки ТАК пугают…" },
-                { id: "whatever", emoji: "🙄", name: "ватевер", desc: "сделаем как задумано дизайнером, он же старался" }
-              ].map((item) => (
-                <div 
-                  key={item.id}
-                  onClick={() => handleSelectAnim(item.id)}
-                  className={`w-full p-5 flex items-center justify-between border rounded-[24px] transition-all duration-200 ${
-                    selectedAnim === item.id 
-                      ? "border-[#FC062D]" 
-                      : "border-appleLight-border/75 dark:border-appleDark-border/75 opacity-80"
-                  }`}
-                  style={{
-                    borderWidth: "1px",
-                    borderColor: selectedAnim === item.id ? "#FC062D" : undefined
-                  }}
-                >
-                  <div className="flex items-start space-x-3.5 pr-2">
-                    <span className="text-2xl pt-0.5">{item.emoji}</span>
-                    <div className="flex flex-col">
-                      <span className="text-base font-bold text-appleLight-text dark:text-appleDark-text leading-none">{item.name}</span>
-                      <span className="text-xs font-medium text-appleLight-text/75 dark:text-appleDark-text/75 mt-1.5 leading-tight">{item.desc}</span>
+              <div className="flex flex-col space-y-4">
+                {[
+                  { id: "yes", emoji: "✅", name: "Кнш включим", desc: "Куда же без них, верно?" },
+                  { id: "no", emoji: "😱", name: "НИ В КОЕМ СЛУЧАЕ!", desc: "эти вечно движущиеся штуки ТАК пугают…" },
+                  { id: "whatever", emoji: "🙄", name: "ватевер", desc: "сделаем как задумано дизайнером, он же старался" }
+                ].map((item) => (
+                  <div 
+                    key={item.id}
+                    onClick={() => handleSelectAnim(item.id)}
+                    className={`w-full p-5 flex items-center justify-between border rounded-[24px] transition-all duration-200 ${
+                      selectedAnim === item.id 
+                        ? "border-[#FC062D]" 
+                        : "border-appleLight-border/75 dark:border-appleDark-border/75 opacity-80"
+                    }`}
+                    style={{
+                      borderWidth: "1px",
+                      borderColor: selectedAnim === item.id ? "#FC062D" : undefined
+                    }}
+                  >
+                    <div className="flex items-start space-x-3.5 pr-2">
+                      <span className="text-2xl pt-0.5">{item.emoji}</span>
+                      <div className="flex flex-col">
+                        <span className="text-base font-bold text-appleLight-text dark:text-appleDark-text leading-none">{item.name}</span>
+                        <span className="text-xs font-medium text-appleLight-text/75 dark:text-appleDark-text/75 mt-1.5 leading-tight">{item.desc}</span>
+                      </div>
+                    </div>
+                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-colors duration-200 ${selectedAnim === item.id ? "border-[#FC062D] bg-[#FC062D]" : "border-appleLight-border/75 dark:border-appleDark-border/75"}`}>
+                      {selectedAnim === item.id && <div className="w-2 h-2 rounded-full bg-white" />}
                     </div>
                   </div>
-                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-colors duration-200 ${selectedAnim === item.id ? "border-[#FC062D] bg-[#FC062D]" : "border-appleLight-border/75 dark:border-appleDark-border/75"}`}>
-                    {selectedAnim === item.id && <div className="w-2 h-2 rounded-full bg-white" />}
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
+
+              {/* МЕЛКИЙ ПОДСКАЗОЧНЫЙ ТЕКСТ С ИКОНКОЙ */}
+              <div className="w-full flex items-start space-x-1.5 mt-4 px-1 opacity-75">
+                <img src="/icons/info.png" alt="Info" className="w-3.5 h-3.5 object-contain shrink-0 mt-0.5" />
+                <span className="text-xs font-medium text-appleLight-text/75 dark:text-appleDark-text/75 leading-tight">
+                  Ты всегда сможешь поменять свой выбор в настройках, йоу
+                </span>
+              </div>
             </div>
+
           </div>
 
           {/* Кнопка внизу */}
