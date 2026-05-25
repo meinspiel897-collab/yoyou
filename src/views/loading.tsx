@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 interface LoadingViewProps {
   onComplete: () => void;
@@ -12,8 +12,6 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
   const [stage, setStage] = useState<Stage>("pure-loading");
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [selectedAnim, setSelectedAnim] = useState<string | null>(null);
-  
-  const headerRef = useRef<HTMLDivElement>(null);
 
   const triggerHaptic = (style: "light" | "medium" | "heavy" | "rigid" | "soft") => {
     if (typeof window !== "undefined") {
@@ -26,13 +24,12 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
     }
   };
 
-  // Безопасное управление нативной кнопкой "Назад" через приведение к any
+  // Управление нативной кнопкой "Назад" в Telegram
   useEffect(() => {
     if (typeof window !== "undefined") {
       const webApp = (window as any).Telegram?.WebApp;
       if (webApp?.BackButton) {
         const backButton = webApp.BackButton;
-
         if (stage === "anim-select") {
           backButton.show();
           const handleBack = () => {
@@ -67,7 +64,7 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
     }
   }, [stage]);
 
-  // Основной таймер первой загрузки
+  // Эффект первой загрузки
   useEffect(() => {
     if (stage === "pure-loading") {
       const timer = setTimeout(() => {
@@ -107,65 +104,70 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
   return (
     <div className="w-full h-full flex flex-col bg-appleLight-bg dark:bg-appleDark-bg overflow-hidden relative select-none">
       
-      {/* КРАСНОЕ ПРОСТРАНСТВО */}
+      {/* КРАСНОЕ ПРОСТРАНСТВО (ШАПКА / ЭКРАН ЗАГРУЗКИ) */}
       <div 
-        className="w-full bg-[#FC062D] relative flex items-center px-6 box-border z-[99] overflow-hidden"
+        className="w-full bg-[#FC062D] relative flex flex-col px-6 box-border z-[99] overflow-hidden"
         style={{
           height: isFullRed ? "100%" : "20%",
           minHeight: isFullRed ? "100%" : "130px",
-          transition: "all 650ms cubic-bezier(0.25, 1, 0.5, 1)"
+          // Нативная iOS кривая плавности для изменения размеров
+          transition: "height 750ms cubic-bezier(0.25, 1, 0.2, 1), min-height 750ms cubic-bezier(0.25, 1, 0.2, 1)"
         }}
       >
-        {/* ФОНОВЫЙ ПУЛЬСИРУЮЩИЙ СЛОЙ ДЛЯ ЭФФЕКТА ГЛАЗОК (только в полноэкранном режиме) */}
-        {isFullRed && (
-          <div className="absolute inset-0 bg-[#FC062D] animate-[pulse_2.5s_infinite_ease-in-out] opacity-[0.75]" />
-        )}
-
-        {/* Контейнер для контента шапки */}
+        {/* ФОНОВЫЙ ПУЛЬСИРУЮЩИЙ СЛОЙ ДЛЯ ЭФФЕКТА ГЛАЗОК */}
         <div 
-          ref={headerRef}
-          className="w-full max-w-[340px] mx-auto flex items-center relative z-10 h-full"
+          className="absolute inset-0 bg-[#FC062D] transition-opacity duration-500 ease-in-out pointer-events-none"
+          style={{
+            opacity: isFullRed ? 1 : 0,
+            animation: isFullRed ? "ios-pulse 3s infinite ease-in-out" : "none"
+          }}
+        />
+
+        {/* Центрирующий контейнер: работает ВСЕГДА, без абсолютного позиционирования */}
+        <div 
+          className="w-full max-w-[340px] mx-auto flex flex-1 items-center relative z-10"
+          style={{
+            justifyContent: isFullRed ? "center" : "flex-start",
+            // Плавное выравнивание контента
+            transition: "justify-content 750ms cubic-bezier(0.25, 1, 0.2, 1)"
+          }}
         >
-          {/* ЛОГОТИП: Идеально центруется, не тускнеет при пульсации фона */}
+          {/* ЛОГОТИП */}
           <div
-            className="flex items-center justify-center transition-all duration-[650ms] cubic-bezier(0.25, 1, 0.5, 1)"
+            className="flex items-center justify-center transition-all duration-[750ms] cubic-bezier(0.25, 1, 0.2, 1)"
             style={{
-              position: "relative",
-              left: isFullRed ? "50%" : "0%",
-              top: isFullRed ? "50%" : "auto",
-              marginTop: isFullRed ? "-48px" : "0px",
-              marginLeft: isFullRed ? "-48px" : "0px",
-              transition: "all 650ms cubic-bezier(0.25, 1, 0.5, 1)"
+              // Если режим полный — сдвигаем во флексе в центр, если нет — прижимаем к левому краю
+              transform: isFullRed ? "translateX(0)" : "translateX(0)",
+              margin: isFullRed ? "auto" : "0"
             }}
           >
             <img 
               src="/icons/logo.png" 
               alt="Logo" 
-              className="object-contain shrink-0"
+              className="object-contain shrink-0 transition-all duration-[750ms] cubic-bezier(0.25, 1, 0.2, 1)"
               style={{
-                width: isFullRed ? "96px" : "48px",
-                height: isFullRed ? "96px" : "48px",
-                transition: "all 650ms cubic-bezier(0.25, 1, 0.5, 1)"
+                width: isFullRed ? "104px" : "48px",
+                height: isFullRed ? "104px" : "48px",
               }}
             />
           </div>
           
-          {/* Блок с текстом вопросов — выезжает вертикально */}
+          {/* Блок с текстом вопросов */}
           <div 
             className="flex-1 h-12 relative overflow-hidden"
             style={{
               marginLeft: isFullRed ? "0px" : "16px",
               opacity: isFullRed ? 0 : 1,
               visibility: isFullRed ? "hidden" : "visible",
-              transition: "all 500ms cubic-bezier(0.25, 1, 0.5, 1)"
+              transition: "opacity 400ms ease, visibility 400ms ease"
             }}
           >
             <div 
               className="absolute inset-x-0 top-0 bottom-0 flex items-center"
               style={{
-                transform: stage === "style-select" ? "translateY(0)" : "translateY(-100%)",
+                transform: stage === "style-select" ? "translateY(0)" : "translateY(-120%)",
                 opacity: stage === "style-select" ? 1 : 0,
-                transition: "all 500ms cubic-bezier(0.25, 1, 0.5, 1)"
+                transition: "all 600ms cubic-bezier(0.25, 1, 0.2, 1)"
               }}
             >
               <h2 className="text-white text-base font-bold leading-tight tracking-tight">
@@ -175,9 +177,9 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
             <div 
               className="absolute inset-x-0 top-0 bottom-0 flex items-center"
               style={{
-                transform: stage === "anim-select" ? "translateY(0)" : "translateY(100%)",
+                transform: stage === "anim-select" ? "translateY(0)" : "translateY(120%)",
                 opacity: stage === "anim-select" ? 1 : 0,
-                transition: "all 500ms cubic-bezier(0.25, 1, 0.5, 1)"
+                transition: "all 600ms cubic-bezier(0.25, 1, 0.2, 1)"
               }}
             >
               <h2 className="text-white text-base font-bold leading-tight tracking-tight">
@@ -190,7 +192,7 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
 
       {/* НИЖНЯЯ ЧАСТЬ С КОНТЕНТОМ И КНОПКАМИ */}
       {!isFullRed && (
-        <div className="flex-1 w-full bg-appleLight-bg dark:bg-appleDark-bg flex flex-col justify-between pt-2 pb-10 px-6 box-border">
+        <div className="flex-1 w-full bg-appleLight-bg dark:bg-appleDark-bg flex flex-col justify-between pt-2 pb-10 px-6 box-border animate-[ios-fade-in_500ms_cubic-bezier(0.25,1,0.2,1)_forward]">
           
           <div className="w-full max-w-[340px] mx-auto flex flex-col justify-center relative overflow-hidden flex-1">
             
@@ -198,10 +200,10 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
             <div 
               className="w-full flex flex-col space-y-4 absolute inset-x-0"
               style={{
-                transform: stage === "style-select" ? "translateY(0)" : "translateY(120%)",
+                transform: stage === "style-select" ? "translateY(0)" : "translateY(130%)",
                 opacity: stage === "style-select" ? 1 : 0,
                 pointerEvents: stage === "style-select" ? "auto" : "none",
-                transition: "all 600ms cubic-bezier(0.25, 1, 0.5, 1)"
+                transition: "all 650ms cubic-bezier(0.25, 1, 0.2, 1)"
               }}
             >
               {[
@@ -212,10 +214,10 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
                 <div 
                   key={item.id}
                   onClick={() => handleSelectStyle(item.id)}
-                  className={`w-full p-5 flex items-center justify-between border rounded-[24px] transition-all duration-300 active:scale-[0.99] ${
+                  className={`w-full p-5 flex items-center justify-between border rounded-[24px] transition-all duration-300 active:scale-[0.98] ${
                     selectedStyle === item.id 
                       ? "border-[#FC062D]" 
-                      : "border-appleLight-border/75 dark:border-appleDark-border/75 opacity-75" 
+                      : "border-appleLight-border/75 dark:border-appleDark-border/75 opacity-80" 
                   }`}
                   style={{
                     borderWidth: "1px",
@@ -240,10 +242,10 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
             <div 
               className="w-full flex flex-col space-y-4 absolute inset-x-0"
               style={{
-                transform: stage === "anim-select" ? "translateY(0)" : "translateY(-120%)",
+                transform: stage === "anim-select" ? "translateY(0)" : "translateY(-130%)",
                 opacity: stage === "anim-select" ? 1 : 0,
                 pointerEvents: stage === "anim-select" ? "auto" : "none",
-                transition: "all 600ms cubic-bezier(0.25, 1, 0.5, 1)"
+                transition: "all 650ms cubic-bezier(0.25, 1, 0.2, 1)"
               }}
             >
               {[
@@ -254,10 +256,10 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
                 <div 
                   key={item.id}
                   onClick={() => handleSelectAnim(item.id)}
-                  className={`w-full p-5 flex items-center justify-between border rounded-[24px] transition-all duration-300 active:scale-[0.99] ${
+                  className={`w-full p-5 flex items-center justify-between border rounded-[24px] transition-all duration-300 active:scale-[0.98] ${
                     selectedAnim === item.id 
                       ? "border-[#FC062D]" 
-                      : "border-appleLight-border/75 dark:border-appleDark-border/75 opacity-75"
+                      : "border-appleLight-border/75 dark:border-appleDark-border/75 opacity-80"
                   }`}
                   style={{
                     borderWidth: "1px",
@@ -285,7 +287,7 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
               <button
                 onClick={handleNextStep}
                 disabled={!selectedStyle}
-                className={`w-full h-14 rounded-full font-bold text-sm transition-all duration-300 outline-none ${selectedStyle ? "bg-[#FC062D] text-white active:opacity-90" : "bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg text-appleLight-text/30 dark:text-appleDark-text/30"}`}
+                className={`w-full h-14 rounded-full font-bold text-sm transition-all duration-300 outline-none ${selectedStyle ? "bg-[#FC062D] text-white active:scale-[0.97]" : "bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg text-appleLight-text/30 dark:text-appleDark-text/30"}`}
               >
                 Продолжить
               </button>
@@ -293,7 +295,7 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
               <button
                 onClick={handleFinish}
                 disabled={!selectedAnim}
-                className={`w-full h-14 rounded-full font-bold text-sm transition-all duration-300 outline-none ${selectedAnim ? "bg-[#FC062D] text-white active:opacity-90" : "bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg text-appleLight-text/30 dark:text-appleDark-text/30"}`}
+                className={`w-full h-14 rounded-full font-bold text-sm transition-all duration-300 outline-none ${selectedAnim ? "bg-[#FC062D] text-white active:scale-[0.97]" : "bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg text-appleLight-text/30 dark:text-appleDark-text/30"}`}
               >
                 Завершить
               </button>
@@ -301,6 +303,18 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
           </div>
         </div>
       )}
+
+      {/* Профессиональные iOS анимации */}
+      <style jsx global>{`
+        @keyframes ios-pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.72; }
+        }
+        @keyframes ios-fade-in {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }
