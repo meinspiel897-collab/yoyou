@@ -17,11 +17,16 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (showMain && typeof window !== "undefined" && window.Telegram?.WebApp) {
+    if (showMain && typeof window !== "undefined") {
       setTimeout(() => {
         try {
-          window.Telegram.WebApp.requestFullscreen();
-        } catch (e) {}
+          const tg = (window as any).Telegram?.WebApp;
+          if (tg && typeof tg.requestFullscreen === "function") {
+            tg.requestFullscreen();
+          }
+        } catch (e) {
+          console.error("Failed to go fullscreen:", e);
+        }
       }, 50);
     }
   }, [showMain]);
