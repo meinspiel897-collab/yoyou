@@ -13,7 +13,6 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [selectedAnim, setSelectedAnim] = useState<string | null>(null);
   
-  // Реф для точного замера высоты контейнера шапки
   const headerRef = useRef<HTMLDivElement>(null);
 
   const triggerHaptic = (style: "light" | "medium" | "heavy" | "rigid" | "soft") => {
@@ -27,25 +26,27 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
     }
   };
 
-  // Управление нативной кнопкой "Назад" в Telegram
+  // Безопасное управление нативной кнопкой "Назад" через приведение к any
   useEffect(() => {
-    if (typeof window !== "undefined" && window.Telegram?.WebApp) {
-      const webApp = window.Telegram.WebApp;
-      const backButton = webApp.BackButton;
+    if (typeof window !== "undefined") {
+      const webApp = (window as any).Telegram?.WebApp;
+      if (webApp?.BackButton) {
+        const backButton = webApp.BackButton;
 
-      if (stage === "anim-select") {
-        backButton.show();
-        const handleBack = () => {
-          triggerHaptic("light");
-          setStage("style-select");
-        };
-        backButton.onClick(handleBack);
-        return () => {
-          backButton.offClick(handleBack);
+        if (stage === "anim-select") {
+          backButton.show();
+          const handleBack = () => {
+            triggerHaptic("light");
+            setStage("style-select");
+          };
+          backButton.onClick(handleBack);
+          return () => {
+            backButton.offClick(handleBack);
+            backButton.hide();
+          };
+        } else {
           backButton.hide();
-        };
-      } else {
-        backButton.hide();
+        }
       }
     }
   }, [stage]);
@@ -103,47 +104,32 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
 
   const isFullRed = stage === "pure-loading" || stage === "final-loading";
 
-  // Вычисляем смещение для идеального центрирования логотипа по экрану без смены position
-  let logoTransform = "translate(0px, 0px)";
-  if (isFullRed && typeof window !== "undefined" && headerRef.current) {
-    const windowHeight = window.innerHeight;
-    const windowWidth = window.innerWidth;
-    const headerWidth = headerRef.current.offsetWidth;
-    
-    // Вычисляем точку центра экрана относительно контейнера max-w-[340px]
-    const targetX = windowWidth / 2 - (windowWidth - headerWidth) / 2 - 24; 
-    const targetY = windowHeight / 2 - 65; // 65 — половина базовой высоты шапки
-    
-    logoTransform = `translate(${targetX - 48}px, ${targetY - 48}px)`; // С учетом размеров самого лого
-  }
-
   return (
     <div className="w-full h-full flex flex-col bg-appleLight-bg dark:bg-appleDark-bg overflow-hidden relative select-none">
       
       {/* КРАСНОЕ ПРОСТРАНСТВО */}
       <div 
-        className={`w-full bg-[#FC062D] relative flex items-center px-6 box-border z-[99] overflow-hidden ${
-          isFullRed ? "animate-[pulse_3s_infinite_ease-in-out]" : ""
-        }`}
+        className="w-full bg-[#FC062D] relative flex items-center px-6 box-border z-[99] overflow-hidden"
         style={{
           height: isFullRed ? "100%" : "20%",
           minHeight: isFullRed ? "100%" : "130px",
-          // Эффект "глазок": в полноэкранном режиме плавно дышит прозрачностью от 1 до 0.75
-          animationDuration: "2.5s",
-          style: isFullRed ? { animationName: "pulse" } : undefined,
           transition: "all 650ms cubic-bezier(0.25, 1, 0.5, 1)"
         }}
       >
-        {/* Контейнер для выравнивания контента */}
+        {/* ФОНОВЫЙ ПУЛЬСИРУЮЩИЙ СЛОЙ ДЛЯ ЭФФЕКТА ГЛАЗОК (только в полноэкранном режиме) */}
+        {isFullRed && (
+          <div className="absolute inset-0 bg-[#FC062D] animate-[pulse_2.5s_infinite_ease-in-out] opacity-[0.75]" />
+        )}
+
+        {/* Контейнер для контента шапки */}
         <div 
           ref={headerRef}
           className="w-full max-w-[340px] mx-auto flex items-center relative z-10 h-full"
         >
-          {/* ЛОГОТИП: Теперь позиционируется стабильно и плавно скользит по рельсам */}
+          {/* ЛОГОТИП: Идеально центруется, не тускнеет при пульсации фона */}
           <div
-            className="flex items-center justify-center relative transition-all duration-[650ms] cubic-bezier(0.25, 1, 0.5, 1)"
+            className="flex items-center justify-center transition-all duration-[650ms] cubic-bezier(0.25, 1, 0.5, 1)"
             style={{
-              transform: !isFullRed ? "translate(0px, 0px)" : "none",
               position: "relative",
               left: isFullRed ? "50%" : "0%",
               top: isFullRed ? "50%" : "auto",
@@ -164,7 +150,7 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
             />
           </div>
           
-          {/* Блок с текстом вопросов — теперь исчезает/появляется более благородно */}
+          {/* Блок с текстом вопросов — выезжает вертикально */}
           <div 
             className="flex-1 h-12 relative overflow-hidden"
             style={{
@@ -208,7 +194,7 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
           
           <div className="w-full max-w-[340px] mx-auto flex flex-col justify-center relative overflow-hidden flex-1">
             
-            {/* ЭТАП 1: ВЫБОР СТИЛЯ (Уезжает вниз, приезжает снизу) */}
+            {/* ЭТАП 1: ВЫБОР СТИЛЯ */}
             <div 
               className="w-full flex flex-col space-y-4 absolute inset-x-0"
               style={{
@@ -250,7 +236,7 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
               ))}
             </div>
 
-            {/* ЭТАП 2: ВЫБОР АНИМАЦИИ (Прилетает сверху, улетает вверх) */}
+            {/* ЭТАП 2: ВЫБОР АНИМАЦИИ */}
             <div 
               className="w-full flex flex-col space-y-4 absolute inset-x-0"
               style={{
@@ -315,14 +301,6 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
           </div>
         </div>
       )}
-
-      {/* Глобальный стиль для пульсации прозрачности ("глазок") */}
-      <style jsx global>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.75; }
-        }
-      `}</style>
     </div>
   );
 }
