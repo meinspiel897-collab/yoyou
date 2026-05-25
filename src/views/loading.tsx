@@ -122,65 +122,73 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
           }}
         />
 
-        {/* Контейнер-привязка для позиционирования элементов внутри 340px */}
-        <div className="w-full max-w-[340px] h-full mx-auto relative flex items-center">
+        {/* Контейнер-привязка (340px) */}
+        <div className="w-full max-w-[340px] h-full mx-auto relative flex items-center justify-center">
           
-          {/* ЕДИНЫЙ ЛОГОТИП ГЛАЗОК (Перемещается по диагонали из центра в левый край) */}
-          <div
-            className="absolute transition-all duration-[450ms] cubic-bezier(0.25, 1, 0.2, 1) z-20"
-            style={{
-              // Расчет координат: на full-screen он в геометрическом центре, на сжатом — прижат влево
-              left: isFullRed ? "50%" : "0%",
-              top: isFullRed ? "50%" : "50%",
-              // Корректируем смещение scale & translate для плавного движения из одной точки в другую
-              transform: isFullRed 
-                ? "translate(-50%, -50%) scale(1.08)" 
-                : "translate(0%, -50%) scale(1)",
-              transformOrigin: "center center",
-              width: "48px",
-              height: "48px"
-            }}
-          >
-            <img 
-              src="/icons/logo.png" 
-              alt="Logo" 
-              className="w-full h-full object-contain block"
-            />
-          </div>
-          
-          {/* Блок с текстом вопросов */}
+          {/* ОБЩИЙ КОНТЕЙНЕР ДЛЯ ВЫРАВНИВАНИЯ ВСЕЙ СВЯЗКИ ТЕКСТ+ЛОГО ПО ЦЕНТРУ */}
           <div 
-            className="flex-1 h-12 relative overflow-hidden"
+            className="flex items-center w-full relative"
             style={{
-              marginLeft: "64px", // Отступ, чтобы текст не налезал на уехавший влево логотип
-              opacity: isFullRed ? 0 : 1,
-              visibility: isFullRed ? "hidden" : "visible",
-              transition: "opacity 200ms ease, visibility 200ms ease"
+              justifyContent: isFullRed ? "center" : "flex-start",
             }}
           >
-            <div 
-              className="absolute inset-x-0 top-0 bottom-0 flex items-center"
+            {/* ЕДИНЫЙ ЛОГОТИП ГЛАЗОК */}
+            <div
+              className="transition-all duration-[450ms] cubic-bezier(0.25, 1, 0.2, 1) z-20 shrink-0"
               style={{
-                transform: stage === "style-select" ? "translateY(0)" : "translateY(-120%)",
-                opacity: stage === "style-select" ? 1 : 0,
-                transition: "all 400ms cubic-bezier(0.25, 1, 0.2, 1)"
+                position: isFullRed ? "absolute" : "relative",
+                left: isFullRed ? "50%" : "auto",
+                top: isFullRed ? "50%" : "auto",
+                transform: isFullRed 
+                  ? "translate(-50%, -50%) scale(1.08)" 
+                  : "translate(0, 0) scale(1)",
+                transformOrigin: "center center",
+                width: "48px",
+                height: "48px"
               }}
             >
-              <h2 className="text-white text-base font-bold leading-tight tracking-tight">
-                Выбери стиль, который тебе больше всего нравится
-              </h2>
+              <img 
+                src="/icons/logo.png" 
+                alt="Logo" 
+                className="w-full h-full object-contain block"
+              />
             </div>
+            
+            {/* Блок с текстом вопросов */}
             <div 
-              className="absolute inset-x-0 top-0 bottom-0 flex items-center"
+              className="flex-1 h-12 relative overflow-hidden"
               style={{
-                transform: stage === "anim-select" ? "translateY(0)" : "translateY(120%)",
-                opacity: stage === "anim-select" ? 1 : 0,
-                transition: "all 400ms cubic-bezier(0.25, 1, 0.2, 1)"
+                marginLeft: isFullRed ? "0px" : "14px",
+                display: isFullRed ? "none" : "block",
+                opacity: isFullRed ? 0 : 1,
+                visibility: isFullRed ? "hidden" : "visible",
+                transition: "opacity 200ms ease, visibility 200ms ease"
               }}
             >
-              <h2 className="text-white text-base font-bold leading-tight tracking-tight">
-                Включим анимации?
-              </h2>
+              <div 
+                className="absolute inset-x-0 top-0 bottom-0 flex items-center"
+                style={{
+                  transform: stage === "style-select" ? "translateY(0)" : "translateY(-120%)",
+                  opacity: stage === "style-select" ? 1 : 0,
+                  transition: "all 450ms cubic-bezier(0.16, 1, 0.3, 1)"
+                }}
+              >
+                <h2 className="text-white text-base font-bold leading-tight tracking-tight text-left">
+                  Выбери стиль, который тебе больше всего нравится
+                </h2>
+              </div>
+              <div 
+                className="absolute inset-x-0 top-0 bottom-0 flex items-center"
+                style={{
+                  transform: stage === "anim-select" ? "translateY(0)" : "translateY(120%)",
+                  opacity: stage === "anim-select" ? 1 : 0,
+                  transition: "all 450ms cubic-bezier(0.16, 1, 0.3, 1)"
+                }}
+              >
+                <h2 className="text-white text-base font-bold leading-tight tracking-tight text-left">
+                  Хочешь включить анимации?
+                </h2>
+              </div>
             </div>
           </div>
 
@@ -200,7 +208,8 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
                 transform: stage === "style-select" ? "translateY(0)" : "translateY(130%)",
                 opacity: stage === "style-select" ? 1 : 0,
                 pointerEvents: stage === "style-select" ? "auto" : "none",
-                transition: "all 500ms cubic-bezier(0.25, 1, 0.2, 1)"
+                // Изменен на премиальный Apple кубик Безье со стильным торможением в конце
+                transition: "all 550ms cubic-bezier(0.16, 1, 0.3, 1)"
               }}
             >
               {[
@@ -242,7 +251,8 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
                 transform: stage === "anim-select" ? "translateY(0)" : "translateY(-130%)",
                 opacity: stage === "anim-select" ? 1 : 0,
                 pointerEvents: stage === "anim-select" ? "auto" : "none",
-                transition: "all 500ms cubic-bezier(0.25, 1, 0.2, 1)"
+                // Изменен на премиальный Apple кубик Безье со стильным торможением в конце
+                transition: "all 550ms cubic-bezier(0.16, 1, 0.3, 1)"
               }}
             >
               {[
