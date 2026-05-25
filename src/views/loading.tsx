@@ -13,6 +13,17 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [selectedAnim, setSelectedAnim] = useState<string | null>(null);
 
+  const triggerHaptic = (style: "light" | "medium" | "heavy" | "rigid" | "soft") => {
+    if (typeof window !== "undefined") {
+      const anyWindow = window as any;
+      if (anyWindow.Telegram?.WebApp?.HapticFeedback) {
+        try {
+          anyWindow.Telegram.WebApp.HapticFeedback.impactOccurred(style);
+        } catch (e) {}
+      }
+    }
+  };
+
   useEffect(() => {
     if (typeof window !== "undefined" && window.Telegram?.WebApp) {
       const webApp = window.Telegram.WebApp;
@@ -30,12 +41,34 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
 
   useEffect(() => {
     if (stage === "pure-loading") {
+      const hapticTimer = setTimeout(() => {
+        triggerHaptic("light");
+      }, 1850);
+
       const timer = setTimeout(() => {
         setStage("style-select");
       }, 2000);
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(hapticTimer);
+        clearTimeout(timer);
+      };
     }
   }, [stage]);
+
+  const handleSelectStyle = (id: string) => {
+    triggerHaptic("light");
+    setSelectedStyle(id);
+  };
+
+  const handleSelectAnim = (id: string) => {
+    triggerHaptic("light");
+    setSelectedAnim(id);
+  };
+
+  const handleNextStep = () => {
+    triggerHaptic("medium");
+    setStage("anim-select");
+  };
 
   const handleFinish = () => {
     if (selectedAnim) {
@@ -60,23 +93,20 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
   return (
     <div className="w-full h-full flex flex-col bg-appleLight-bg dark:bg-appleDark-bg overflow-hidden relative">
       <div 
-        className="w-full bg-[#FC062D] relative flex items-end px-6 box-border z-[99]"
+        className="w-full bg-[#FC062D] relative flex items-center px-6 box-border z-[99]"
         style={{
-          height: isFullRed ? "100%" : "24%",
-          minHeight: isFullRed ? "100%" : "150px",
+          height: isFullRed ? "100%" : "20%",
+          minHeight: isFullRed ? "100%" : "130px",
           justifyContent: isFullRed ? "center" : "flex-start",
-          alignItems: isFullRed ? "center" : "flex-end",
-          paddingBottom: isFullRed ? "0" : "24px",
-          transition: "all 550ms cubic-bezier(0.34, 1.56, 0.64, 1)"
+          transition: "all 500ms cubic-bezier(0.16, 1, 0.3, 1)"
         }}
       >
         <div 
           className="flex items-center w-full max-w-[340px] mx-auto"
           style={{
             justifyContent: isFullRed ? "center" : "flex-start",
-            gap: isFullRed ? "0px" : "14px",
-            flexDirection: "row",
-            transition: "all 550ms cubic-bezier(0.34, 1.56, 0.64, 1)"
+            gap: isFullRed ? "0px" : "16px",
+            transition: "all 500ms cubic-bezier(0.16, 1, 0.3, 1)"
           }}
         >
           <img 
@@ -86,7 +116,7 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
             style={{
               width: isFullRed ? "96px" : "48px",
               height: isFullRed ? "96px" : "48px",
-              transition: "all 550ms cubic-bezier(0.34, 1.56, 0.64, 1)"
+              transition: "all 500ms cubic-bezier(0.16, 1, 0.3, 1)"
             }}
           />
           
@@ -95,9 +125,9 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
               <div 
                 className="absolute inset-0 flex items-center"
                 style={{
-                  transform: stage === "style-select" ? "translateX(0)" : "translateX(-110%)",
+                  transform: stage === "style-select" ? "translateX(0)" : "translateX(-115%)",
                   opacity: stage === "style-select" ? 1 : 0,
-                  transition: "all 400ms cubic-bezier(0.34, 1.56, 0.64, 1)"
+                  transition: "all 380ms cubic-bezier(0.34, 1.25, 0.64, 1)"
                 }}
               >
                 <h2 className="text-white text-base font-bold leading-tight tracking-tight">
@@ -107,9 +137,9 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
               <div 
                 className="absolute inset-0 flex items-center"
                 style={{
-                  transform: stage === "anim-select" ? "translateX(0)" : "translateX(110%)",
+                  transform: stage === "anim-select" ? "translateX(0)" : "translateX(115%)",
                   opacity: stage === "anim-select" ? 1 : 0,
-                  transition: "all 400ms cubic-bezier(0.34, 1.56, 0.64, 1)"
+                  transition: "all 380ms cubic-bezier(0.34, 1.25, 0.64, 1)"
                 }}
               >
                 <h2 className="text-white text-base font-bold leading-tight tracking-tight">
@@ -122,26 +152,26 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
       </div>
 
       {!isFullRed && (
-        <div className="flex-1 w-full bg-appleLight-bg dark:bg-appleDark-bg flex flex-col justify-between pt-4 pb-10 px-6 box-border">
+        <div className="flex-1 w-full bg-appleLight-bg dark:bg-appleDark-bg flex flex-col justify-between pt-2 pb-10 px-6 box-border">
           <div className="w-full max-w-[340px] mx-auto flex flex-col justify-center relative overflow-hidden flex-1">
             <div 
-              className="w-full flex flex-col space-y-3.5 absolute inset-x-0"
+              className="w-full flex flex-col space-y-4 absolute inset-x-0"
               style={{
-                transform: stage === "style-select" ? "translateX(0)" : "translateX(-110%)",
+                transform: stage === "style-select" ? "translateX(0)" : "translateX(-115%)",
                 opacity: stage === "style-select" ? 1 : 0,
                 pointerEvents: stage === "style-select" ? "auto" : "none",
-                transition: "all 450ms cubic-bezier(0.34, 1.56, 0.64, 1)"
+                transition: "all 400ms cubic-bezier(0.34, 1.25, 0.64, 1)"
               }}
             >
               {[
-                { id: "zoomer", emoji: "🫪", name: "Зумерский", desc: "оч популярный вариант, классный вайб" },
+                { id: "zoomer", emoji: "𫪪", name: "Зумерский", desc: "оч популярный вариант, классный вайб" },
                 { id: "official", emoji: "👔", name: "Официальный", desc: "ох уж эти миллениалы" },
                 { id: "nefor", emoji: "🕷️", name: "Нефорский", desc: "ее, шаришь за это? а я нет, но постараюсь сделать вид, что тоже в теме, бро!" }
               ].map((item) => (
                 <div 
                   key={item.id}
-                  onClick={() => setSelectedStyle(item.id)}
-                  className={`w-full p-4 flex items-center justify-between border rounded-[24px] transition-all duration-300 ${
+                  onClick={() => handleSelectStyle(item.id)}
+                  className={`w-full p-4.5 flex items-center justify-between border rounded-[24px] transition-all duration-200 ${
                     selectedStyle === item.id 
                       ? "border-[#FC062D]" 
                       : "border-appleLight-border/75 dark:border-appleDark-border/75"
@@ -154,7 +184,7 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
                       <span className="text-xs font-medium text-appleLight-text/75 dark:text-appleDark-text/75 mt-1.5 leading-tight">{item.desc}</span>
                     </div>
                   </div>
-                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-colors duration-300 ${selectedStyle === item.id ? "border-[#FC062D] bg-[#FC062D]" : "border-appleLight-border/75 dark:border-appleDark-border/75"}`}>
+                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-colors duration-200 ${selectedStyle === item.id ? "border-[#FC062D] bg-[#FC062D]" : "border-appleLight-border/75 dark:border-appleDark-border/75"}`}>
                     {selectedStyle === item.id && <div className="w-2 h-2 rounded-full bg-white" />}
                   </div>
                 </div>
@@ -162,12 +192,12 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
             </div>
 
             <div 
-              className="w-full flex flex-col space-y-3.5 absolute inset-x-0"
+              className="w-full flex flex-col space-y-4 absolute inset-x-0"
               style={{
-                transform: stage === "anim-select" ? "translateX(0)" : "translateX(110%)",
+                transform: stage === "anim-select" ? "translateX(0)" : "translateX(115%)",
                 opacity: stage === "anim-select" ? 1 : 0,
                 pointerEvents: stage === "anim-select" ? "auto" : "none",
-                transition: "all 450ms cubic-bezier(0.34, 1.56, 0.64, 1)"
+                transition: "all 400ms cubic-bezier(0.34, 1.25, 0.64, 1)"
               }}
             >
               {[
@@ -177,8 +207,8 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
               ].map((item) => (
                 <div 
                   key={item.id}
-                  onClick={() => setSelectedAnim(item.id)}
-                  className={`w-full p-4 flex items-center justify-between border rounded-[24px] transition-all duration-300 ${
+                  onClick={() => handleSelectAnim(item.id)}
+                  className={`w-full p-4.5 flex items-center justify-between border rounded-[24px] transition-all duration-200 ${
                     selectedAnim === item.id 
                       ? "border-[#FC062D]" 
                       : "border-appleLight-border/75 dark:border-appleDark-border/75"
@@ -191,7 +221,7 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
                       <span className="text-xs font-medium text-appleLight-text/75 dark:text-appleDark-text/75 mt-1.5 leading-tight">{item.desc}</span>
                     </div>
                   </div>
-                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-colors duration-300 ${selectedAnim === item.id ? "border-[#FC062D] bg-[#FC062D]" : "border-appleLight-border/75 dark:border-appleDark-border/75"}`}>
+                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-colors duration-200 ${selectedAnim === item.id ? "border-[#FC062D] bg-[#FC062D]" : "border-appleLight-border/75 dark:border-appleDark-border/75"}`}>
                     {selectedAnim === item.id && <div className="w-2 h-2 rounded-full bg-white" />}
                   </div>
                 </div>
@@ -202,9 +232,9 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
           <div className="w-full max-w-[340px] mx-auto mt-4">
             {stage === "style-select" ? (
               <button
-                onClick={() => setStage("anim-select")}
+                onClick={handleNextStep}
                 disabled={!selectedStyle}
-                className={`w-full h-14 rounded-full font-bold text-sm transition-all duration-300 outline-none ${selectedStyle ? "bg-[#FC062D] text-white active:opacity-90" : "bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg text-appleLight-text/30 dark:text-appleDark-text/30"}`}
+                className={`w-full h-[58px] rounded-full font-bold text-sm transition-all duration-200 outline-none ${selectedStyle ? "bg-[#FC062D] text-white active:opacity-90" : "bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg text-appleLight-text/30 dark:text-appleDark-text/30"}`}
               >
                 Продолжить
               </button>
@@ -212,7 +242,7 @@ export default function LoadingView({ onComplete }: LoadingViewProps) {
               <button
                 onClick={handleFinish}
                 disabled={!selectedAnim}
-                className={`w-full h-14 rounded-full font-bold text-sm transition-all duration-300 outline-none ${selectedAnim ? "bg-[#FC062D] text-white active:opacity-90" : "bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg text-appleLight-text/30 dark:text-appleDark-text/30"}`}
+                className={`w-full h-[58px] rounded-full font-bold text-sm transition-all duration-200 outline-none ${selectedAnim ? "bg-[#FC062D] text-white active:opacity-90" : "bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg text-appleLight-text/30 dark:text-appleDark-text/30"}`}
               >
                 Завершить
               </button>
