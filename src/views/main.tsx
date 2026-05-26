@@ -14,13 +14,11 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   
-  // Рефы для точного расчета физики капли
   const tabFeedRef = useRef<HTMLButtonElement>(null);
   const tabEventsRef = useRef<HTMLButtonElement>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Внутреннее состояние физического движка капли
   const physicsState = useRef({
     x: 0, tx: 0, vx: 0,
     w: 0, tw: 0, vw: 0,
@@ -40,13 +38,12 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     }
   }, []);
 
-  // Цикл физики пружины (Spring Physics Engine)
   useEffect(() => {
     if (isLoading || isSearching) return;
 
     const PHYSICS = {
-      pos: { k: 380, d: 38, m: 1 },    
-      scale: { k: 420, d: 24, m: 1 }   
+      pos: { k: 440, d: 40, m: 1 },    
+      scale: { k: 460, d: 26, m: 1 }   
     };
 
     function spring(current: number, target: number, velocity: number, config: { k: number, d: number, m: number }) {
@@ -70,11 +67,10 @@ export default function MainView({ isLoading = false }: MainViewProps) {
 
       if (state.isMoving) {
         if (dist > 15) { 
-          // Состояние полета: убираем заливку, подсвечиваем контур динамически под тему
           slider.style.backgroundColor = "transparent";
           slider.style.borderColor = document.documentElement.classList.contains("dark") 
-            ? "rgba(255, 255, 255, 0.2)" 
-            : "rgba(0, 0, 0, 0.12)";
+            ? "rgba(255, 255, 255, 0.35)" 
+            : "rgba(0, 0, 0, 0.18)";
           state.tsy = 1.22; 
           state.tsx = 0.88; 
         } else if (dist <= 15 && dist > 0.5) {
@@ -109,29 +105,26 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     return () => cancelAnimationFrame(rafId);
   }, [isLoading, isSearching]);
 
-  // Следим за табами и выходом из поиска для корректного пересчета геометрии капли
   useEffect(() => {
     if (isLoading || isSearching) return;
     
-    // Микротаймаут дает DOM-дереву вернуть правильные размеры (не 0px) после закрытия поиска
-    const timeoutId = setTimeout(() => {
-      const targetEl = activeTab === "feed" ? tabFeedRef.current : tabEventsRef.current;
-      if (targetEl) {
-        const state = physicsState.current;
-        
-        // Если размеры сбросились в 0 (после поиска), мягко инициализируем их без прыжка
-        if (state.w === 0) {
-          state.x = targetEl.offsetLeft;
-          state.w = targetEl.offsetWidth;
+    const targetEl = activeTab === "feed" ? tabFeedRef.current : tabEventsRef.current;
+    if (targetEl) {
+      const state = physicsState.current;
+      
+      if (state.w === 0 && targetEl.offsetWidth > 0) {
+        state.x = targetEl.offsetLeft;
+        state.w = targetEl.offsetWidth;
+        if (sliderRef.current) {
+          sliderRef.current.style.left = `${state.x}px`;
+          sliderRef.current.style.width = `${state.w}px`;
         }
-        
-        state.tx = targetEl.offsetLeft;
-        state.tw = targetEl.offsetWidth;
-        state.isMoving = true;
       }
-    }, 40);
-    
-    return () => clearTimeout(timeoutId);
+      
+      state.tx = targetEl.offsetLeft;
+      state.tw = targetEl.offsetWidth;
+      state.isMoving = true;
+    }
   }, [activeTab, isLoading, isSearching]);
 
   const triggerHaptic = () => {
@@ -155,19 +148,37 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   const enableSearch = () => {
     triggerHaptic();
     setIsSearching(true);
-    setTimeout(() => inputRef.current?.focus(), 250);
+    setTimeout(() => inputRef.current?.focus(), 150);
   };
 
   const disableSearch = () => {
     triggerHaptic();
     setIsSearching(false);
     setSearchQuery("");
+    
+    const targetEl = activeTab === "feed" ? tabFeedRef.current : tabEventsRef.current;
+    if (targetEl) {
+      const state = physicsState.current;
+      state.x = targetEl.offsetLeft;
+      state.w = targetEl.offsetWidth;
+      state.tx = targetEl.offsetLeft;
+      state.tw = targetEl.offsetWidth;
+      state.vx = 0;
+      state.vw = 0;
+      state.isMoving = false;
+      if (sliderRef.current) {
+        sliderRef.current.style.left = `${state.x}px`;
+        sliderRef.current.style.width = `${state.w}px`;
+        sliderRef.current.style.transform = "scale(1, 1)";
+        sliderRef.current.style.backgroundColor = "";
+        sliderRef.current.style.borderColor = "transparent";
+      }
+    }
   };
 
   return (
     <div className="flex flex-col w-full h-full bg-appleLight-bg dark:bg-appleDark-bg transition-colors duration-300">
       
-      {/* ХЕДЕР */}
       <header className="absolute top-[var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))] left-0 right-0 h-11 flex items-center justify-center z-50 pointer-events-none select-none">
         {isLoading ? (
           <div className="w-24 h-5 bg-neutral-300 dark:bg-neutral-800 rounded-md animate-pulse" />
@@ -181,19 +192,16 @@ export default function MainView({ isLoading = false }: MainViewProps) {
         )}
       </header>
       
-      {/* ОСНОВНОЙ КОНТЕНТ */}
       <main className="flex-1 w-full pt-[calc(var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))+44px)] flex flex-col overflow-hidden">
         
-        {/* ОРГАНЫ УПРАВЛЕНИЯ: ОТСТУПЫ РОВНО ПО 20PX СЛЕВА И СПРАВА */}
         <div className="w-[calc(100%-40px)] mx-auto pt-3 box-border">
           {isLoading ? (
             <div className="w-full h-11 bg-neutral-300 dark:bg-neutral-800 rounded-full animate-pulse" />
           ) : (
             <div className="w-full h-11 flex items-center relative">
               
-              {/* ЖИДКИЙ ЧУЗБАР (ВЫСОТА H-11 КАК У КНОПКИ) */}
               <div 
-                className="h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex relative transition-all duration-300 cubic-bezier(0.25, 1, 0.5, 1)"
+                className="h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex relative transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1)"
                 style={{
                   width: isSearching ? "0px" : "calc(100% - 54px)",
                   marginRight: isSearching ? "0px" : "10px",
@@ -202,10 +210,9 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                   pointerEvents: isSearching ? "none" : "auto",
                 }}
               >
-                {/* Физический летящий ползунок */}
                 <div 
                   ref={sliderRef}
-                  className="absolute top-1 bottom-1 bg-white dark:bg-neutral-800 rounded-full border border-transparent shadow-sm will-change-transform z-10"
+                  className="absolute top-1 bottom-1 bg-white/95 dark:bg-neutral-700/90 rounded-full border border-transparent shadow-sm will-change-transform z-10"
                 />
 
                 <button
@@ -229,27 +236,33 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                 </button>
               </div>
 
-              {/* МОРФИНГ СТРОКИ ПОИСКА (ВЫСОТА H-11, КРУГ РАВЕН ВЫСОТЕ В СВЕРНУТОМ ВИДЕ) */}
               <div 
-                className="h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full transition-all duration-300 cubic-bezier(0.25, 1, 0.5, 1) flex items-center relative overflow-hidden"
+                className="h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1) flex items-center relative overflow-hidden"
                 style={{
                   width: isSearching ? "100%" : "44px",
                   padding: isSearching ? "0 14px" : "0px",
                 }}
               >
                 {isSearching ? (
-                  <div className="w-full h-full flex items-center justify-between">
-                    <input
-                      ref={inputRef}
-                      type="text"
-                      placeholder="Поиск..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-[calc(100%-24px)] h-full bg-transparent border-none outline-none text-xs font-bold text-appleLight-text dark:text-appleDark-text placeholder-appleLight-text/35 dark:placeholder-appleDark-text/35"
-                    />
+                  <div className="w-full h-full flex items-center justify-between space-x-2">
+                    <div className="flex items-center flex-1 h-full space-x-2">
+                      <img 
+                        src="/icons/search.png" 
+                        alt="Поиск" 
+                        className="w-4 h-4 object-contain opacity-35 dark:opacity-35"
+                      />
+                      <input
+                        ref={inputRef}
+                        type="text"
+                        placeholder="Поиск..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="flex-1 h-full bg-transparent border-none outline-none text-xs font-bold text-appleLight-text dark:text-appleDark-text placeholder-appleLight-text/35 dark:placeholder-appleDark-text/35"
+                      />
+                    </div>
                     <button 
                       onClick={disableSearch}
-                      className="w-5 h-5 flex items-center justify-center rounded-full bg-appleLight-text/10 dark:bg-white/10 outline-none active:scale-90 transition-transform"
+                      className="w-5 h-5 flex items-center justify-center rounded-full bg-appleLight-text/10 dark:bg-white/10 outline-none active:scale-90 transition-transform flex-shrink-0"
                     >
                       <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="stroke-appleLight-text dark:stroke-appleDark-text stroke-[1.5]">
                         <path d="M1 1L9 9M9 1L1 9" />
@@ -274,7 +287,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
           )}
         </div>
 
-        {/* НИЖНЯЯ ПАНЕЛЬ С КОНТЕНТОМ */}
         <div className="flex-1 w-full">
           <EmptyState isLoading={isLoading} />
         </div>
