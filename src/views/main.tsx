@@ -8,7 +8,6 @@ interface MainViewProps {
   isLoading?: boolean;
 }
 
-// Добавили новый тип таба
 type TabType = "feed" | "events" | "trending";
 
 export default function MainView({ isLoading = false }: MainViewProps) {
@@ -20,7 +19,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
 
   const tabFeedRef = useRef<HTMLButtonElement>(null);
   const tabEventsRef = useRef<HTMLButtonElement>(null);
-  const tabTrendingRef = useRef<HTMLButtonElement>(null); // Реф для нового таба
+  const tabTrendingRef = useRef<HTMLButtonElement>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -113,7 +112,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   useEffect(() => {
     if (isLoading || isSearching) return;
     
-    // Выбираем целевой элемент в зависимости от активного таба
     const getTargetEl = () => {
       if (activeTab === "feed") return tabFeedRef.current;
       if (activeTab === "events") return tabEventsRef.current;
@@ -214,7 +212,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
           ) : (
             <div className="w-full h-11 relative flex items-center select-none">
               
-              {/* ЧУЗБАР: добавлен горизонтальный скролл с авто-скрытием полосы прокрутки */}
+              {/* ЧУЗБАР: по дефолту табы делят место поровну (flex-1). Но не сжимаются меньше контента благодаря whitespace-nowrap */}
               <div 
                 className="absolute left-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center overflow-x-auto transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1) [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                 style={{
@@ -233,7 +231,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                 <button
                   ref={tabFeedRef}
                   onClick={() => handleTabClick("feed")}
-                  className={`px-4 h-full rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center min-w-[70px] ${
+                  className={`flex-1 px-3 h-full rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
                     activeTab === "feed" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
                   }`}
                 >
@@ -243,27 +241,26 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                 <button
                   ref={tabEventsRef}
                   onClick={() => handleTabClick("events")}
-                  className={`px-4 h-full rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center min-w-[75px] ${
+                  className={`flex-1 px-3 h-full rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
                     activeTab === "events" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
                   }`}
                 >
                   События
                 </button>
 
-                {/* НОВЫЙ ТАБ: В тренде + Блочок New */}
                 <button
                   ref={tabTrendingRef}
                   onClick={() => handleTabClick("trending")}
-                  className={`pl-4 pr-3 h-full rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center space-x-1 ${
+                  className={`flex-1 pl-3 pr-2.5 h-full rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center space-x-1 ${
                     activeTab === "trending" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
                   }`}
                 >
                   <span>В тренде</span>
                   
-                  {/* Шильдик NEW в акцентном цвете с правильным округлым шрифтом */}
+                  {/* Исправленный стек системных округлых шрифтов Apple / Google */}
                   <span 
-                    className="px-1.5 py-0.5 text-[8px] font-extrabold uppercase bg-[#FC062D] text-white rounded-[5px] tracking-wide leading-none flex items-center justify-center"
-                    style={{ fontFamily: "system-ui, -apple-system, 'SF Pro Rounded', sans-serif" }}
+                    className="px-1.5 py-0.5 text-[8.5px] font-black uppercase bg-[#FC062D] text-white rounded-[5px] tracking-wider leading-none flex items-center justify-center"
+                    style={{ fontFamily: "ui-rounded, 'SF Pro Rounded', 'Montserrat', system-ui, sans-serif" }}
                   >
                     New
                   </span>
