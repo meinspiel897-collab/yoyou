@@ -217,7 +217,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                 className="absolute right-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1) flex items-center overflow-hidden z-30"
                 style={{
                   width: isSearching ? "100%" : "44px",
-                  padding: isSearching ? "0 8px 0 14px" : "0px",
+                  padding: isSearching ? "0 6px 0 14px" : "0px",
                 }}
               >
                 {isSearching ? (
@@ -234,14 +234,14 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                         placeholder="Поиск..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="flex-1 h-full bg-transparent border-none outline-none text-xs font-bold text-appleLight-text dark:text-appleDark-text placeholder-appleLight-text/35 dark:placeholder-appleDark-text/35"
+                        className="flex-1 h-full bg-transparent border-none outline-none text-sm font-normal text-appleLight-text dark:text-appleDark-text placeholder-appleLight-text/35 dark:placeholder-appleDark-text/35 placeholder:text-xs placeholder:font-normal"
                       />
                     </div>
                     <button 
                       onClick={disableSearch}
-                      className="w-9 h-9 flex items-center justify-center rounded-full bg-appleLight-text/10 dark:bg-white/10 outline-none active:scale-90 transition-transform flex-shrink-0"
+                      className="w-8 h-8 flex items-center justify-center rounded-full bg-appleLight-text/10 dark:bg-white/10 outline-none active:scale-90 transition-transform flex-shrink-0"
                     >
-                      <svg width="14" height="14" viewBox="0 0 10 10" fill="none" className="stroke-appleLight-text dark:stroke-appleDark-text stroke-[1.5]">
+                      <svg width="12" height="12" viewBox="0 0 10 10" fill="none" className="stroke-appleLight-text dark:stroke-appleDark-text stroke-[1.5]">
                         <path d="M1 1L9 9M9 1L1 9" />
                       </svg>
                     </button>
