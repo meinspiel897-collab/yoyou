@@ -24,22 +24,14 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   const tabTrendingRef = useRef<HTMLButtonElement>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  
-  // Реф для контейнера со слайдами контента
   const contentTrackRef = useRef<HTMLDivElement>(null);
 
-  // Переменные для отслеживания тач-событий свайпа контента
   const touchStart = useRef({ x: 0, y: 0, time: 0 });
   const isSwiping = useRef(false);
   const currentTranslate = useRef(0);
-
-  const physicsState = useRef({
-    x: 0, tx: 0, vx: 0,
-    w: 0, tw: 0, vw: 0,
-    sx: 1, tsx: 1, vsx: 0,
-    sy: 1, tsy: 1, vsy: 0,
-    isMoving: false,
-  });
+  
+  // Флаг, чтобы отличать клик по чузбару от свайпа экрана
+  const isClickTransition = useRef(false);
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.Telegram?.WebApp) {
@@ -52,7 +44,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     }
   }, []);
 
-  // Пружинная физика для ползунка в чузбаре
+  // Физика ползунка в чузбаре (оставляем упругой)
   useEffect(() => {
     if (isLoading || isSearching) return;
 
@@ -116,11 +108,19 @@ export default function MainView({ isLoading = false }: MainViewProps) {
       rafId = requestAnimationFrame(updatePhysics);
     };
 
+    const physicsState = physicsState.current;
     rafId = requestAnimationFrame(updatePhysics);
     return () => cancelAnimationFrame(rafId);
   }, [isLoading, isSearching]);
 
-  // Следим за изменением активного таба для чузбара
+  const physicsState = useRef({
+    x: 0, tx: 0, vx: 0,
+    w: 0, tw: 0, vw: 0,
+    sx: 1, tsx: 1, vsx: 0,
+    sy: 1, tsy: 1, vsy: 0,
+    isMoving: false,
+  });
+
   useEffect(() => {
     if (isLoading || isSearching) return;
     
@@ -156,14 +156,23 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     }
   };
 
+  // Клик по табу в чузбаре: выключаем анимацию для контента
   const handleTabClick = (tab: TabType) => {
     if (tab !== activeTab) {
       triggerHaptic();
+      isClickTransition.current = true; // Сказали системе, что это клик
+      
+      if (contentTrackRef.current) {
+        contentTrackRef.current.style.transition = "none"; // Никаких анимаций экрана!
+        const targetIdx = tabsOrder.indexOf(tab);
+        contentTrackRef.current.style.transform = `translateX(${-targetIdx * window.innerWidth}px)`;
+      }
+      
       setActiveTab(tab);
     }
   };
 
-  // КРУТОЙ СВАЙП-ДВИЖОК СЛУШАТЕЛЕЙ
+  // Свайпы пальцем по экрану (здесь анимация плавная)
   const handleTouchStart = (e: React.TouchEvent) => {
     if (isSearching) return;
     
@@ -174,9 +183,10 @@ export default function MainView({ isLoading = false }: MainViewProps) {
       time: Date.now()
     };
     isSwiping.current = false;
+    isClickTransition.current = false; // Юзер именно свайпает
     
     if (contentTrackRef.current) {
-      contentTrackRef.current.style.transition = "none"; // Выключаем транзишн во время перетаскивания пальцем
+      contentTrackRef.current.style.transition = "none";
     }
   };
 
@@ -187,26 +197,22 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     const deltaX = touch.clientX - touchStart.current.x;
     const deltaY = touch.clientY - touchStart.current.y;
 
-    // Скроллим только если горизонтальный свайп превалирует над вертикальным скроллом страницы
     if (!isSwiping.current) {
       if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
         isSwiping.current = true;
       } else if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 10) {
-        touchStart.current.time = 0; // Игнорируем этот жест, юзер скроллит контент вниз
+        touchStart.current.time = 0;
         return;
       }
     }
 
     if (isSwiping.current && contentTrackRef.current) {
-      e.preventDefault(); // Стопаем нативный баунс страницы
+      e.preventDefault();
       
       const currentIdx = tabsOrder.indexOf(activeTab);
       const width = window.innerWidth;
-      
-      // Высчитываем базовый сдвиг контейнера на основе активного таба + дельта движения пальца
       let translate = -currentIdx * width + deltaX;
 
-      // Упругое ограничение (Rubber banding) на краях крайних табов
       if ((currentIdx === 0 && deltaX > 0) || (currentIdx === tabsOrder.length - 1 && deltaX < 0)) {
         translate = -currentIdx * width + deltaX * 0.35; 
       }
@@ -227,7 +233,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
 
     let targetIdx = currentIdx;
 
-    // Проверяем либо сильный свайп по расстоянию (больше 35% экрана), либо быстрый бросок по времени (до 250мс)
     if (Math.abs(movedX) > width * 0.35 || (duration < 250 && Math.abs(movedX) > 40)) {
       if (movedX > 0 && currentIdx > 0) {
         targetIdx = currentIdx - 1;
@@ -236,7 +241,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
       }
     }
 
-    // Возвращаем плавную анимацию доводчика экрана
     if (contentTrackRef.current) {
       contentTrackRef.current.style.transition = "transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)";
       contentTrackRef.current.style.transform = `translateX(${-targetIdx * width}px)`;
@@ -248,10 +252,17 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     }
   };
 
-  // Ресет положения экрана при ресайзах или выходе из поиска
+  // Эффект доводки (срабатывает только после свайпов)
   useEffect(() => {
     if (contentTrackRef.current && !isSearching) {
       const currentIdx = tabsOrder.indexOf(activeTab);
+      
+      // Если это был клик по чузбару, то стили уже применились мгновенно, не перетираем транзишном
+      if (isClickTransition.current) {
+        isClickTransition.current = false;
+        return;
+      }
+
       contentTrackRef.current.style.transition = "transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)";
       contentTrackRef.current.style.transform = `translateX(${-currentIdx * window.innerWidth}px)`;
     }
@@ -429,7 +440,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
           )}
         </div>
 
-        {/* НОВАЯ СТРУКТУРА СЛАЙДЕРА КОНТЕНТА */}
         <div className="flex-1 w-full overflow-hidden relative mt-1">
           {isSearching ? (
             <SearchView searchQuery={searchQuery} />
@@ -442,17 +452,12 @@ export default function MainView({ isLoading = false }: MainViewProps) {
               className="absolute inset-0 flex w-[300%] h-full will-change-transform"
               style={{ transform: `translateX(0px)` }}
             >
-              {/* Слайд 1 — Лента */}
               <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
                 <EmptyState isLoading={isLoading} activeTab="feed" />
               </div>
-              
-              {/* Слайд 2 — События */}
               <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
                 <EmptyState isLoading={isLoading} activeTab="events" />
               </div>
-              
-              {/* Слайд 3 — В тренде */}
               <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
                 <EmptyState isLoading={isLoading} activeTab="trending" />
               </div>
