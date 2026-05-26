@@ -14,12 +14,13 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   
+  // Рефы для точного расчета физики капли
   const tabFeedRef = useRef<HTMLButtonElement>(null);
   const tabEventsRef = useRef<HTMLButtonElement>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Состояние физического движка капли (Spring)
+  // Внутреннее состояние физического движка капли
   const physicsState = useRef({
     x: 0, tx: 0, vx: 0,
     w: 0, tw: 0, vw: 0,
@@ -39,9 +40,9 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     }
   }, []);
 
-  // Физический движок капли
+  // Цикл физики пружины капли (Spring Physics Engine)
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || isSearching) return;
 
     const PHYSICS = {
       pos: { k: 380, d: 38, m: 1 },    
@@ -105,26 +106,24 @@ export default function MainView({ isLoading = false }: MainViewProps) {
 
     rafId = requestAnimationFrame(updatePhysics);
     return () => cancelAnimationFrame(rafId);
-  }, [isLoading]);
+  }, [isLoading, isSearching]);
 
-  // Запись координат целей для капли (без таймаутов, так как разметка теперь статична)
+  // Стабильный расчет геометрии табов без микро-задержек
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || isSearching) return;
     
     const targetEl = activeTab === "feed" ? tabFeedRef.current : tabEventsRef.current;
     if (targetEl) {
       const state = physicsState.current;
-      
       if (state.w === 0) {
         state.x = targetEl.offsetLeft;
         state.w = targetEl.offsetWidth;
       }
-      
       state.tx = targetEl.offsetLeft;
       state.tw = targetEl.offsetWidth;
       state.isMoving = true;
     }
-  }, [activeTab, isLoading]);
+  }, [activeTab, isLoading, isSearching]);
 
   const triggerHaptic = () => {
     if (typeof window !== "undefined") {
@@ -176,24 +175,25 @@ export default function MainView({ isLoading = false }: MainViewProps) {
       {/* ОСНОВНОЙ КОНТЕНТ */}
       <main className="flex-1 w-full pt-[calc(var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))+44px)] flex flex-col overflow-hidden">
         
-        {/* ПАНЕЛЬ УПРАВЛЕНИЯ (ОТСТУПЫ 20PX С ДВУХ СТОРОН) */}
-        <div className="w-[calc(100%-40px)] mx-auto pt-3 box-border select-none">
+        {/* ОРГАНЫ УПРАВЛЕНИЯ: ВЫВЕРЕННЫЕ 20PX ОТ КРАЕВ ЭКРАНА */}
+        <div className="w-[calc(100%-40px)] mx-auto pt-3 box-border">
           {isLoading ? (
             <div className="w-full h-11 bg-neutral-300 dark:bg-neutral-800 rounded-full animate-pulse" />
           ) : (
-            <div className="w-full h-11 flex items-center relative">
+            <div className="w-full h-11 flex items-center relative select-none">
               
-              {/* СТАТИЧНЫЙ ЧУЗБАР (Защищает каплю от деформаций размеров) */}
+              {/* ЖИДКИЙ ЧУЗБАР (ВЫСОТА H-11, УМЕНЬШАЕТСЯ И ИСЧЕЗАЕТ БЕЗ СМЯТИЯ КНОПОК) */}
               <div 
-                className="absolute left-0 h-11 w-[calc(100%-54px)] bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex z-10 transition-all duration-350 ease-out"
+                className="h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex relative will-change-transform"
                 style={{
-                  transform: isSearching ? "scale(0.96) translateX(-16px)" : "scale(1) translateX(0)",
+                  width: "calc(100% - 54px)", // Сохраняет ширину, чтобы не ломать пузырь
                   opacity: isSearching ? 0 : 1,
-                  visibility: isSearching ? "hidden" : "visible",
+                  transform: isSearching ? "scale(0.88) translateX(-15px)" : "scale(1) translateX(0px)",
+                  transition: "opacity 0.25s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)",
                   pointerEvents: isSearching ? "none" : "auto",
                 }}
               >
-                {/* Физический летящий ползунок */}
+                {/* Интерактивный ползунок-капля */}
                 <div 
                   ref={sliderRef}
                   className="absolute top-1 bottom-1 bg-white dark:bg-neutral-800 rounded-full border border-transparent shadow-sm will-change-transform z-10"
@@ -220,26 +220,25 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                 </button>
               </div>
 
-              {/* МОРФИНГ СТРОКИ ПОИСКА С ПРИЯТНЫМ ЭЛАСТИЧНЫМ ОТСКОКОМ */}
+              {/* СТРОКА ПОИСКА С ПРУЖИННЫМ ЭФФЕКТОМ (ВЫРАСТАЕТ ИЗ КРУГА НА ВСЮ ШИРИНУ) */}
               <div 
-                className="absolute right-0 h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full flex items-center relative overflow-hidden box-border"
+                className="absolute right-0 h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full flex items-center overflow-hidden will-change-[width]"
                 style={{
                   width: isSearching ? "100%" : "44px",
                   padding: isSearching ? "0 14px" : "0px",
-                  zIndex: isSearching ? 30 : 20,
-                  // Крутейший эластичный безье для эффекта пружины строки ввода
-                  transition: "width 420ms cubic-bezier(0.34, 1.4, 0.4, 1), padding 300ms ease",
+                  // Кубический безье обеспечивает ту самую премиальную пружину при раскрытии
+                  transition: "width 0.38s cubic-bezier(0.34, 1.56, 0.64, 1), padding 0.2s ease",
                 }}
               >
                 {isSearching ? (
-                  <div className="w-full h-full flex items-center justify-between animate-[fadeIn_200ms_ease-out_forwards]">
+                  <div className="w-full h-full flex items-center justify-between animate-fadeIn">
                     <input
                       ref={inputRef}
                       type="text"
                       placeholder="Поиск..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-[calc(100%-24px)] h-full bg-transparent border-none outline-none text-xs font-bold text-appleLight-text dark:text-appleDark-text placeholder-appleLight-text/35 dark:placeholder-appleDark-text/35"
+                      className="w-[calc(100%-24px)] h-full bg-transparent border-none outline-none text-xs font-bold text-appleLight-text dark:text-appleDark-text placeholder-appleLight-text/35 dark:placeholder-appleDark-text/35 animate-fadeIn"
                     />
                     <button 
                       onClick={disableSearch}
@@ -273,14 +272,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
           <EmptyState isLoading={isLoading} />
         </div>
       </main>
-
-      {/* Микро-анимация плавного появления инпута внутри расширяющейся плашки */}
-      <style jsx global>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: scale(0.98); }
-          to { opacity: 1; transform: scale(1); }
-        }
-      `}</style>
     </div>
   );
 }
