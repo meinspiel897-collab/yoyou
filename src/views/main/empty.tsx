@@ -19,7 +19,7 @@ export default function EmptyState({ isLoading = false }: EmptyStateProps) {
 
   return (
     <div className="w-full h-full flex flex-col items-center justify-center p-6 box-border select-none pointer-events-none">
-      {/* Контейнер для Lottie — сделали крупнее, с авто-выравниванием */}
+      {/* Контейнер для Lottie — стал заметно крупнее, анимация отцентрована */}
       <div className="w-56 h-56 flex items-center justify-center">
         <Lottie 
           animationData={noneAnimation} 
@@ -29,7 +29,7 @@ export default function EmptyState({ isLoading = false }: EmptyStateProps) {
         />
       </div>
       
-      {/* Текст под анимацией, если нужен (можно удалить строку ниже, если там должна быть только анимация) */}
+      {/* Твой текст и кнопка ниже остаются на месте без изменений */}
       <p className="text-xs font-semibold text-appleLight-text/35 dark:text-appleDark-text/35 mt-3 tracking-wide">
         Здесь пока ничего нет
       </p>
