@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import EmptyState from "@/views/main/empty";
+import SearchView from "@/views/main/search";
 
 interface MainViewProps {
   isLoading?: boolean;
@@ -264,8 +265,13 @@ export default function MainView({ isLoading = false }: MainViewProps) {
           )}
         </div>
 
+        {/* Контентная область: переключаемся на SearchView, когда поиск активен */}
         <div className="flex-1 w-full">
-          <EmptyState isLoading={isLoading} />
+          {isSearching ? (
+            <SearchView searchQuery={searchQuery} />
+          ) : (
+            <EmptyState isLoading={isLoading} />
+          )}
         </div>
       </main>
     </div>
