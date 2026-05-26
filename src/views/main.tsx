@@ -69,9 +69,13 @@ export default function MainView({ isLoading = false }: MainViewProps) {
       if (state.isMoving) {
         if (dist > 15) { 
           slider.style.backgroundColor = "transparent";
-          slider.style.borderColor = document.documentElement.classList.contains("dark") 
+          
+          // БЕЗОПАСНАЯ ПРОВЕРКА ДЛЯ SSR СЕРВЕРА
+          const isDark = typeof window !== "undefined" && document.documentElement.classList.contains("dark");
+          slider.style.borderColor = isDark 
             ? "rgba(255, 255, 255, 0.35)" 
             : "rgba(0, 0, 0, 0.18)";
+            
           state.tsy = 1.18; 
           state.tsx = 0.90; 
         } else if (dist <= 15 && dist > 0.5) {
@@ -265,7 +269,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
           )}
         </div>
 
-        {/* Контентная область: переключаемся на SearchView, когда поиск активен */}
         <div className="flex-1 w-full">
           {isSearching ? (
             <SearchView searchQuery={searchQuery} />
