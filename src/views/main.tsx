@@ -261,9 +261,9 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                       />
                       
                       <div className="flex items-center flex-1 h-full space-x-1.5 overflow-hidden">
-                        {/* Твой красивый чип: прозрачность 0.5, без контура, текст не жирный, акцентный цвет, размер text-xs */}
+                        {/* Твой красивый чип с прозрачностью 0.3 */}
                         {activeTag && (
-                          <div className="h-7 px-3 rounded-full bg-[#FC062D]/50 flex items-center justify-center flex-shrink-0 select-none">
+                          <div className="h-7 px-3 rounded-full bg-[#FC062D]/30 flex items-center justify-center flex-shrink-0 select-none">
                             <span className="text-xs font-medium text-[#FC062D] tracking-wide whitespace-nowrap">
                               от: {activeTag}
                             </span>
