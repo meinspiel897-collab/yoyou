@@ -52,8 +52,8 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   }, []);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && window.Telegram?.WebApp?.SettingsButton) {
-      const tg = window.Telegram.WebApp;
+    if (typeof window !== "undefined" && (window.Telegram?.WebApp as any)?.SettingsButton) {
+      const tg = window.Telegram.WebApp as any;
       const handleSettingsClick = () => {
         setIsSettingsOpen(true);
       };
@@ -69,8 +69,8 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   }, []);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && window.Telegram?.WebApp?.BackButton) {
-      const tg = window.Telegram.WebApp;
+    if (typeof window !== "undefined" && (window.Telegram?.WebApp as any)?.BackButton) {
+      const tg = window.Telegram.WebApp as any;
       const handleBackClick = () => {
         setIsSettingsOpen(false);
       };
