@@ -8,7 +8,7 @@ interface MainViewProps {
   isLoading?: boolean;
 }
 
-// Добавили новый тип таба
+// Добавили новый тип вкладки
 type TabType = "feed" | "events" | "trending";
 
 export default function MainView({ isLoading = false }: MainViewProps) {
@@ -19,10 +19,9 @@ export default function MainView({ isLoading = false }: MainViewProps) {
 
   const tabFeedRef = useRef<HTMLButtonElement>(null);
   const tabEventsRef = useRef<HTMLButtonElement>(null);
-  const tabTrendingRef = useRef<HTMLButtonElement>(null); // Реф для нового таба
+  const tabTrendingRef = useRef<HTMLButtonElement>(null); // Реф для новой вкладки
   const sliderRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const tabsContainerRef = useRef<HTMLDivElement>(null); // Реф контейнера скролла
 
   const physicsState = useRef({
     x: 0, tx: 0, vx: 0,
@@ -113,7 +112,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   useEffect(() => {
     if (isLoading || isSearching) return;
     
-    // Определяем целевой реф в зависимости от активного таба
+    // Определяем целевой элемент с учетом новой вкладки
     let targetEl = tabFeedRef.current;
     if (activeTab === "events") targetEl = tabEventsRef.current;
     if (activeTab === "trending") targetEl = tabTrendingRef.current;
@@ -129,12 +128,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
       state.tx = targetEl.offsetLeft;
       state.tw = targetEl.offsetWidth;
       state.isMoving = true;
-
-      // Плавный автоматический скролл за активным табом, если он уехал из зоны видимости
-      tabsContainerRef.current?.scrollTo({
-        left: targetEl.offsetLeft - 20,
-        behavior: "smooth"
-      });
     }
   }, [activeTab, isLoading, isSearching]);
 
@@ -143,7 +136,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
       const anyWindow = window as any;
       if (anyWindow.Telegram?.WebApp?.HapticFeedback) {
         try {
-          anyWindow.Telegram.WebApp.HapticFeedback.impactOccurred("light");
+          anyWindow.Telegram.WebApp.HapticFeedback.selectionChanged();
         } catch (e) {}
       }
     }
@@ -217,19 +210,15 @@ export default function MainView({ isLoading = false }: MainViewProps) {
           ) : (
             <div className="w-full h-11 relative flex items-center select-none">
               
-              {/* НАШ ОБНОВЛЕННЫЙ ЧУЗБАР С НЕВИДИМЫМ СКРОЛЛОМ И МАСКОЙ ЗАТУХАНИЯ */}
+              {/* ХОЛДЕР ТАБОВ: добавлен горизонтальный скроллбар без отображения полосы (scrollbar-none) */}
               <div 
-                ref={tabsContainerRef}
-                className="absolute left-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex overflow-x-auto scrollbar-none transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1)"
+                className="absolute left-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex relative transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1) overflow-x-auto scrollbar-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                 style={{
                   width: "calc(100% - 54px)",
                   opacity: isSearching ? 0 : 1,
                   transform: isSearching ? "scale(0.97)" : "scale(1)",
                   visibility: isSearching ? "hidden" : "visible",
                   pointerEvents: isSearching ? "none" : "auto",
-                  WebkitOverflowScrolling: "touch",
-                  maskImage: "linear-gradient(to right, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%)",
-                  WebkitMaskImage: "linear-gradient(to right, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%)",
                 }}
               >
                 <div 
@@ -240,7 +229,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                 <button
                   ref={tabFeedRef}
                   onClick={() => handleTabClick("feed")}
-                  className={`px-5 h-full rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 ${
+                  className={`flex-1 h-full px-4 rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none whitespace-nowrap ${
                     activeTab === "feed" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
                   }`}
                 >
@@ -250,25 +239,25 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                 <button
                   ref={tabEventsRef}
                   onClick={() => handleTabClick("events")}
-                  className={`px-5 h-full rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 ${
+                  className={`flex-1 h-full px-4 rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none whitespace-nowrap ${
                     activeTab === "events" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
                   }`}
                 >
                   События
                 </button>
 
-                {/* НОВАЯ СЕКЦИЯ: В ТРЕНДЕ С БЛОЧКОМ NEW */}
+                {/* НОВАЯ ВКЛАДКА: В тренде + шильдик New */}
                 <button
                   ref={tabTrendingRef}
                   onClick={() => handleTabClick("trending")}
-                  className={`pl-5 pr-4 h-full rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center space-x-1.5 ${
+                  className={`flex-1 h-full px-4 rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex items-center justify-center space-x-1.5 ${
                     activeTab === "trending" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
                   }`}
                 >
                   <span>В тренде</span>
                   <span 
-                    className="px-1.5 py-0.5 text-[9px] text-white bg-[#FC062D] rounded-[5px] uppercase tracking-wider font-['MPLUSRounded1c',_'_Fredoka',_sans-serif] font-extrabold flex items-center justify-center leading-none vertical-middle"
-                    style={{ transform: "translateY(-0.5px)" }}
+                    className="px-1.5 py-0.5 text-[9px] bg-[#FC062D] text-white rounded-md uppercase tracking-wider flex items-center justify-center font-normal"
+                    style={{ fontFamily: "'SF Pro Rounded', 'DIN Rounded', sans-serif" }}
                   >
                     New
                   </span>
