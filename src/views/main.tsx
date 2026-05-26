@@ -15,13 +15,11 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   
-  // Рефы для физики капли
   const tabFeedRef = useRef<HTMLButtonElement>(null);
   const tabEventsRef = useRef<HTMLButtonElement>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Внутреннее состояние физического движка капли
   const physicsState = useRef({
     x: 0, tx: 0, vx: 0,
     w: 0, tw: 0, vw: 0,
@@ -41,7 +39,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     }
   }, []);
 
-  // Цикл физики жидкого ползунка
+  // Полностью сохраненный оригинальный цикл физики твоего чузбара
   useEffect(() => {
     if (isLoading || isSearching) return;
 
@@ -109,7 +107,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     return () => cancelAnimationFrame(rafId);
   }, [isLoading, isSearching]);
 
-  // Стабильное удержание капли на месте при переключениях
   useEffect(() => {
     if (isLoading || isSearching) return;
     
@@ -153,15 +150,13 @@ export default function MainView({ isLoading = false }: MainViewProps) {
       setSearchQuery("");
     } else {
       setIsSearching(true);
-      setTimeout(() => inputRef.current?.focus(), 250);
+      setTimeout(() => inputRef.current?.focus(), 200);
     }
   };
 
-  // Кастомная плавная кривая замедления Apple-style (без пружин)
-  const layoutTransition = {
-    type: "tween",
-    ease: [0.25, 1, 0.5, 1],
-    duration: 0.32
+  // Плавное линейное замедление к концу траектории (как в примере, но без пружины)
+  const textVariants = {
+    transition: { duration: 0.25, ease: "easeOut" }
   };
 
   return (
@@ -184,21 +179,21 @@ export default function MainView({ isLoading = false }: MainViewProps) {
       {/* ОСНОВНОЙ КОНТЕНТ */}
       <main className="flex-1 w-full pt-[calc(var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))+44px)] flex flex-col overflow-hidden">
         
-        {/* ЗОНА С ЧУЗБАРОМ И КРУГОМ: СТРОГИЕ 20PX ОТ КРАЕВ ЭКРАНА */}
+        {/* КОРНЕВОЙ КОНТЕЙНЕР С РОДНЫМИ КЛАССАМИ И ОТСТУПАМИ */}
         <div className="w-[calc(100%-40px)] mx-auto pt-3 box-border">
           {isLoading ? (
             <div className="w-full h-11 bg-neutral-300 dark:bg-neutral-800 rounded-full animate-pulse" />
           ) : (
             <div className="w-full h-11 flex items-center gap-2 relative select-none">
               
-              {/* ГЛАВНЫЙ БЛОК (ВЫСОТА H-11, МЕНЯЕТ КОРПУС С ЧУЗБАРА НА СТРОКУ) */}
+              {/* ГЛАВНЫЙ БЛОК: ЧУЗБАР / СТРОКА ВВОДА */}
               <motion.div
                 layout
-                transition={layoutTransition}
+                transition={textVariants.transition}
                 style={{ order: isSearching ? 1 : -1 }}
-                className="flex-1 h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full relative overflow-hidden"
+                className="flex-1 h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full flex items-center pr-1 pl-1 relative z-10 overflow-hidden"
               >
-                {/* ЭЛЕМЕНТ 1: ЧУЗБАР (ТАБЫ) */}
+                {/* 1. Блок оригинального Чузбара */}
                 <div 
                   className="absolute inset-0 p-1 flex relative transition-opacity duration-200"
                   style={{
@@ -232,7 +227,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                   </button>
                 </div>
 
-                {/* ЭЛЕМЕНТ 2: СТРОКА ПОИСКА */}
+                {/* 2. Блок Строки Поиска */}
                 <div 
                   className="absolute inset-0 px-4 flex items-center justify-between transition-opacity duration-200"
                   style={{
@@ -246,35 +241,24 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                     placeholder="Найти что-нибудь..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-[calc(100%-24px)] h-full bg-transparent border-none outline-none text-[14px] font-medium text-appleLight-text dark:text-appleDark-text placeholder-appleLight-text/25 dark:placeholder-appleDark-text/25"
+                    className="w-full h-full bg-transparent border-none outline-none text-[14px] font-medium text-appleLight-text dark:text-appleDark-text placeholder-appleLight-text/25 dark:placeholder-appleDark-text/25"
                   />
-                  
-                  {searchQuery && (
-                    <button 
-                      onClick={() => setSearchQuery("")}
-                      className="w-5 h-5 flex items-center justify-center rounded-full bg-appleLight-text/10 dark:bg-white/10 outline-none active:scale-90 transition-transform"
-                    >
-                      <svg width="8" height="8" viewBox="0 0 10 10" fill="none" className="stroke-appleLight-text dark:stroke-appleDark-text stroke-[1.5]">
-                        <path d="M1 1L9 9M9 1L1 9" />
-                      </svg>
-                    </button>
-                  )}
                 </div>
               </motion.div>
 
-              {/* КРУГЛАЯ КНОПКА СТАТИЧНОГО РАЗМЕРА (ВЫСОТА H-11, МЕНЯЕТСЯ МЕСТАМИ) */}
+              {/* КРУГЛАЯ КНОПКА (Всегда статичная, иконка белая, меняется только order) */}
               <motion.button
                 layout
-                whileTap={{ scale: 0.92 }}
-                transition={layoutTransition}
+                whileTap={{ scale: 0.95 }}
+                transition={textVariants.transition}
                 onClick={toggleSearchMode}
                 style={{ order: isSearching ? -1 : 1 }}
-                className="h-11 w-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full flex items-center justify-center shrink-0 z-20 outline-none"
+                className="h-11 w-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full flex items-center justify-center shrink-0 z-20 overflow-hidden outline-none"
               >
                 <img 
-                  src={isSearching ? "/icons/close.png" : "/icons/search.png"} 
+                  src="/icons/search.png" 
                   alt="Поиск" 
-                  className="w-4 h-4 object-contain opacity-70 dark:opacity-90"
+                  className="w-4 h-4 object-contain brightness-0 invert" 
                 />
               </motion.button>
 
@@ -282,7 +266,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
           )}
         </div>
 
-        {/* НИЖНЯЯ ПАНЕЛЬ С КОНТЕНТОМ */}
+        {/* КОНТЕНТНАЯ ЗОНА */}
         <div className="flex-1 w-full">
           <EmptyState isLoading={isLoading} />
         </div>
