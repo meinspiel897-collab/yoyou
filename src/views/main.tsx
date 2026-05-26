@@ -17,11 +17,17 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   
   const [activeTag, setActiveTag] = useState<string | null>(null);
 
+  // Список табов в правильном порядке для навигации жестами
+  const tabsOrder: TabType[] = ["feed", "events", "trending"];
+
   const tabFeedRef = useRef<HTMLButtonElement>(null);
   const tabEventsRef = useRef<HTMLButtonElement>(null);
   const tabTrendingRef = useRef<HTMLButtonElement>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Координаты для отслеживания свайпа
+  const touchStartX = useRef<number | null>(null);
 
   const physicsState = useRef({
     x: 0, tx: 0, vx: 0,
@@ -45,9 +51,10 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   useEffect(() => {
     if (isLoading || isSearching) return;
 
+    // Подкрутили жесткость (k), чтобы анимация возвращалась быстрее при свайпах
     const PHYSICS = {
-      pos: { k: 240, d: 26, m: 1 },    
-      scale: { k: 280, d: 20, m: 1 }   
+      pos: { k: 320, d: 28, m: 1 },    
+      scale: { k: 340, d: 24, m: 1 }   
     };
 
     function spring(current: number, target: number, velocity: number, config: { k: number, d: number, m: number }) {
@@ -75,13 +82,13 @@ export default function MainView({ isLoading = false }: MainViewProps) {
           slider.style.borderColor = typeof window !== "undefined" && document.documentElement.classList.contains("dark") 
             ? "rgba(255, 255, 255, 0.35)" 
             : "rgba(0, 0, 0, 0.18)";
-          state.tsy = 1.18; 
-          state.tsx = 0.90; 
+          state.tsy = 1.15; 
+          state.tsx = 0.92; 
         } else if (dist <= 15 && dist > 0.5) {
           slider.style.backgroundColor = "";
           slider.style.borderColor = "transparent";
-          state.tsy = 0.96; 
-          state.tsx = 1.04; 
+          state.tsy = 0.97; 
+          state.tsx = 1.03; 
         } else {
           state.tsx = 1;
           state.tsy = 1;
@@ -151,6 +158,42 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     }
   };
 
+  // ЛОГИКА СВАЙПОВ
+  const handleTouchStart = (e: React.TouchEvent) => {
+    // Не свайпаем, если открыт поиск
+    if (isSearching) return;
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || isSearching) return;
+
+    const touchEndX = e.changedTouches[0].clientX;
+    const diffX = touchStartX.current - touchEndX;
+    touchStartX.current = null; // Сбрасываем
+
+    const minSwipeDistance = 60;  // Сильно, но не слишком (порог срабатывания)
+    const maxSwipeDistance = 240; // Ограничение сверху, чтобы случайные длинные жесты не ломали навигацию
+
+    const absDiffX = Math.abs(diffX);
+
+    if (absDiffX >= minSwipeDistance && absDiffX <= maxSwipeDistance) {
+      const currentIdx = tabsOrder.indexOf(activeTab);
+
+      if (diffX > 0) {
+        // Свайп влево -> идем к следующему табу (вправо)
+        if (currentIdx < tabsOrder.length - 1) {
+          handleTabClick(tabsOrder[currentIdx + 1]);
+        }
+      } else {
+        // Свайп вправо -> идем к предыдущему табу (влево)
+        if (currentIdx > 0) {
+          handleTabClick(tabsOrder[currentIdx - 1]);
+        }
+      }
+    }
+  };
+
   const enableSearch = () => {
     triggerHaptic();
     setIsSearching(true);
@@ -204,13 +247,18 @@ export default function MainView({ isLoading = false }: MainViewProps) {
         )}
       </header>
       
-      <main className="flex-1 w-full pt-[calc(var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))+44px)] flex flex-col overflow-hidden">
+      {/* Добавили touch-обработчики на всю область контента */}
+      <main 
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        className="flex-1 w-full pt-[calc(var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))+44px)] flex flex-col overflow-hidden select-none"
+      >
         
         <div className="w-[calc(100%-40px)] mx-auto pt-3 box-border">
           {isLoading ? (
             <div className="w-full h-11 bg-neutral-300 dark:bg-neutral-800 rounded-full animate-pulse" />
           ) : (
-            <div className="w-full h-11 relative flex items-center select-none">
+            <div className="w-full h-11 relative flex items-center">
               
               <div 
                 className="absolute left-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center overflow-x-auto transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1) [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
