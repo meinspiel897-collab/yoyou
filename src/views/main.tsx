@@ -108,30 +108,26 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   useEffect(() => {
     if (isLoading || isSearching) return;
     
-    const updateDimensions = () => {
-      const targetEl = activeTab === "feed" ? tabFeedRef.current : tabEventsRef.current;
-      if (targetEl && targetEl.offsetWidth > 0) {
-        const state = physicsState.current;
-        
-        if (state.w === 0) {
-          state.x = targetEl.offsetLeft;
-          state.w = targetEl.offsetWidth;
-          if (sliderRef.current) {
-            sliderRef.current.style.left = `${state.x}px`;
-            sliderRef.current.style.width = `${state.w}px`;
-          }
-        }
-        
-        state.tx = targetEl.offsetLeft;
-        state.tw = targetEl.offsetWidth;
-        state.isMoving = true;
-      }
-    };
+    const targetEl = activeTab === "feed" ? tabFeedRef.current : tabEventsRef.current;
+    if (targetEl && targetEl.offsetWidth > 0) {
+      const state = physicsState.current;
+      
+      state.x = targetEl.offsetLeft;
+      state.w = targetEl.offsetWidth;
+      state.tx = targetEl.offsetLeft;
+      state.tw = targetEl.offsetWidth;
+      state.vx = 0;
+      state.vw = 0;
+      state.isMoving = false;
 
-    updateDimensions();
-    const resizeTimeout = setTimeout(updateDimensions, 50);
-    
-    return () => clearTimeout(resizeTimeout);
+      if (sliderRef.current) {
+        sliderRef.current.style.left = `${state.x}px`;
+        sliderRef.current.style.width = `${state.w}px`;
+        sliderRef.current.style.transform = "scale(1, 1)";
+        sliderRef.current.style.backgroundColor = "";
+        sliderRef.current.style.borderColor = "transparent";
+      }
+    }
   }, [activeTab, isLoading, isSearching]);
 
   const triggerHaptic = () => {
@@ -162,27 +158,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     triggerHaptic();
     setIsSearching(false);
     setSearchQuery("");
-    
-    setTimeout(() => {
-      const targetEl = activeTab === "feed" ? tabFeedRef.current : tabEventsRef.current;
-      if (targetEl && targetEl.offsetWidth > 0) {
-        const state = physicsState.current;
-        state.x = targetEl.offsetLeft;
-        state.w = targetEl.offsetWidth;
-        state.tx = targetEl.offsetLeft;
-        state.tw = targetEl.offsetWidth;
-        state.vx = 0;
-        state.vw = 0;
-        state.isMoving = false;
-        if (sliderRef.current) {
-          sliderRef.current.style.left = `${state.x}px`;
-          sliderRef.current.style.width = `${state.w}px`;
-          sliderRef.current.style.transform = "scale(1, 1)";
-          sliderRef.current.style.backgroundColor = "";
-          sliderRef.current.style.borderColor = "transparent";
-        }
-      }
-    }, 30);
   };
 
   return (
@@ -258,7 +233,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                       <img 
                         src="/icons/search.png" 
                         alt="Поиск" 
-                        className="w-4 h-4 object-contain invert dark:invert-0 opacity-35"
+                        className="w-4 h-4 object-contain brightness-0 invert opacity-35"
                       />
                       <input
                         ref={inputRef}
@@ -271,9 +246,9 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                     </div>
                     <button 
                       onClick={disableSearch}
-                      className="w-5 h-5 flex items-center justify-center rounded-full bg-appleLight-text/10 dark:bg-white/10 outline-none active:scale-90 transition-transform flex-shrink-0"
+                      className="w-8 h-8 flex items-center justify-center rounded-full bg-appleLight-text/10 dark:bg-white/10 outline-none active:scale-90 transition-transform flex-shrink-0"
                     >
-                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="stroke-appleLight-text dark:stroke-appleDark-text stroke-[1.5]">
+                      <svg width="14" height="14" viewBox="0 0 10 10" fill="none" className="stroke-appleLight-text dark:stroke-appleDark-text stroke-[1.5]">
                         <path d="M1 1L9 9M9 1L1 9" />
                       </svg>
                     </button>
@@ -286,7 +261,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                     <img 
                       src="/icons/search.png" 
                       alt="Поиск" 
-                      className="w-5 h-5 object-contain invert dark:invert-0 opacity-80 dark:opacity-90"
+                      className="w-5 h-5 object-contain brightness-0 invert"
                     />
                   </button>
                 )}
