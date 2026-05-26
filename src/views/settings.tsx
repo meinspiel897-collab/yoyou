@@ -2,20 +2,13 @@
 
 import { useEffect, useState } from "react";
 
-interface TelegramUser {
-  id?: number;
-  first_name?: string;
-  last_name?: string;
-  username?: string;
-  photo_url?: string;
-}
-
 export default function SettingsView() {
-  const [user, setUser] = useState<TelegramUser | null>(null);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && window.Telegram?.WebApp) {
-      const tgUser = window.Telegram.WebApp.initDataUnsafe?.user;
+    if (typeof window !== "undefined") {
+      const anyWindow = window as any;
+      const tgUser = anyWindow.Telegram?.WebApp?.initDataUnsafe?.user;
       if (tgUser) {
         setUser(tgUser);
       }
