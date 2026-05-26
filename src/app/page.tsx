@@ -1,8 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import LoadingView from "@/views/loading";
-import MainView from "@/views/main";
+
+// Отключаем серверный рендеринг (SSR) для главного экрана.
+// Теперь Vercel соберет проект без единой ошибки.
+const MainViewNonSSR = dynamic(() => import("@/views/main"), {
+  ssr: false,
+  loading: () => <div className="w-full h-full bg-black" />,
+});
 
 export default function Home() {
   const [showMain, setShowMain] = useState(false);
@@ -44,7 +51,7 @@ export default function Home() {
 
       {/* ОСНОВНОЙ ЭКРАН ПРИЛОЖЕНИЯ */}
       {showMain && (
-        <MainView />
+        <MainViewNonSSR />
       )}
     </div>
   );
