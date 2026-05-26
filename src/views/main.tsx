@@ -14,7 +14,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   const [activeTab, setActiveTab] = useState<TabType>("feed");
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isDarkMode, setIsDarkMode] = useState(true);
   
   const tabFeedRef = useRef<HTMLButtonElement>(null);
   const tabEventsRef = useRef<HTMLButtonElement>(null);
@@ -35,11 +34,8 @@ export default function MainView({ isLoading = false }: MainViewProps) {
       const theme = webApp.colorScheme || "dark";
       const bgColor = theme === "dark" ? "#000000" : "#FFFFFF";
       
-      setIsDarkMode(theme === "dark");
       webApp.setHeaderColor(bgColor);
       webApp.setBackgroundColor(bgColor);
-    } else if (typeof window !== "undefined") {
-      setIsDarkMode(document.documentElement.classList.contains("dark"));
     }
   }, []);
 
@@ -73,7 +69,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
       if (state.isMoving) {
         if (dist > 15) { 
           slider.style.backgroundColor = "transparent";
-          slider.style.borderColor = isDarkMode 
+          slider.style.borderColor = typeof window !== "undefined" && document.documentElement.classList.contains("dark") 
             ? "rgba(255, 255, 255, 0.35)" 
             : "rgba(0, 0, 0, 0.18)";
           state.tsy = 1.22; 
@@ -108,7 +104,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
 
     rafId = requestAnimationFrame(updatePhysics);
     return () => cancelAnimationFrame(rafId);
-  }, [isLoading, isSearching, isDarkMode]);
+  }, [isLoading, isSearching]);
 
   useEffect(() => {
     if (isLoading || isSearching) return;
@@ -265,17 +261,15 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                         alt="Поиск" 
                         className="w-4 h-4 object-contain invert dark:invert-0 opacity-35"
                       />
-                      {/* text-base (16px) предотвращает зум на iOS. origin-left scale-75 визуально превращает шрифт обратно в аккуратный мелкий размер */}
-                      <div className="flex-1 h-full flex items-center overflow-hidden">
-                        <input
-                          ref={inputRef}
-                          type="text"
-                          placeholder="Поиск..."
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          className="w-[133%] h-full bg-transparent border-none outline-none text-base font-bold text-appleLight-text dark:text-appleDark-text placeholder-appleLight-text/35 dark:placeholder-appleDark-text/35 transform origin-left scale-75"
-                        />
-                      </div>
+                      {/* text-base (16px) предотвращает зум на iOS, а через placeholder регулируем его вид */}
+                      <input
+                        ref={inputRef}
+                        type="text"
+                        placeholder="Поиск..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="flex-1 h-full bg-transparent border-none outline-none text-base font-bold text-appleLight-text dark:text-appleDark-text placeholder-appleLight-text/35 dark:placeholder-appleDark-text/35 placeholder:text-xs placeholder:font-bold"
+                      />
                     </div>
                     <button 
                       onClick={disableSearch}
@@ -304,7 +298,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
           )}
         </div>
 
-        {/* Теперь тут выводится правильный SearchView, когда поиск активен */}
+        {/* Переключаем на SearchView в момент поиска, в остальное время крутится EmptyState */}
         <div className="flex-1 w-full">
           {isSearching ? (
             <SearchView searchQuery={searchQuery} />
