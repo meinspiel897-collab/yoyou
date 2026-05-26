@@ -15,7 +15,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   
-  // Новые стейты для логики тегов
+  // Состояние для хранения активного тега автора
   const [activeTag, setActiveTag] = useState<string | null>(null);
 
   const tabFeedRef = useRef<HTMLButtonElement>(null);
@@ -155,20 +155,19 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     triggerHaptic();
     setIsSearching(false);
     setSearchQuery("");
-    setActiveTag(null); // Сбрасываем тег при закрытии
+    setActiveTag(null);
   };
 
-  // Обработчик изменения текста для отслеживания пробела после @тега
+  // Логика превращения @тега в чип по нажатию пробела
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
 
-    // Если тега еще нет, ищем паттерн "@слово " (с пробелом на конце)
     if (!activeTag) {
       const match = value.match(/^@([^\s]+)\s$/);
       if (match) {
         triggerHaptic();
-        setActiveTag(match[1]); // Сохраняем имя тега
-        setSearchQuery("");     // Очищаем инпут для дальнейшего ввода поисковой строки
+        setActiveTag(match[1]);
+        setSearchQuery("");
         return;
       }
     }
@@ -176,7 +175,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     setSearchQuery(value);
   };
 
-  // Удаление тега целиком по нажатию Backspace на пустом инпуте
+  // Удаление чипа целиком при нажатии Backspace
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Backspace" && searchQuery === "" && activeTag) {
       triggerHaptic();
@@ -254,7 +253,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
               >
                 {isSearching ? (
                   <div className="w-full h-full flex items-center justify-between space-x-2">
-                    {/* Контейнер-флекс имитирует строку ввода, чтобы чип стоял слева от инпута */}
                     <div className="flex items-center flex-1 h-full space-x-2 overflow-hidden">
                       <img 
                         src="/icons/search.png" 
@@ -263,10 +261,10 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                       />
                       
                       <div className="flex items-center flex-1 h-full space-x-1.5 overflow-hidden">
-                        {/* Твой красивый круглый блок с тегом */}
+                        {/* Твой обновленный красивый чип без контура с белым текстом */}
                         {activeTag && (
-                          <div className="h-7 px-3 rounded-full bg-[#FC062D]/10 border border-[#FC062D]/15 flex items-center justify-center flex-shrink-0 animate-fadeIn select-none">
-                            <span className="text-[11px] font-bold text-[#FC062D] tracking-wide whitespace-nowrap">
+                          <div className="h-7 px-3.5 rounded-full bg-[#FC062D]/65 flex items-center justify-center flex-shrink-0 select-none">
+                            <span className="text-xs font-medium text-white tracking-wide whitespace-nowrap">
                               от: {activeTag}
                             </span>
                           </div>
