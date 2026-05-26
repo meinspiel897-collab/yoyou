@@ -8,7 +8,7 @@ interface MainViewProps {
   isLoading?: boolean;
 }
 
-type TabType = "feed" | "events";
+type TabType = "feed" | "events" | "trending";
 
 export default function MainView({ isLoading = false }: MainViewProps) {
   const [activeTab, setActiveTab] = useState<TabType>("feed");
@@ -20,6 +20,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
 
   const tabFeedRef = useRef<HTMLButtonElement>(null);
   const tabEventsRef = useRef<HTMLButtonElement>(null);
+  const tabTrendingRef = useRef<HTMLButtonElement>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -112,7 +113,12 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   useEffect(() => {
     if (isLoading || isSearching) return;
     
-    const targetEl = activeTab === "feed" ? tabFeedRef.current : tabEventsRef.current;
+    // Определяем целевой элемент динамически среди 3 табов
+    let targetEl: HTMLButtonElement | null = null;
+    if (activeTab === "feed") targetEl = tabFeedRef.current;
+    if (activeTab === "events") targetEl = tabEventsRef.current;
+    if (activeTab === "trending") targetEl = tabTrendingRef.current;
+
     if (targetEl) {
       const state = physicsState.current;
       
@@ -132,7 +138,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
       const anyWindow = window as any;
       if (anyWindow.Telegram?.WebApp?.HapticFeedback) {
         try {
-          anyWindow.Telegram.WebApp.HapticFeedback.selectionChanged();
+          anyWindow.Telegram.WebApp.HapticFeedback.impactOccurred("light");
         } catch (e) {}
       }
     }
@@ -158,7 +164,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     setActiveTag(null);
   };
 
-  // Превращаем ввод в чип при нажатии пробела после @тега
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
 
@@ -175,7 +180,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     setSearchQuery(value);
   };
 
-  // Удаление чипа целиком по Backspace
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Backspace" && searchQuery === "" && activeTag) {
       triggerHaptic();
@@ -209,7 +213,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
             <div className="w-full h-11 relative flex items-center select-none">
               
               <div 
-                className="absolute left-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1)"
+                className="absolute left-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex relative transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1)"
                 style={{
                   width: "calc(100% - 54px)",
                   opacity: isSearching ? 0 : 1,
@@ -226,7 +230,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                 <button
                   ref={tabFeedRef}
                   onClick={() => handleTabClick("feed")}
-                  className={`flex-1 h-full rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none ${
+                  className={`flex-1 h-full rounded-full text-[11px] font-bold z-20 transition-colors duration-250 outline-none ${
                     activeTab === "feed" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
                   }`}
                 >
@@ -236,11 +240,28 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                 <button
                   ref={tabEventsRef}
                   onClick={() => handleTabClick("events")}
-                  className={`flex-1 h-full rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none ${
+                  className={`flex-1 h-full rounded-full text-[11px] font-bold z-20 transition-colors duration-250 outline-none ${
                     activeTab === "events" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
                   }`}
                 >
                   События
+                </button>
+
+                {/* НОВЫЙ ТАБ: В тренде с бейджиком New */}
+                <button
+                  ref={tabTrendingRef}
+                  onClick={() => handleTabClick("trending")}
+                  className={`flex-[1.3] h-full rounded-full text-[11px] font-bold z-20 transition-colors duration-250 outline-none flex items-center justify-center space-x-1 px-1 box-border ${
+                    activeTab === "trending" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
+                  }`}
+                >
+                  <span>В тренде</span>
+                  <span 
+                    className="px-1 py-[1px] text-[8px] font-black text-white bg-[#FC062D] rounded-[5px] uppercase tracking-wider leading-none flex items-center justify-center"
+                    style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif", fontVariantNumeric: "lining-nums" }}
+                  >
+                    New
+                  </span>
                 </button>
               </div>
 
@@ -261,7 +282,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                       />
                       
                       <div className="flex items-center flex-1 h-full space-x-1.5 overflow-hidden">
-                        {/* Твой красивый чип с прозрачностью 0.3 */}
                         {activeTag && (
                           <div className="h-7 px-3 rounded-full bg-[#FC062D]/30 flex items-center justify-center flex-shrink-0 select-none">
                             <span className="text-xs font-medium text-[#FC062D] tracking-wide whitespace-nowrap">
