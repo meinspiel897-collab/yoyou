@@ -14,6 +14,8 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   const [activeTab, setActiveTab] = useState<TabType>("feed");
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // Состояние для хранения активированного тега
   const [activeTag, setActiveTag] = useState<string | null>(null);
 
   const tabFeedRef = useRef<HTMLButtonElement>(null);
@@ -156,6 +158,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     setActiveTag(null);
   };
 
+  // Превращаем ввод в чип при нажатии пробела после @тега
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
 
@@ -172,6 +175,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     setSearchQuery(value);
   };
 
+  // Удаление чипа целиком по Backspace
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Backspace" && searchQuery === "" && activeTag) {
       triggerHaptic();
@@ -257,10 +261,10 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                       />
                       
                       <div className="flex items-center flex-1 h-full space-x-1.5 overflow-hidden">
-                        {/* Красивый круглый блок с тегом: прозрачность 0.5, без контура, текст не белый */}
+                        {/* Твой красивый чип: прозрачность 0.5, без контура, текст не жирный, акцентный цвет, размер text-xs */}
                         {activeTag && (
-                          <div className="h-7 px-3.5 rounded-full bg-[#FC062D]/50 flex items-center justify-center flex-shrink-0 animate-fadeIn select-none">
-                            <span className="text-xs font-medium text-appleLight-text dark:text-appleDark-text tracking-wide whitespace-nowrap">
+                          <div className="h-7 px-3 rounded-full bg-[#FC062D]/50 flex items-center justify-center flex-shrink-0 select-none">
+                            <span className="text-xs font-medium text-[#FC062D] tracking-wide whitespace-nowrap">
                               от: {activeTag}
                             </span>
                           </div>
