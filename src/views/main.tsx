@@ -33,6 +33,14 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   // Флаг, чтобы отличать клик по чузбару от свайпа экрана
   const isClickTransition = useRef(false);
 
+  const physicsState = useRef({
+    x: 0, tx: 0, vx: 0,
+    w: 0, tw: 0, vw: 0,
+    sx: 1, tsx: 1, vsx: 0,
+    sy: 1, tsy: 1, vsy: 0,
+    isMoving: false,
+  });
+
   useEffect(() => {
     if (typeof window !== "undefined" && window.Telegram?.WebApp) {
       const webApp = window.Telegram.WebApp;
@@ -44,7 +52,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     }
   }, []);
 
-  // Физика ползунка в чузбаре (оставляем упругой)
+  // Физика ползунка в чузбаре
   useEffect(() => {
     if (isLoading || isSearching) return;
 
@@ -108,18 +116,9 @@ export default function MainView({ isLoading = false }: MainViewProps) {
       rafId = requestAnimationFrame(updatePhysics);
     };
 
-    const physicsState = physicsState.current;
     rafId = requestAnimationFrame(updatePhysics);
     return () => cancelAnimationFrame(rafId);
   }, [isLoading, isSearching]);
-
-  const physicsState = useRef({
-    x: 0, tx: 0, vx: 0,
-    w: 0, tw: 0, vw: 0,
-    sx: 1, tsx: 1, vsx: 0,
-    sy: 1, tsy: 1, vsy: 0,
-    isMoving: false,
-  });
 
   useEffect(() => {
     if (isLoading || isSearching) return;
@@ -156,14 +155,13 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     }
   };
 
-  // Клик по табу в чузбаре: выключаем анимацию для контента
   const handleTabClick = (tab: TabType) => {
     if (tab !== activeTab) {
       triggerHaptic();
-      isClickTransition.current = true; // Сказали системе, что это клик
+      isClickTransition.current = true;
       
       if (contentTrackRef.current) {
-        contentTrackRef.current.style.transition = "none"; // Никаких анимаций экрана!
+        contentTrackRef.current.style.transition = "none";
         const targetIdx = tabsOrder.indexOf(tab);
         contentTrackRef.current.style.transform = `translateX(${-targetIdx * window.innerWidth}px)`;
       }
@@ -172,7 +170,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     }
   };
 
-  // Свайпы пальцем по экрану (здесь анимация плавная)
   const handleTouchStart = (e: React.TouchEvent) => {
     if (isSearching) return;
     
@@ -183,7 +180,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
       time: Date.now()
     };
     isSwiping.current = false;
-    isClickTransition.current = false; // Юзер именно свайпает
+    isClickTransition.current = false;
     
     if (contentTrackRef.current) {
       contentTrackRef.current.style.transition = "none";
@@ -252,12 +249,10 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     }
   };
 
-  // Эффект доводки (срабатывает только после свайпов)
   useEffect(() => {
     if (contentTrackRef.current && !isSearching) {
       const currentIdx = tabsOrder.indexOf(activeTab);
       
-      // Если это был клик по чузбару, то стили уже применились мгновенно, не перетираем транзишном
       if (isClickTransition.current) {
         isClickTransition.current = false;
         return;
