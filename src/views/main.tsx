@@ -15,6 +15,9 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   
+  // Новые стейты для логики тегов
+  const [activeTag, setActiveTag] = useState<string | null>(null);
+
   const tabFeedRef = useRef<HTMLButtonElement>(null);
   const tabEventsRef = useRef<HTMLButtonElement>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -69,7 +72,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
       if (state.isMoving) {
         if (dist > 15) { 
           slider.style.backgroundColor = "transparent";
-          slider.style.borderColor = document.documentElement.classList.contains("dark") 
+          slider.style.borderColor = typeof window !== "undefined" && document.documentElement.classList.contains("dark") 
             ? "rgba(255, 255, 255, 0.35)" 
             : "rgba(0, 0, 0, 0.18)";
           state.tsy = 1.18; 
@@ -152,6 +155,34 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     triggerHaptic();
     setIsSearching(false);
     setSearchQuery("");
+    setActiveTag(null); // Сбрасываем тег при закрытии
+  };
+
+  // Обработчик изменения текста для отслеживания пробела после @тега
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    // Если тега еще нет, ищем паттерн "@слово " (с пробелом на конце)
+    if (!activeTag) {
+      const match = value.match(/^@([^\s]+)\s$/);
+      if (match) {
+        triggerHaptic();
+        setActiveTag(match[1]); // Сохраняем имя тега
+        setSearchQuery("");     // Очищаем инпут для дальнейшего ввода поисковой строки
+        return;
+      }
+    }
+
+    setSearchQuery(value);
+  };
+
+  // Удаление тега целиком по нажатию Backspace на пустом инпуте
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && searchQuery === "" && activeTag) {
+      triggerHaptic();
+      setActiveTag(null);
+      e.preventDefault();
+    }
   };
 
   return (
@@ -223,20 +254,34 @@ export default function MainView({ isLoading = false }: MainViewProps) {
               >
                 {isSearching ? (
                   <div className="w-full h-full flex items-center justify-between space-x-2">
-                    <div className="flex items-center flex-1 h-full space-x-2">
+                    {/* Контейнер-флекс имитирует строку ввода, чтобы чип стоял слева от инпута */}
+                    <div className="flex items-center flex-1 h-full space-x-2 overflow-hidden">
                       <img 
                         src="/icons/search.png" 
                         alt="Поиск" 
-                        className="w-4 h-4 object-contain brightness-0 invert opacity-35"
+                        className="w-4 h-4 object-contain brightness-0 invert opacity-35 flex-shrink-0"
                       />
-                      <input
-                        ref={inputRef}
-                        type="text"
-                        placeholder="Поиск..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="flex-1 h-full bg-transparent border-none outline-none text-base font-normal text-appleLight-text dark:text-appleDark-text placeholder-appleLight-text/35 dark:placeholder-appleDark-text/35 placeholder:text-xs placeholder:font-normal"
-                      />
+                      
+                      <div className="flex items-center flex-1 h-full space-x-1.5 overflow-hidden">
+                        {/* Твой красивый круглый блок с тегом */}
+                        {activeTag && (
+                          <div className="h-7 px-3 rounded-full bg-[#FC062D]/10 border border-[#FC062D]/15 flex items-center justify-center flex-shrink-0 animate-fadeIn select-none">
+                            <span className="text-[11px] font-bold text-[#FC062D] tracking-wide whitespace-nowrap">
+                              от: {activeTag}
+                            </span>
+                          </div>
+                        )}
+
+                        <input
+                          ref={inputRef}
+                          type="text"
+                          placeholder={activeTag ? "" : "Поиск..."}
+                          value={searchQuery}
+                          onChange={handleInputChange}
+                          onKeyDown={handleInputKeyDown}
+                          className="flex-1 h-full bg-transparent border-none outline-none text-base font-normal text-appleLight-text dark:text-appleDark-text placeholder-appleLight-text/35 dark:placeholder-appleDark-text/35 placeholder:text-xs placeholder:font-normal"
+                        />
+                      </div>
                     </div>
                     <button 
                       onClick={disableSearch}
@@ -265,7 +310,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
           )}
         </div>
 
-        {/* Контентная область: переключаемся на SearchView, когда поиск активен */}
         <div className="flex-1 w-full">
           {isSearching ? (
             <SearchView searchQuery={searchQuery} />
