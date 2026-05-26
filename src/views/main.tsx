@@ -8,18 +8,19 @@ interface MainViewProps {
   isLoading?: boolean;
 }
 
-// Добавили новый тип вкладки
+// Добавили новый тип таба
 type TabType = "feed" | "events" | "trending";
 
 export default function MainView({ isLoading = false }: MainViewProps) {
   const [activeTab, setActiveTab] = useState<TabType>("feed");
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  
   const [activeTag, setActiveTag] = useState<string | null>(null);
 
   const tabFeedRef = useRef<HTMLButtonElement>(null);
   const tabEventsRef = useRef<HTMLButtonElement>(null);
-  const tabTrendingRef = useRef<HTMLButtonElement>(null); // Реф для новой вкладки
+  const tabTrendingRef = useRef<HTMLButtonElement>(null); // Реф для нового таба
   const sliderRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -112,11 +113,14 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   useEffect(() => {
     if (isLoading || isSearching) return;
     
-    // Определяем целевой элемент с учетом новой вкладки
-    let targetEl = tabFeedRef.current;
-    if (activeTab === "events") targetEl = tabEventsRef.current;
-    if (activeTab === "trending") targetEl = tabTrendingRef.current;
+    // Выбираем целевой элемент в зависимости от активного таба
+    const getTargetEl = () => {
+      if (activeTab === "feed") return tabFeedRef.current;
+      if (activeTab === "events") return tabEventsRef.current;
+      return tabTrendingRef.current;
+    };
 
+    const targetEl = getTargetEl();
     if (targetEl) {
       const state = physicsState.current;
       
@@ -210,9 +214,9 @@ export default function MainView({ isLoading = false }: MainViewProps) {
           ) : (
             <div className="w-full h-11 relative flex items-center select-none">
               
-              {/* ХОЛДЕР ТАБОВ: добавлен горизонтальный скроллбар без отображения полосы (scrollbar-none) */}
+              {/* ЧУЗБАР: добавлен горизонтальный скролл с авто-скрытием полосы прокрутки */}
               <div 
-                className="absolute left-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex relative transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1) overflow-x-auto scrollbar-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                className="absolute left-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center overflow-x-auto transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1) [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                 style={{
                   width: "calc(100% - 54px)",
                   opacity: isSearching ? 0 : 1,
@@ -229,7 +233,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                 <button
                   ref={tabFeedRef}
                   onClick={() => handleTabClick("feed")}
-                  className={`flex-1 h-full px-4 rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none whitespace-nowrap ${
+                  className={`px-4 h-full rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center min-w-[70px] ${
                     activeTab === "feed" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
                   }`}
                 >
@@ -239,25 +243,27 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                 <button
                   ref={tabEventsRef}
                   onClick={() => handleTabClick("events")}
-                  className={`flex-1 h-full px-4 rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none whitespace-nowrap ${
+                  className={`px-4 h-full rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center min-w-[75px] ${
                     activeTab === "events" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
                   }`}
                 >
                   События
                 </button>
 
-                {/* НОВАЯ ВКЛАДКА: В тренде + шильдик New */}
+                {/* НОВЫЙ ТАБ: В тренде + Блочок New */}
                 <button
                   ref={tabTrendingRef}
                   onClick={() => handleTabClick("trending")}
-                  className={`flex-1 h-full px-4 rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex items-center justify-center space-x-1.5 ${
+                  className={`pl-4 pr-3 h-full rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center space-x-1 ${
                     activeTab === "trending" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
                   }`}
                 >
                   <span>В тренде</span>
+                  
+                  {/* Шильдик NEW в акцентном цвете с правильным округлым шрифтом */}
                   <span 
-                    className="px-1.5 py-0.5 text-[9px] bg-[#FC062D] text-white rounded-md uppercase tracking-wider flex items-center justify-center font-normal"
-                    style={{ fontFamily: "'SF Pro Rounded', 'DIN Rounded', sans-serif" }}
+                    className="px-1.5 py-0.5 text-[8px] font-extrabold uppercase bg-[#FC062D] text-white rounded-[5px] tracking-wide leading-none flex items-center justify-center"
+                    style={{ fontFamily: "system-ui, -apple-system, 'SF Pro Rounded', sans-serif" }}
                   >
                     New
                   </span>
