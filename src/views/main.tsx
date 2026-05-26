@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import EmptyState from "@/views/main/empty";
 import SearchView from "@/views/main/search";
+import SettingsView from "@/views/settings"; // Импортируем наш экран настроек
 
 interface MainViewProps {
   isLoading?: boolean;
@@ -14,8 +15,10 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   const [activeTab, setActiveTab] = useState<TabType>("feed");
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  
   const [activeTag, setActiveTag] = useState<string | null>(null);
+  
+  // Новый стейт для открытия экрана настроек
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const tabsOrder: TabType[] = ["feed", "events", "trending"];
 
@@ -29,8 +32,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   const touchStart = useRef({ x: 0, y: 0, time: 0 });
   const isSwiping = useRef(false);
   const currentTranslate = useRef(0);
-  
-  // Флаг, чтобы отличать клик по чузбару от свайпа экрана
   const isClickTransition = useRef(false);
 
   const physicsState = useRef({
@@ -41,6 +42,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     isMoving: false,
   });
 
+  // Установка цветов темы TG
   useEffect(() => {
     if (typeof window !== "undefined" && window.Telegram?.WebApp) {
       const webApp = window.Telegram.WebApp;
@@ -51,6 +53,35 @@ export default function MainView({ isLoading = false }: MainViewProps) {
       webApp.setBackgroundColor(bgColor);
     }
   }, []);
+
+  // НАСТРОЙКА КНОПКИ В МЕНЮ ТЕЛЕГРАМА (Три точки)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const tg = (window as any).Telegram?.WebApp;
+    
+    if (tg?.SettingsButton) {
+      // Настраиваем поведение при клике на кнопку в меню "Три точки"
+      const handleSettingsClick = () => {
+        triggerHaptic();
+        setIsSettingsOpen(true); // Открываем шторку настроек
+      };
+
+      tg.SettingsButton.onClick(handleSettingsClick);
+
+      // Показываем кнопку, если мы не ищем что-то прямо сейчас
+      if (!isSearching && !isLoading) {
+        tg.SettingsButton.show();
+      } else {
+        tg.SettingsButton.hide();
+      }
+
+      // Подчищаем слушатели при размонтировании
+      return () => {
+        tg.SettingsButton.offClick(handleSettingsClick);
+        tg.SettingsButton.hide();
+      };
+    }
+  }, [isSearching, isLoading]);
 
   // Физика ползунка в чузбаре
   useEffect(() => {
@@ -83,7 +114,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
       if (state.isMoving) {
         if (dist > 15) { 
           slider.style.backgroundColor = "transparent";
-          slider.style.borderColor = typeof window !== "undefined" && document.documentElement.classList.contains("dark") 
+          slider.style.borderColor = document.documentElement.classList.contains("dark") 
             ? "rgba(255, 255, 255, 0.35)" 
             : "rgba(0, 0, 0, 0.18)";
           state.tsy = 1.15; 
@@ -132,12 +163,10 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     const targetEl = getTargetEl();
     if (targetEl) {
       const state = physicsState.current;
-      
       if (state.w === 0) {
         state.x = targetEl.offsetLeft;
         state.w = targetEl.offsetWidth;
       }
-      
       state.tx = targetEl.offsetLeft;
       state.tw = targetEl.offsetWidth;
       state.isMoving = true;
@@ -159,29 +188,21 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     if (tab !== activeTab) {
       triggerHaptic();
       isClickTransition.current = true;
-      
       if (contentTrackRef.current) {
         contentTrackRef.current.style.transition = "none";
         const targetIdx = tabsOrder.indexOf(tab);
         contentTrackRef.current.style.transform = `translateX(${-targetIdx * window.innerWidth}px)`;
       }
-      
       setActiveTab(tab);
     }
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (isSearching) return;
-    
     const touch = e.touches[0];
-    touchStart.current = {
-      x: touch.clientX,
-      y: touch.clientY,
-      time: Date.now()
-    };
+    touchStart.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
     isSwiping.current = false;
     isClickTransition.current = false;
-    
     if (contentTrackRef.current) {
       contentTrackRef.current.style.transition = "none";
     }
@@ -205,7 +226,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
 
     if (isSwiping.current && contentTrackRef.current) {
       e.preventDefault();
-      
       const currentIdx = tabsOrder.indexOf(activeTab);
       const width = window.innerWidth;
       let translate = -currentIdx * width + deltaX;
@@ -231,11 +251,8 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     let targetIdx = currentIdx;
 
     if (Math.abs(movedX) > width * 0.35 || (duration < 250 && Math.abs(movedX) > 40)) {
-      if (movedX > 0 && currentIdx > 0) {
-        targetIdx = currentIdx - 1;
-      } else if (movedX < 0 && currentIdx < tabsOrder.length - 1) {
-        targetIdx = currentIdx + 1;
-      }
+      if (movedX > 0 && currentIdx > 0) targetIdx = currentIdx - 1;
+      else if (movedX < 0 && currentIdx < tabsOrder.length - 1) targetIdx = currentIdx + 1;
     }
 
     if (contentTrackRef.current) {
@@ -252,12 +269,10 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   useEffect(() => {
     if (contentTrackRef.current && !isSearching) {
       const currentIdx = tabsOrder.indexOf(activeTab);
-      
       if (isClickTransition.current) {
         isClickTransition.current = false;
         return;
       }
-
       contentTrackRef.current.style.transition = "transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)";
       contentTrackRef.current.style.transform = `translateX(${-currentIdx * window.innerWidth}px)`;
     }
@@ -276,30 +291,8 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     setActiveTag(null);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (!activeTag) {
-      const match = value.match(/^@([^\s]+)\s$/);
-      if (match) {
-        triggerHaptic();
-        setActiveTag(match[1]);
-        setSearchQuery("");
-        return;
-      }
-    }
-    setSearchQuery(value);
-  };
-
-  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace" && searchQuery === "" && activeTag) {
-      triggerHaptic();
-      setActiveTag(null);
-      e.preventDefault();
-    }
-  };
-
   return (
-    <div className="flex flex-col w-full h-full bg-appleLight-bg dark:bg-appleDark-bg transition-colors duration-300">
+    <div className="flex flex-col w-full h-full bg-appleLight-bg dark:bg-appleDark-bg transition-colors duration-300 relative">
       
       <header className="absolute top-[var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))] left-0 right-0 h-11 flex items-center justify-center z-50 pointer-events-none select-none">
         {isLoading ? (
@@ -315,13 +308,11 @@ export default function MainView({ isLoading = false }: MainViewProps) {
       </header>
       
       <main className="flex-1 w-full pt-[calc(var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))+44px)] flex flex-col overflow-hidden select-none">
-        
         <div className="w-[calc(100%-40px)] mx-auto pt-3 box-border">
           {isLoading ? (
             <div className="w-full h-11 bg-neutral-300 dark:bg-neutral-800 rounded-full animate-pulse" />
           ) : (
             <div className="w-full h-11 relative flex items-center">
-              
               <div 
                 className="absolute left-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center overflow-x-auto transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1) [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                 style={{
@@ -332,105 +323,38 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                   pointerEvents: isSearching ? "none" : "auto",
                 }}
               >
-                <div 
-                  ref={sliderRef}
-                  className="absolute top-1 bottom-1 bg-white/95 dark:bg-neutral-700/90 rounded-full border border-transparent shadow-sm will-change-transform z-10"
-                />
-
-                <button
-                  ref={tabFeedRef}
-                  onClick={() => handleTabClick("feed")}
-                  className={`flex-1 px-3 h-full rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
-                    activeTab === "feed" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
-                  }`}
-                >
-                  Лента
-                </button>
-
-                <button
-                  ref={tabEventsRef}
-                  onClick={() => handleTabClick("events")}
-                  className={`flex-1 px-3 h-full rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
-                    activeTab === "events" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
-                  }`}
-                >
-                  События
-                </button>
-
-                <button
-                  ref={tabTrendingRef}
-                  onClick={() => handleTabClick("trending")}
-                  className={`flex-1 pl-3 pr-2.5 h-full rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center space-x-1 ${
-                    activeTab === "trending" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
-                  }`}
-                >
+                <div ref={sliderRef} className="absolute top-1 bottom-1 bg-white/95 dark:bg-neutral-700/90 rounded-full border border-transparent shadow-sm will-change-transform z-10" />
+                <button ref={tabFeedRef} onClick={() => handleTabClick("feed")} className={`flex-1 px-3 h-full rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${activeTab === "feed" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"}`}>Лента</button>
+                <button ref={tabEventsRef} onClick={() => handleTabClick("events")} className={`flex-1 px-3 h-full rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${activeTab === "events" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"}`}>События</button>
+                <button ref={tabTrendingRef} onClick={() => handleTabClick("trending")} className={`flex-1 pl-3 pr-2.5 h-full rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center space-x-1 ${activeTab === "trending" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"}`}>
                   <span>В тренде</span>
-                  <span 
-                    className="px-1.5 py-0.5 text-[8.5px] font-black uppercase bg-[#FC062D] text-white rounded-[5px] tracking-wider leading-none flex items-center justify-center"
-                    style={{ fontFamily: "ui-rounded, 'SF Pro Rounded', 'Montserrat', system-ui, sans-serif" }}
-                  >
-                    New
-                  </span>
+                  <span className="px-1.5 py-0.5 text-[8.5px] font-black uppercase bg-[#FC062D] text-white rounded-[5px] tracking-wider leading-none flex items-center justify-center" style={{ fontFamily: "ui-rounded, 'SF Pro Rounded', 'Montserrat', system-ui, sans-serif" }}>New</span>
                 </button>
               </div>
 
               <div 
                 className="absolute right-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1) flex items-center overflow-hidden z-30"
-                style={{
-                  width: isSearching ? "100%" : "44px",
-                  padding: isSearching ? "0 6px 0 14px" : "0px",
-                }}
+                style={{ width: isSearching ? "100%" : "44px", padding: isSearching ? "0 6px 0 14px" : "0px" }}
               >
                 {isSearching ? (
                   <div className="w-full h-full flex items-center justify-between space-x-2">
                     <div className="flex items-center flex-1 h-full space-x-2 overflow-hidden">
-                      <img 
-                        src="/icons/search.png" 
-                        alt="Поиск" 
-                        className="w-4 h-4 object-contain brightness-0 invert opacity-35 flex-shrink-0"
-                      />
+                      <img src="/icons/search.png" alt="Поиск" className="w-4 h-4 object-contain brightness-0 invert opacity-35 flex-shrink-0" />
                       <div className="flex items-center flex-1 h-full space-x-1.5 overflow-hidden">
-                        {activeTag && (
-                          <div className="h-7 px-3 rounded-full bg-[#FC062D]/30 flex items-center justify-center flex-shrink-0 select-none">
-                            <span className="text-xs font-medium text-[#FC062D] tracking-wide whitespace-nowrap">
-                              от: {activeTag}
-                            </span>
-                          </div>
-                        )}
-                        <input
-                          ref={inputRef}
-                          type="text"
-                          placeholder={activeTag ? "" : "Поиск..."}
-                          value={searchQuery}
-                          onChange={handleInputChange}
-                          onKeyDown={handleInputKeyDown}
-                          className="flex-1 h-full bg-transparent border-none outline-none text-base font-normal text-appleLight-text dark:text-appleDark-text placeholder-appleLight-text/35 dark:placeholder-appleDark-text/35 placeholder:text-xs placeholder:font-normal"
-                        />
+                        {activeTag && <div className="h-7 px-3 rounded-full bg-[#FC062D]/30 flex items-center justify-center flex-shrink-0 select-none"><span className="text-xs font-medium text-[#FC062D] tracking-wide whitespace-nowrap">от: {activeTag}</span></div>}
+                        <input ref={inputRef} type="text" placeholder={activeTag ? "" : "Поиск..."} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="flex-1 h-full bg-transparent border-none outline-none text-base font-normal text-appleLight-text dark:text-appleDark-text placeholder-appleLight-text/35 dark:placeholder-appleDark-text/35 placeholder:text-xs placeholder:font-normal" />
                       </div>
                     </div>
-                    <button 
-                      onClick={disableSearch}
-                      className="w-8 h-8 flex items-center justify-center rounded-full bg-appleLight-text/10 dark:bg-white/10 outline-none active:scale-90 transition-transform flex-shrink-0"
-                    >
-                      <svg width="12" height="12" viewBox="0 0 10 10" fill="none" className="stroke-appleLight-text dark:stroke-appleDark-text stroke-[1.5]">
-                        <path d="M1 1L9 9M9 1L1 9" />
-                      </svg>
+                    <button onClick={disableSearch} className="w-8 h-8 flex items-center justify-center rounded-full bg-appleLight-text/10 dark:bg-white/10 outline-none active:scale-90 transition-transform flex-shrink-0">
+                      <svg width="12" height="12" viewBox="0 0 10 10" fill="none" className="stroke-appleLight-text dark:stroke-appleDark-text stroke-[1.5]"><path d="M1 1L9 9M9 1L1 9" /></svg>
                     </button>
                   </div>
                 ) : (
-                  <button
-                    onClick={enableSearch}
-                    className="w-full h-full flex items-center justify-center rounded-full outline-none active:scale-95 transition-transform"
-                  >
-                    <img 
-                      src="/icons/search.png" 
-                      alt="Поиск" 
-                      className="w-5 h-5 object-contain brightness-0 invert"
-                    />
+                  <button onClick={enableSearch} className="w-full h-full flex items-center justify-center rounded-full outline-none active:scale-95 transition-transform">
+                    <img src="/icons/search.png" alt="Поиск" className="w-5 h-5 object-contain brightness-0 invert" />
                   </button>
                 )}
               </div>
-
             </div>
           )}
         </div>
@@ -439,28 +363,18 @@ export default function MainView({ isLoading = false }: MainViewProps) {
           {isSearching ? (
             <SearchView searchQuery={searchQuery} />
           ) : (
-            <div 
-              ref={contentTrackRef}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-              className="absolute inset-0 flex w-[300%] h-full will-change-transform"
-              style={{ transform: `translateX(0px)` }}
-            >
-              <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
-                <EmptyState isLoading={isLoading} activeTab="feed" />
-              </div>
-              <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
-                <EmptyState isLoading={isLoading} activeTab="events" />
-              </div>
-              <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
-                <EmptyState isLoading={isLoading} activeTab="trending" />
-              </div>
+            <div ref={contentTrackRef} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} className="absolute inset-0 flex w-[300%] h-full will-change-transform" style={{ transform: `translateX(0px)` }}>
+              <div className="w-screen h-full flex-shrink-0 overflow-y-auto"><EmptyState isLoading={isLoading} activeTab="feed" /></div>
+              <div className="w-screen h-full flex-shrink-0 overflow-y-auto"><EmptyState isLoading={isLoading} activeTab="events" /></div>
+              <div className="w-screen h-full flex-shrink-0 overflow-y-auto"><EmptyState isLoading={isLoading} activeTab="trending" /></div>
             </div>
           )}
         </div>
-
       </main>
+
+      {/* ШТОРКА НАСТРОЕК В IOS СТИЛЕ */}
+      <SettingsView isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+
     </div>
   );
 }
