@@ -151,7 +151,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     if (isSearching) {
       setIsSearching(false);
       setSearchQuery("");
-    } : {
+    } else {
       setIsSearching(true);
       setTimeout(() => inputRef.current?.focus(), 250);
     }
@@ -232,7 +232,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                   </button>
                 </div>
 
-                {/* ЭЛЕМЕНТ 2: СТРОКА ПОИСКА (ПОДСКАЗКА "НАЙТИ ЧТО-НИБУДЬ") */}
+                {/* ЭЛЕМЕНТ 2: СТРОКА ПОИСКА */}
                 <div 
                   className="absolute inset-0 px-4 flex items-center justify-between transition-opacity duration-200"
                   style={{
