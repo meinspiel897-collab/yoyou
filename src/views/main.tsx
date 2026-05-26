@@ -108,23 +108,30 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   useEffect(() => {
     if (isLoading || isSearching) return;
     
-    const targetEl = activeTab === "feed" ? tabFeedRef.current : tabEventsRef.current;
-    if (targetEl) {
-      const state = physicsState.current;
-      
-      if (state.w === 0 && targetEl.offsetWidth > 0) {
-        state.x = targetEl.offsetLeft;
-        state.w = targetEl.offsetWidth;
-        if (sliderRef.current) {
-          sliderRef.current.style.left = `${state.x}px`;
-          sliderRef.current.style.width = `${state.w}px`;
+    const updateDimensions = () => {
+      const targetEl = activeTab === "feed" ? tabFeedRef.current : tabEventsRef.current;
+      if (targetEl && targetEl.offsetWidth > 0) {
+        const state = physicsState.current;
+        
+        if (state.w === 0) {
+          state.x = targetEl.offsetLeft;
+          state.w = targetEl.offsetWidth;
+          if (sliderRef.current) {
+            sliderRef.current.style.left = `${state.x}px`;
+            sliderRef.current.style.width = `${state.w}px`;
+          }
         }
+        
+        state.tx = targetEl.offsetLeft;
+        state.tw = targetEl.offsetWidth;
+        state.isMoving = true;
       }
-      
-      state.tx = targetEl.offsetLeft;
-      state.tw = targetEl.offsetWidth;
-      state.isMoving = true;
-    }
+    };
+
+    updateDimensions();
+    const resizeTimeout = setTimeout(updateDimensions, 50);
+    
+    return () => clearTimeout(resizeTimeout);
   }, [activeTab, isLoading, isSearching]);
 
   const triggerHaptic = () => {
@@ -156,24 +163,26 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     setIsSearching(false);
     setSearchQuery("");
     
-    const targetEl = activeTab === "feed" ? tabFeedRef.current : tabEventsRef.current;
-    if (targetEl) {
-      const state = physicsState.current;
-      state.x = targetEl.offsetLeft;
-      state.w = targetEl.offsetWidth;
-      state.tx = targetEl.offsetLeft;
-      state.tw = targetEl.offsetWidth;
-      state.vx = 0;
-      state.vw = 0;
-      state.isMoving = false;
-      if (sliderRef.current) {
-        sliderRef.current.style.left = `${state.x}px`;
-        sliderRef.current.style.width = `${state.w}px`;
-        sliderRef.current.style.transform = "scale(1, 1)";
-        sliderRef.current.style.backgroundColor = "";
-        sliderRef.current.style.borderColor = "transparent";
+    setTimeout(() => {
+      const targetEl = activeTab === "feed" ? tabFeedRef.current : tabEventsRef.current;
+      if (targetEl && targetEl.offsetWidth > 0) {
+        const state = physicsState.current;
+        state.x = targetEl.offsetLeft;
+        state.w = targetEl.offsetWidth;
+        state.tx = targetEl.offsetLeft;
+        state.tw = targetEl.offsetWidth;
+        state.vx = 0;
+        state.vw = 0;
+        state.isMoving = false;
+        if (sliderRef.current) {
+          sliderRef.current.style.left = `${state.x}px`;
+          sliderRef.current.style.width = `${state.w}px`;
+          sliderRef.current.style.transform = "scale(1, 1)";
+          sliderRef.current.style.backgroundColor = "";
+          sliderRef.current.style.borderColor = "transparent";
+        }
       }
-    }
+    }, 30);
   };
 
   return (
@@ -249,7 +258,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                       <img 
                         src="/icons/search.png" 
                         alt="Поиск" 
-                        className="w-4 h-4 object-contain opacity-35 dark:opacity-35"
+                        className="w-4 h-4 object-contain invert dark:invert-0 opacity-35"
                       />
                       <input
                         ref={inputRef}
@@ -277,7 +286,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                     <img 
                       src="/icons/search.png" 
                       alt="Поиск" 
-                      className="w-4 h-4 object-contain opacity-70 dark:opacity-90"
+                      className="w-5 h-5 object-contain invert dark:invert-0 opacity-80 dark:opacity-90"
                     />
                   </button>
                 )}
