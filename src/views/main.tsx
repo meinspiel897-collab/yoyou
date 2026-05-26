@@ -212,7 +212,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
           ) : (
             <div className="w-full h-11 relative flex items-center select-none">
               
-              {/* ЧУЗБАР: по дефолту табы делят место поровну (flex-1). Но не сжимаются меньше контента благодаря whitespace-nowrap */}
               <div 
                 className="absolute left-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center overflow-x-auto transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1) [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                 style={{
@@ -257,7 +256,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                 >
                   <span>В тренде</span>
                   
-                  {/* Исправленный стек системных округлых шрифтов Apple / Google */}
                   <span 
                     className="px-1.5 py-0.5 text-[8.5px] font-black uppercase bg-[#FC062D] text-white rounded-[5px] tracking-wider leading-none flex items-center justify-center"
                     style={{ fontFamily: "ui-rounded, 'SF Pro Rounded', 'Montserrat', system-ui, sans-serif" }}
@@ -334,7 +332,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
           {isSearching ? (
             <SearchView searchQuery={searchQuery} />
           ) : (
-            <EmptyState isLoading={isLoading} />
+            <EmptyState isLoading={isLoading} activeTab={activeTab} />
           )}
         </div>
       </main>
