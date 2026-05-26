@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { motion } from "framer-motion";
 import EmptyState from "@/views/main/empty";
 
 interface MainViewProps {
@@ -14,13 +15,13 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   
-  // Рефы для точного расчета физики капли
+  // Рефы для физики капли
   const tabFeedRef = useRef<HTMLButtonElement>(null);
   const tabEventsRef = useRef<HTMLButtonElement>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Внутреннее состояние физического движка капли внутри табов
+  // Внутреннее состояние физического движка капли
   const physicsState = useRef({
     x: 0, tx: 0, vx: 0,
     w: 0, tw: 0, vw: 0,
@@ -40,7 +41,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     }
   }, []);
 
-  // Цикл физики жидкого ползунка (оставляем только для переключения табов)
+  // Цикл физики жидкого ползунка
   useEffect(() => {
     if (isLoading || isSearching) return;
 
@@ -108,15 +109,13 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     return () => cancelAnimationFrame(rafId);
   }, [isLoading, isSearching]);
 
-  // Расчет геометрии табов при инициализации и выходе из режима поиска
+  // Стабильное удержание капли на месте при переключениях
   useEffect(() => {
     if (isLoading || isSearching) return;
     
     const targetEl = activeTab === "feed" ? tabFeedRef.current : tabEventsRef.current;
     if (targetEl) {
       const state = physicsState.current;
-      
-      // Стабильно восстанавливаем координаты капли без рывков
       state.x = targetEl.offsetLeft;
       state.w = targetEl.offsetWidth;
       state.tx = targetEl.offsetLeft;
@@ -125,12 +124,16 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     }
   }, [activeTab, isLoading, isSearching]);
 
-  const triggerHaptic = () => {
+  const triggerHaptic = (type: "light" | "medium" = "light") => {
     if (typeof window !== "undefined") {
       const anyWindow = window as any;
       if (anyWindow.Telegram?.WebApp?.HapticFeedback) {
         try {
-          anyWindow.Telegram.WebApp.HapticFeedback.selectionChanged();
+          if (type === "medium") {
+            anyWindow.Telegram.WebApp.HapticFeedback.impactOccurred("medium");
+          } else {
+            anyWindow.Telegram.WebApp.HapticFeedback.selectionChanged();
+          }
         } catch (e) {}
       }
     }
@@ -138,21 +141,27 @@ export default function MainView({ isLoading = false }: MainViewProps) {
 
   const handleTabClick = (tab: TabType) => {
     if (tab !== activeTab) {
-      triggerHaptic();
+      triggerHaptic("light");
       setActiveTab(tab);
     }
   };
 
-  const enableSearch = () => {
-    triggerHaptic();
-    setIsSearching(true);
-    setTimeout(() => inputRef.current?.focus(), 200);
+  const toggleSearchMode = () => {
+    triggerHaptic("medium");
+    if (isSearching) {
+      setIsSearching(false);
+      setSearchQuery("");
+    } : {
+      setIsSearching(true);
+      setTimeout(() => inputRef.current?.focus(), 250);
+    }
   };
 
-  const disableSearch = () => {
-    triggerHaptic();
-    setIsSearching(false);
-    setSearchQuery("");
+  // Кастомная плавная кривая замедления Apple-style (без пружин)
+  const layoutTransition = {
+    type: "tween",
+    ease: [0.25, 1, 0.5, 1],
+    duration: 0.32
   };
 
   return (
@@ -175,100 +184,105 @@ export default function MainView({ isLoading = false }: MainViewProps) {
       {/* ОСНОВНОЙ КОНТЕНТ */}
       <main className="flex-1 w-full pt-[calc(var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))+44px)] flex flex-col overflow-hidden">
         
-        {/* ПАНЕЛЬ УПРАВЛЕНИЯ: ГЕОМЕТРИЯ С ОТСТУПАМИ 20PX ОТ КРАЕВ ЭКРАНА */}
+        {/* ЗОНА С ЧУЗБАРОМ И КРУГОМ: СТРОГИЕ 20PX ОТ КРАЕВ ЭКРАНА */}
         <div className="w-[calc(100%-40px)] mx-auto pt-3 box-border">
           {isLoading ? (
             <div className="w-full h-11 bg-neutral-300 dark:bg-neutral-800 rounded-full animate-pulse" />
           ) : (
-            <div className="w-full h-11 flex items-center relative select-none">
+            <div className="w-full h-11 flex items-center gap-2 relative select-none">
               
-              {/* ЧУЗБАР: ПЛАВНОЕ УМЕНЬШЕНИЕ С ДЕЦЕЛЕРАЦИЕЙ БЕЗ СМЯТИЯ КООРДИНАТ */}
-              <div 
-                className="h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex relative will-change-[transform,opacity]"
-                style={{
-                  width: "calc(100% - 54px)",
-                  opacity: isSearching ? 0 : 1,
-                  transform: isSearching ? "scale(0.92) translateX(-10px)" : "scale(1) translateX(0px)",
-                  // Чистый децелерирующий профиль анимации (плавное замедление к концу)
-                  transition: "opacity 0.25s cubic-bezier(0.25, 1, 0.5, 1), transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)",
-                  pointerEvents: isSearching ? "none" : "auto",
-                }}
+              {/* ГЛАВНЫЙ БЛОК (ВЫСОТА H-11, МЕНЯЕТ КОРПУС С ЧУЗБАРА НА СТРОКУ) */}
+              <motion.div
+                layout
+                transition={layoutTransition}
+                style={{ order: isSearching ? 1 : -1 }}
+                className="flex-1 h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full relative overflow-hidden"
               >
-                {/* Жидкая капля */}
+                {/* ЭЛЕМЕНТ 1: ЧУЗБАР (ТАБЫ) */}
                 <div 
-                  ref={sliderRef}
-                  className="absolute top-1 bottom-1 bg-white dark:bg-neutral-800 rounded-full border border-transparent shadow-sm will-change-transform z-10"
-                />
-
-                <button
-                  ref={tabFeedRef}
-                  onClick={() => handleTabClick("feed")}
-                  className={`flex-1 h-full rounded-full text-xs font-bold z-20 transition-colors duration-200 outline-none ${
-                    activeTab === "feed" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
-                  }`}
+                  className="absolute inset-0 p-1 flex relative transition-opacity duration-200"
+                  style={{
+                    opacity: isSearching ? 0 : 1,
+                    pointerEvents: isSearching ? "none" : "auto",
+                  }}
                 >
-                  Лента
-                </button>
+                  <div 
+                    ref={sliderRef}
+                    className="absolute top-1 bottom-1 bg-white dark:bg-neutral-800 rounded-full border border-transparent shadow-sm will-change-transform z-10"
+                  />
 
-                <button
-                  ref={tabEventsRef}
-                  onClick={() => handleTabClick("events")}
-                  className={`flex-1 h-full rounded-full text-xs font-bold z-20 transition-colors duration-200 outline-none ${
-                    activeTab === "events" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
-                  }`}
+                  <button
+                    ref={tabFeedRef}
+                    onClick={() => handleTabClick("feed")}
+                    className={`flex-1 h-full rounded-full text-xs font-bold z-20 transition-colors duration-200 outline-none ${
+                      activeTab === "feed" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
+                    }`}
+                  >
+                    Лента
+                  </button>
+
+                  <button
+                    ref={tabEventsRef}
+                    onClick={() => handleTabClick("events")}
+                    className={`flex-1 h-full rounded-full text-xs font-bold z-20 transition-colors duration-200 outline-none ${
+                      activeTab === "events" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
+                    }`}
+                  >
+                    События
+                  </button>
+                </div>
+
+                {/* ЭЛЕМЕНТ 2: СТРОКА ПОИСКА (ПОДСКАЗКА "НАЙТИ ЧТО-НИБУДЬ") */}
+                <div 
+                  className="absolute inset-0 px-4 flex items-center justify-between transition-opacity duration-200"
+                  style={{
+                    opacity: isSearching ? 1 : 0,
+                    pointerEvents: isSearching ? "auto" : "none",
+                  }}
                 >
-                  События
-                </button>
-              </div>
-
-              {/* СТРОКА ПОИСКА: СТАБИЛЬНЫЙ ПЛАВНЫЙ КИНЕМАТИЧЕСКИЙ ВЫЕЗД С ЗАМЕДЛЕНИЕМ К КОНЦУ */}
-              <div 
-                className="absolute right-0 h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full flex items-center overflow-hidden will-change-[width]"
-                style={{
-                  width: isSearching ? "100%" : "44px",
-                  padding: isSearching ? "0 14px" : "0px",
-                  // Применяем кривую замедления без прыжков и пружин
-                  transition: "width 0.32s cubic-bezier(0.25, 1, 0.5, 1), padding 0.2s cubic-bezier(0.25, 1, 0.5, 1)",
-                }}
-              >
-                {isSearching ? (
-                  <div className="w-full h-full flex items-center justify-between">
-                    <input
-                      ref={inputRef}
-                      type="text"
-                      placeholder="Найти что-нибудь..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-[calc(100%-24px)] h-full bg-transparent border-none outline-none text-[13px] font-medium text-appleLight-text dark:text-appleDark-text placeholder-appleLight-text/30 dark:placeholder-appleDark-text/30"
-                    />
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    placeholder="Найти что-нибудь..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-[calc(100%-24px)] h-full bg-transparent border-none outline-none text-[14px] font-medium text-appleLight-text dark:text-appleDark-text placeholder-appleLight-text/25 dark:placeholder-appleDark-text/25"
+                  />
+                  
+                  {searchQuery && (
                     <button 
-                      onClick={disableSearch}
+                      onClick={() => setSearchQuery("")}
                       className="w-5 h-5 flex items-center justify-center rounded-full bg-appleLight-text/10 dark:bg-white/10 outline-none active:scale-90 transition-transform"
                     >
-                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="stroke-appleLight-text dark:stroke-appleDark-text stroke-[1.5]">
+                      <svg width="8" height="8" viewBox="0 0 10 10" fill="none" className="stroke-appleLight-text dark:stroke-appleDark-text stroke-[1.5]">
                         <path d="M1 1L9 9M9 1L1 9" />
                       </svg>
                     </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={enableSearch}
-                    className="w-full h-full flex items-center justify-center rounded-full outline-none active:scale-95 transition-transform"
-                  >
-                    <img 
-                      src="/icons/search.png" 
-                      alt="Поиск" 
-                      className="w-4 h-4 object-contain opacity-70 dark:opacity-90"
-                    />
-                  </button>
-                )}
-              </div>
+                  )}
+                </div>
+              </motion.div>
+
+              {/* КРУГЛАЯ КНОПКА СТАТИЧНОГО РАЗМЕРА (ВЫСОТА H-11, МЕНЯЕТСЯ МЕСТАМИ) */}
+              <motion.button
+                layout
+                whileTap={{ scale: 0.92 }}
+                transition={layoutTransition}
+                onClick={toggleSearchMode}
+                style={{ order: isSearching ? -1 : 1 }}
+                className="h-11 w-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full flex items-center justify-center shrink-0 z-20 outline-none"
+              >
+                <img 
+                  src={isSearching ? "/icons/close.png" : "/icons/search.png"} 
+                  alt="Поиск" 
+                  className="w-4 h-4 object-contain opacity-70 dark:opacity-90"
+                />
+              </motion.button>
 
             </div>
           )}
         </div>
 
-        {/* КОНТЕНТНАЯ ЗОНА */}
+        {/* НИЖНЯЯ ПАНЕЛЬ С КОНТЕНТОМ */}
         <div className="flex-1 w-full">
           <EmptyState isLoading={isLoading} />
         </div>
