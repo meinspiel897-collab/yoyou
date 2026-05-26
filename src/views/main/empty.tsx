@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Lottie from "lottie-light-react";
 import noneAnimation from "@/../public/icons/none.json";
 import none2Animation from "@/../public/icons/none2.json";
@@ -13,7 +14,13 @@ interface EmptyStateProps {
 }
 
 export default function EmptyState({ isLoading = false, activeTab }: EmptyStateProps) {
+  // Локальный стейт для имитации обновления при нажатии кнопки
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
   const handleTryAgain = () => {
+    if (isRefreshing) return;
+
+    // Вызываем хаптик
     if (typeof window !== "undefined") {
       const anyWindow = window as any;
       if (anyWindow.Telegram?.WebApp?.HapticFeedback) {
@@ -22,9 +29,16 @@ export default function EmptyState({ isLoading = false, activeTab }: EmptyStateP
         } catch (e) {}
       }
     }
+
+    // Включаем лоадер кнопки
+    setIsRefreshing(true);
+
+    // Имитируем поход на бэкенд (2 секунды)
+    setTimeout(() => {
+      setIsRefreshing(false);
+    }, 2000);
   };
 
-  // Контент под каждую вкладку
   const tabContent = {
     feed: {
       animation: noneAnimation,
@@ -45,7 +59,7 @@ export default function EmptyState({ isLoading = false, activeTab }: EmptyStateP
 
   const currentContent = tabContent[activeTab] || tabContent.feed;
 
-  // Режим заглушки (Skeleton)
+  // Режим глобальной заглушки (Skeleton)
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center w-full h-full px-6 select-none animate-pulse">
@@ -62,11 +76,9 @@ export default function EmptyState({ isLoading = false, activeTab }: EmptyStateP
     );
   }
 
-  // Рабочее состояние
   return (
     <div className="flex flex-col items-center justify-center w-full h-full px-6 select-none">
       <div className="flex flex-col items-center max-w-[260px] w-full">
-        {/* Рендерим динамическую анимацию */}
         <div className="w-[120px] h-[120px] flex items-center justify-center mb-4">
           <Lottie 
             animationData={currentContent.animation} 
@@ -83,11 +95,41 @@ export default function EmptyState({ isLoading = false, activeTab }: EmptyStateP
           {currentContent.desc}
         </p>
         
+        {/* Кнопка с динамическим переключением стилей и iOS лоадером */}
         <button 
           onClick={handleTryAgain}
-          className="w-full mt-5 h-11 bg-[#FC062D] text-white font-semibold text-sm rounded-full outline-none active:scale-[0.98] transition-all duration-150"
+          disabled={isRefreshing}
+          className={`w-full mt-5 h-11 font-semibold text-sm rounded-full outline-none flex items-center justify-center transition-all duration-300 select-none ${
+            isRefreshing 
+              ? "bg-[#1C1C1E] text-[#8E8E93] cursor-default" 
+              : "bg-[#FC062D] text-white active:scale-[0.98]"
+          }`}
         >
-          Попытаться снова
+          {isRefreshing ? (
+            // Нативный iOS Спиннер на SVG
+            <svg 
+              className="animate-spin h-5 w-5 text-neutral-400" 
+              xmlns="http://www.w3.org/2000/svg" 
+              fill="none" 
+              viewBox="0 0 24 24"
+            >
+              <circle 
+                className="opacity-25" 
+                cx="12" 
+                cy="12" 
+                r="10" 
+                stroke="currentColor" 
+                strokeWidth="3"
+              />
+              <path 
+                className="opacity-75" 
+                fill="currentColor" 
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
+          ) : (
+            "Попытаться снова"
+          )}
         </button>
       </div>
     </div>
