@@ -43,8 +43,8 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     if (isLoading || isSearching) return;
 
     const PHYSICS = {
-      pos: { k: 440, d: 40, m: 1 },    
-      scale: { k: 460, d: 26, m: 1 }   
+      pos: { k: 240, d: 26, m: 1 },    
+      scale: { k: 280, d: 20, m: 1 }   
     };
 
     function spring(current: number, target: number, velocity: number, config: { k: number, d: number, m: number }) {
@@ -69,16 +69,16 @@ export default function MainView({ isLoading = false }: MainViewProps) {
       if (state.isMoving) {
         if (dist > 15) { 
           slider.style.backgroundColor = "transparent";
-          slider.style.borderColor = typeof window !== "undefined" && document.documentElement.classList.contains("dark") 
+          slider.style.borderColor = document.documentElement.classList.contains("dark") 
             ? "rgba(255, 255, 255, 0.35)" 
             : "rgba(0, 0, 0, 0.18)";
-          state.tsy = 1.22; 
-          state.tsx = 0.88; 
+          state.tsy = 1.18; 
+          state.tsx = 0.90; 
         } else if (dist <= 15 && dist > 0.5) {
           slider.style.backgroundColor = "";
           slider.style.borderColor = "transparent";
-          state.tsy = 0.95; 
-          state.tsx = 1.06; 
+          state.tsy = 0.96; 
+          state.tsx = 1.04; 
         } else {
           state.tsx = 1;
           state.tsy = 1;
@@ -109,30 +109,19 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   useEffect(() => {
     if (isLoading || isSearching) return;
     
-    const updateDimensions = () => {
-      const targetEl = activeTab === "feed" ? tabFeedRef.current : tabEventsRef.current;
-      if (targetEl && targetEl.offsetWidth > 0) {
-        const state = physicsState.current;
-        
-        if (state.w === 0) {
-          state.x = targetEl.offsetLeft;
-          state.w = targetEl.offsetWidth;
-          if (sliderRef.current) {
-            sliderRef.current.style.left = `${state.x}px`;
-            sliderRef.current.style.width = `${state.w}px`;
-          }
-        }
-        
-        state.tx = targetEl.offsetLeft;
-        state.tw = targetEl.offsetWidth;
-        state.isMoving = true;
+    const targetEl = activeTab === "feed" ? tabFeedRef.current : tabEventsRef.current;
+    if (targetEl) {
+      const state = physicsState.current;
+      
+      if (state.w === 0) {
+        state.x = targetEl.offsetLeft;
+        state.w = targetEl.offsetWidth;
       }
-    };
-
-    updateDimensions();
-    const resizeTimeout = setTimeout(updateDimensions, 50);
-    
-    return () => clearTimeout(resizeTimeout);
+      
+      state.tx = targetEl.offsetLeft;
+      state.tw = targetEl.offsetWidth;
+      state.isMoving = true;
+    }
   }, [activeTab, isLoading, isSearching]);
 
   const triggerHaptic = () => {
@@ -163,27 +152,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     triggerHaptic();
     setIsSearching(false);
     setSearchQuery("");
-    
-    setTimeout(() => {
-      const targetEl = activeTab === "feed" ? tabFeedRef.current : tabEventsRef.current;
-      if (targetEl && targetEl.offsetWidth > 0) {
-        const state = physicsState.current;
-        state.x = targetEl.offsetLeft;
-        state.w = targetEl.offsetWidth;
-        state.tx = targetEl.offsetLeft;
-        state.tw = targetEl.offsetWidth;
-        state.vx = 0;
-        state.vw = 0;
-        state.isMoving = false;
-        if (sliderRef.current) {
-          sliderRef.current.style.left = `${state.x}px`;
-          sliderRef.current.style.width = `${state.w}px`;
-          sliderRef.current.style.transform = "scale(1, 1)";
-          sliderRef.current.style.backgroundColor = "";
-          sliderRef.current.style.borderColor = "transparent";
-        }
-      }
-    }, 30);
   };
 
   return (
@@ -208,14 +176,14 @@ export default function MainView({ isLoading = false }: MainViewProps) {
           {isLoading ? (
             <div className="w-full h-11 bg-neutral-300 dark:bg-neutral-800 rounded-full animate-pulse" />
           ) : (
-            <div className="w-full h-11 flex items-center relative">
+            <div className="w-full h-11 relative flex items-center select-none">
               
               <div 
-                className="h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex relative transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1)"
+                className="absolute left-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1)"
                 style={{
-                  width: isSearching ? "0px" : "calc(100% - 54px)",
-                  marginRight: isSearching ? "0px" : "10px",
+                  width: "calc(100% - 54px)",
                   opacity: isSearching ? 0 : 1,
+                  transform: isSearching ? "scale(0.97)" : "scale(1)",
                   visibility: isSearching ? "hidden" : "visible",
                   pointerEvents: isSearching ? "none" : "auto",
                 }}
@@ -247,10 +215,10 @@ export default function MainView({ isLoading = false }: MainViewProps) {
               </div>
 
               <div 
-                className="h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1) flex items-center relative overflow-hidden"
+                className="absolute right-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1) flex items-center overflow-hidden z-30"
                 style={{
                   width: isSearching ? "100%" : "44px",
-                  padding: isSearching ? "0 14px" : "0px",
+                  padding: isSearching ? "0 6px 0 14px" : "0px",
                 }}
               >
                 {isSearching ? (
@@ -259,23 +227,22 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                       <img 
                         src="/icons/search.png" 
                         alt="Поиск" 
-                        className="w-4 h-4 object-contain invert dark:invert-0 opacity-35"
+                        className="w-4 h-4 object-contain brightness-0 invert opacity-35"
                       />
-                      {/* text-base (16px) предотвращает зум на iOS, а через placeholder регулируем его вид */}
                       <input
                         ref={inputRef}
                         type="text"
                         placeholder="Поиск..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="flex-1 h-full bg-transparent border-none outline-none text-base font-bold text-appleLight-text dark:text-appleDark-text placeholder-appleLight-text/35 dark:placeholder-appleDark-text/35 placeholder:text-xs placeholder:font-bold"
+                        className="flex-1 h-full bg-transparent border-none outline-none text-base font-normal text-appleLight-text dark:text-appleDark-text placeholder-appleLight-text/35 dark:placeholder-appleDark-text/35 placeholder:text-xs placeholder:font-normal"
                       />
                     </div>
                     <button 
                       onClick={disableSearch}
-                      className="w-5 h-5 flex items-center justify-center rounded-full bg-appleLight-text/10 dark:bg-white/10 outline-none active:scale-90 transition-transform flex-shrink-0"
+                      className="w-8 h-8 flex items-center justify-center rounded-full bg-appleLight-text/10 dark:bg-white/10 outline-none active:scale-90 transition-transform flex-shrink-0"
                     >
-                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="stroke-appleLight-text dark:stroke-appleDark-text stroke-[1.5]">
+                      <svg width="12" height="12" viewBox="0 0 10 10" fill="none" className="stroke-appleLight-text dark:stroke-appleDark-text stroke-[1.5]">
                         <path d="M1 1L9 9M9 1L1 9" />
                       </svg>
                     </button>
@@ -288,7 +255,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                     <img 
                       src="/icons/search.png" 
                       alt="Поиск" 
-                      className="w-5 h-5 object-contain invert dark:invert-0 opacity-80 dark:opacity-90"
+                      className="w-5 h-5 object-contain brightness-0 invert"
                     />
                   </button>
                 )}
@@ -298,7 +265,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
           )}
         </div>
 
-        {/* Переключаем на SearchView в момент поиска, в остальное время крутится EmptyState */}
+        {/* Контентная область: переключаемся на SearchView, когда поиск активен */}
         <div className="flex-1 w-full">
           {isSearching ? (
             <SearchView searchQuery={searchQuery} />
