@@ -2,12 +2,17 @@
 
 import Lottie from "lottie-light-react";
 import noneAnimation from "@/../public/icons/none.json";
+import none2Animation from "@/../public/icons/none2.json";
+import none3Animation from "@/../public/icons/none3.json";
+
+type TabType = "feed" | "events" | "trending";
 
 interface EmptyStateProps {
   isLoading?: boolean;
+  activeTab: TabType;
 }
 
-export default function EmptyState({ isLoading = false }: EmptyStateProps) {
+export default function EmptyState({ isLoading = false, activeTab }: EmptyStateProps) {
   const handleTryAgain = () => {
     if (typeof window !== "undefined") {
       const anyWindow = window as any;
@@ -19,24 +24,38 @@ export default function EmptyState({ isLoading = false }: EmptyStateProps) {
     }
   };
 
+  // Контент под каждую вкладку
+  const tabContent = {
+    feed: {
+      animation: noneAnimation,
+      title: "Тут 100 проц что-то есть",
+      desc: "Но у тебя этого пока не видно. Проверь там свое соединение, чтоль",
+    },
+    events: {
+      animation: none2Animation,
+      title: "Либо все дома, либо движ отменили",
+      desc: "Календарь пустой, ивентов ноль. Попробуй обновить, вдруг че залетит",
+    },
+    trending: {
+      animation: none3Animation,
+      title: "Хайп еще не подвезли",
+      desc: "Тренды чистые как моя совесть. Давай рефрешнем, пока админы спят",
+    },
+  };
+
+  const currentContent = tabContent[activeTab] || tabContent.feed;
+
   // Режим заглушки (Skeleton)
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center w-full h-full px-6 select-none animate-pulse">
         <div className="flex flex-col items-center max-w-[260px] w-full space-y-4">
-          {/* Иллюстрация в скелетоне тоже чуть крупнее под размер Lottie */}
           <div className="w-[120px] h-[120px] bg-neutral-300 dark:bg-neutral-800 rounded-2xl mb-1" />
-          
-          {/* Заголовок */}
           <div className="w-48 h-5 bg-neutral-300 dark:bg-neutral-800 rounded-md" />
-          
-          {/* Текст описания */}
           <div className="w-full flex flex-col items-center space-y-2 pt-1">
             <div className="w-full h-3.5 bg-neutral-300 dark:bg-neutral-800 rounded-md" />
             <div className="w-[85%] h-3.5 bg-neutral-300 dark:bg-neutral-800 rounded-md" />
           </div>
-          
-          {/* Скелетон кнопки под размер h-11 */}
           <div className="w-full h-11 bg-neutral-300 dark:bg-neutral-800 rounded-full mt-1" />
         </div>
       </div>
@@ -47,10 +66,10 @@ export default function EmptyState({ isLoading = false }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center w-full h-full px-6 select-none">
       <div className="flex flex-col items-center max-w-[260px] w-full">
-        {/* Lottie вместо картинки, на 24px крупнее исходного */}
+        {/* Рендерим динамическую анимацию */}
         <div className="w-[120px] h-[120px] flex items-center justify-center mb-4">
           <Lottie 
-            animationData={noneAnimation} 
+            animationData={currentContent.animation} 
             loop={true} 
             autoplay={true}
             className="w-full h-full object-contain"
@@ -58,13 +77,12 @@ export default function EmptyState({ isLoading = false }: EmptyStateProps) {
         </div>
 
         <h2 className="text-lg font-bold tracking-tight text-center text-appleLight-text dark:text-appleDark-text">
-          Тут 100 проц что-то есть
+          {currentContent.title}
         </h2>
         <p className="text-sm font-medium text-center text-appleLight-text/75 dark:text-appleDark-text/75 mt-1">
-          Но у тебя этого пока не видно. Проверь там свое соединение, чтоль
+          {currentContent.desc}
         </p>
         
-        {/* Кнопка сохранила исходный размер h-11 и стиль */}
         <button 
           onClick={handleTryAgain}
           className="w-full mt-5 h-11 bg-[#FC062D] text-white font-semibold text-sm rounded-full outline-none active:scale-[0.98] transition-all duration-150"
