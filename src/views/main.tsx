@@ -17,6 +17,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isNewModalOpen, setIsNewModalOpen] = useState(false);
 
   const tabsOrder: TabType[] = ["feed", "events", "trending"];
 
@@ -90,10 +91,14 @@ export default function MainView({ isLoading = false }: MainViewProps) {
       
       if (tg?.BackButton) {
         const handleBackClick = () => {
-          setIsSettingsOpen(false);
+          if (isNewModalOpen) {
+            setIsNewModalOpen(false);
+          } else {
+            setIsSettingsOpen(false);
+          }
         };
         
-        if (isSettingsOpen) {
+        if (isSettingsOpen || isNewModalOpen) {
           tg.BackButton.onClick(handleBackClick);
           tg.BackButton.show();
         } else {
@@ -106,52 +111,16 @@ export default function MainView({ isLoading = false }: MainViewProps) {
         };
       }
     }
-  }, [isSettingsOpen]);
+  }, [isSettingsOpen, isNewModalOpen]);
 
-  // Интеграция нативной нижней кнопки MainButton Telegram с динамическим контекстом и тактильным откликом
+  // Гарантируем, что нативная нижняя кнопка Telegram полностью отключена/скрыта
   useEffect(() => {
     if (typeof window !== "undefined") {
       const anyWindow = window as any;
       const tg = anyWindow.Telegram?.WebApp;
-      const mainButton = tg?.MainButton;
-
-      if (mainButton) {
-        if (isLoading || isSearching || isSettingsOpen) {
-          mainButton.hide();
-        } else {
-          // Динамический текст кнопки под каждый таб
-          let btnText = "Вбросить лук 🚀";
-          if (activeTab === "events") btnText = "Создать событие 📅";
-          if (activeTab === "trending") btnText = "Показать топ 🔥";
-
-          mainButton.setParams({
-            text: btnText,
-            color: "#FC062D",
-            text_color: "#FFFFFF",
-            is_active: true,
-            is_visible: true,
-          });
-
-          const handleMainButtonClick = () => {
-            if (tg?.HapticFeedback) {
-              try {
-                tg.HapticFeedback.impactOccurred("heavy");
-              } catch (e) {}
-            }
-            tg.showAlert(`Йоу! Ты нажал "${btnText}". Функция создания контента в разработке! 😎`);
-          };
-
-          mainButton.onClick(handleMainButtonClick);
-          mainButton.show();
-
-          return () => {
-            mainButton.offClick(handleMainButtonClick);
-            mainButton.hide();
-          };
-        }
-      }
+      tg?.MainButton?.hide();
     }
-  }, [activeTab, isLoading, isSearching, isSettingsOpen]);
+  }, []);
 
   useEffect(() => {
     if (isLoading || isSearching || isSettingsOpen) return;
@@ -403,165 +372,244 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   }
 
   return (
-    <div className="flex flex-col w-full h-full bg-appleLight-bg dark:bg-appleDark-bg transition-colors duration-300">
+    <div className="w-full h-full bg-black fixed inset-0 overflow-hidden">
       
-      <header className="absolute top-[var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))] left-0 right-0 h-11 flex items-center justify-center z-50 pointer-events-none select-none">
-        {isLoading ? (
-          <div className="w-24 h-5 bg-neutral-300 dark:bg-neutral-800 rounded-md animate-pulse" />
-        ) : (
-          <div className="flex items-center space-x-2.5">
-            <img src="/icons/logo.png" alt="Логотип" className="w-5 h-5 object-contain" />
-            <h1 className="text-base font-extrabold tracking-tight text-appleLight-text dark:text-appleDark-text" style={{ fontFamily: "'Manrope', sans-serif" }}>
-              ЙОУЙОУ
-            </h1>
-          </div>
-        )}
-      </header>
-      
-      <main className="flex-1 w-full pt-[calc(var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))+44px)] flex flex-col overflow-hidden select-none">
+      {/* Главный экран приложения, плавно уменьшающийся при открытии модалки */}
+      <div 
+        className="flex flex-col w-full h-full bg-appleLight-bg dark:bg-appleDark-bg transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) origin-center"
+        style={{
+          transform: isNewModalOpen ? "scale(0.85)" : "scale(1)",
+          borderRadius: isNewModalOpen ? "28px" : "0px",
+          opacity: isNewModalOpen ? 0.6 : 1,
+          pointerEvents: isNewModalOpen ? "none" : "auto",
+        }}
+      >
         
-        <div className="w-[calc(100%-40px)] mx-auto pt-3 box-border">
+        <header className="absolute top-[var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))] left-0 right-0 h-11 flex items-center justify-center z-50 pointer-events-none select-none">
           {isLoading ? (
-            <div className="w-full h-11 bg-neutral-300 dark:bg-neutral-800 rounded-full animate-pulse" />
+            <div className="w-24 h-5 bg-neutral-300 dark:bg-neutral-800 rounded-md animate-pulse" />
           ) : (
-            <div className="w-full h-11 relative flex items-center">
-              
-              {/* Чузбар: изменен размер на text-sm и убрана жирность font-medium */}
-              <div 
-                className="absolute left-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center overflow-x-auto transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1) [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-                style={{
-                  width: "calc(100% - 54px)",
-                  opacity: isSearching ? 0 : 1,
-                  transform: isSearching ? "scale(0.97)" : "scale(1)",
-                  visibility: isSearching ? "hidden" : "visible",
-                  pointerEvents: isSearching ? "none" : "auto",
-                }}
-              >
+            <div className="flex items-center space-x-2.5">
+              <img src="/icons/logo.png" alt="Логотип" className="w-5 h-5 object-contain" />
+              <h1 className="text-base font-extrabold tracking-tight text-appleLight-text dark:text-appleDark-text" style={{ fontFamily: "'Manrope', sans-serif" }}>
+                ЙОУЙОУ
+              </h1>
+            </div>
+          )}
+        </header>
+        
+        <main className="flex-1 w-full pt-[calc(var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))+44px)] flex flex-col overflow-hidden select-none">
+          
+          <div className="w-[calc(100%-40px)] mx-auto pt-3 box-border">
+            {isLoading ? (
+              <div className="w-full h-11 bg-neutral-300 dark:bg-neutral-800 rounded-full animate-pulse" />
+            ) : (
+              <div className="w-full h-11 relative flex items-center">
+                
+                {/* Чузбар: ширина адаптируется под появление двух кнопок справа */}
                 <div 
-                  ref={sliderRef}
-                  className="absolute top-1 bottom-1 bg-white/95 dark:bg-neutral-700/90 rounded-full border border-transparent shadow-sm will-change-transform z-10"
-                />
-
-                <button
-                  ref={tabFeedRef}
-                  onClick={() => handleTabClick("feed")}
-                  className={`flex-1 px-3 h-full rounded-full text-sm font-medium z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
-                    activeTab === "feed" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
-                  }`}
+                  className="absolute left-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center overflow-x-auto transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1) [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                  style={{
+                    width: isSearching ? "calc(100% - 54px)" : "calc(100% - 104px)",
+                    opacity: isSearching ? 0 : 1,
+                    transform: isSearching ? "scale(0.97)" : "scale(1)",
+                    visibility: isSearching ? "hidden" : "visible",
+                    pointerEvents: isSearching ? "none" : "auto",
+                  }}
                 >
-                  Лента
-                </button>
+                  <div 
+                    ref={sliderRef}
+                    className="absolute top-1 bottom-1 bg-white/95 dark:bg-neutral-700/90 rounded-full border border-transparent shadow-sm will-change-transform z-10"
+                  />
 
-                <button
-                  ref={tabEventsRef}
-                  onClick={() => handleTabClick("events")}
-                  className={`flex-1 px-3 h-full rounded-full text-sm font-medium z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
-                    activeTab === "events" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
-                  }`}
+                  <button
+                    ref={tabFeedRef}
+                    onClick={() => handleTabClick("feed")}
+                    className={`flex-1 px-3 h-full rounded-full text-sm font-medium z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
+                      activeTab === "feed" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
+                    }`}
+                  >
+                    Лента
+                  </button>
+
+                  <button
+                    ref={tabEventsRef}
+                    onClick={() => handleTabClick("events")}
+                    className={`flex-1 px-3 h-full rounded-full text-sm font-medium z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
+                      activeTab === "events" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
+                    }`}
+                  >
+                    События
+                  </button>
+
+                  <button
+                    ref={tabTrendingRef}
+                    onClick={() => handleTabClick("trending")}
+                    className={`flex-1 px-3 h-full rounded-full text-sm font-medium z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
+                      activeTab === "trending" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
+                    }`}
+                  >
+                    В тренде
+                  </button>
+                </div>
+
+                {/* Кнопка Поиска (при активации плавно расширяется на 100%, перекрывая всё) */}
+                <div 
+                  className="absolute bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1) flex items-center overflow-hidden z-30"
+                  style={{
+                    width: isSearching ? "100%" : "44px",
+                    right: isSearching ? "0px" : "52px",
+                    padding: isSearching ? "0 6px 0 14px" : "0px",
+                  }}
                 >
-                  События
-                </button>
-
-                {/* Таб «В тренде» без плашки "New" */}
-                <button
-                  ref={tabTrendingRef}
-                  onClick={() => handleTabClick("trending")}
-                  className={`flex-1 px-3 h-full rounded-full text-sm font-medium z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
-                    activeTab === "trending" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
-                  }`}
-                >
-                  В тренде
-                </button>
-              </div>
-
-              <div 
-                className="absolute right-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1) flex items-center overflow-hidden z-30"
-                style={{
-                  width: isSearching ? "100%" : "44px",
-                  padding: isSearching ? "0 6px 0 14px" : "0px",
-                }}
-              >
-                {isSearching ? (
-                  <div className="w-full h-full flex items-center justify-between space-x-2">
-                    <div className="flex items-center flex-1 h-full space-x-2 overflow-hidden">
+                  {isSearching ? (
+                    <div className="w-full h-full flex items-center justify-between space-x-2">
+                      <div className="flex items-center flex-1 h-full space-x-2 overflow-hidden">
+                        <img 
+                          src="/icons/search.png" 
+                          alt="Поиск" 
+                          className="w-4 h-4 object-contain brightness-0 invert opacity-35 flex-shrink-0"
+                        />
+                        <div className="flex items-center flex-1 h-full space-x-1.5 overflow-hidden">
+                          {activeTag && (
+                            <div className="h-7 px-3 rounded-full bg-[#FC062D]/30 flex items-center justify-center flex-shrink-0 select-none">
+                              <span className="text-xs font-medium text-[#FC062D] tracking-wide whitespace-nowrap">
+                                от: {activeTag}
+                              </span>
+                            </div>
+                          )}
+                          <input
+                            ref={inputRef}
+                            type="text"
+                            placeholder={activeTag ? "" : "Ищи что угодно"}
+                            value={searchQuery}
+                            onChange={handleInputChange}
+                            onKeyDown={handleInputKeyDown}
+                            className="flex-1 h-full bg-transparent border-none outline-none text-base font-normal text-appleLight-text dark:text-appleDark-text placeholder-appleLight-text/35 dark:placeholder-appleDark-text/35 placeholder:text-sm placeholder:font-normal"
+                          />
+                        </div>
+                      </div>
+                      <button 
+                        onClick={disableSearch}
+                        className="w-8 h-8 flex items-center justify-center rounded-full bg-appleLight-text/10 dark:bg-white/10 outline-none active:scale-90 transition-transform flex-shrink-0"
+                      >
+                        <svg width="12" height="12" viewBox="0 0 10 10" fill="none" className="stroke-appleLight-text dark:stroke-appleDark-text stroke-[1.5]">
+                          <path d="M1 1L9 9M9 1L1 9" />
+                        </svg>
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={enableSearch}
+                      className="w-full h-full flex items-center justify-center rounded-full outline-none active:scale-95 transition-transform"
+                    >
                       <img 
                         src="/icons/search.png" 
                         alt="Поиск" 
-                        className="w-4 h-4 object-contain brightness-0 invert opacity-35 flex-shrink-0"
+                        className="w-5 h-5 object-contain brightness-0 invert"
                       />
-                      <div className="flex items-center flex-1 h-full space-x-1.5 overflow-hidden">
-                        {activeTag && (
-                          <div className="h-7 px-3 rounded-full bg-[#FC062D]/30 flex items-center justify-center flex-shrink-0 select-none">
-                            <span className="text-xs font-medium text-[#FC062D] tracking-wide whitespace-nowrap">
-                              от: {activeTag}
-                            </span>
-                          </div>
-                        )}
-                        {/* Изменен текст подсказки и размер placeholder:text-sm */}
-                        <input
-                          ref={inputRef}
-                          type="text"
-                          placeholder={activeTag ? "" : "Ищи что угодно"}
-                          value={searchQuery}
-                          onChange={handleInputChange}
-                          onKeyDown={handleInputKeyDown}
-                          className="flex-1 h-full bg-transparent border-none outline-none text-base font-normal text-appleLight-text dark:text-appleDark-text placeholder-appleLight-text/35 dark:placeholder-appleDark-text/35 placeholder:text-sm placeholder:font-normal"
-                        />
-                      </div>
-                    </div>
-                    <button 
-                      onClick={disableSearch}
-                      className="w-8 h-8 flex items-center justify-center rounded-full bg-appleLight-text/10 dark:bg-white/10 outline-none active:scale-90 transition-transform flex-shrink-0"
-                    >
-                      <svg width="12" height="12" viewBox="0 0 10 10" fill="none" className="stroke-appleLight-text dark:stroke-appleDark-text stroke-[1.5]">
-                        <path d="M1 1L9 9M9 1L1 9" />
-                      </svg>
                     </button>
-                  </div>
-                ) : (
+                  )}
+                </div>
+
+                {/* Новая Кнопка Плюс (точь-в-точь как поиск, справа от неё) */}
+                <div 
+                  className="absolute right-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1) flex items-center justify-center overflow-hidden z-25"
+                  style={{
+                    width: "44px",
+                    opacity: isSearching ? 0 : 1,
+                    visibility: isSearching ? "hidden" : "visible",
+                    pointerEvents: isSearching ? "none" : "auto",
+                  }}
+                >
                   <button
-                    onClick={enableSearch}
+                    onClick={() => {
+                      triggerHaptic();
+                      setIsNewModalOpen(true);
+                    }}
                     className="w-full h-full flex items-center justify-center rounded-full outline-none active:scale-95 transition-transform"
                   >
                     <img 
-                      src="/icons/search.png" 
-                      alt="Поиск" 
+                      src="/icons/plus.png" 
+                      alt="Добавить" 
                       className="w-5 h-5 object-contain brightness-0 invert"
                     />
                   </button>
-                )}
+                </div>
+
               </div>
+            )}
+          </div>
 
-            </div>
-          )}
-        </div>
+          <div className="flex-1 w-full overflow-hidden relative mt-1">
+            {isSearching ? (
+              <SearchView searchQuery={searchQuery} />
+            ) : (
+              <div 
+                ref={contentTrackRef}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                className="absolute inset-0 flex w-[300%] h-full will-change-transform"
+                style={{ transform: `translateX(0px)` }}
+              >
+                <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
+                  <EmptyState isLoading={isLoading} activeTab="feed" />
+                </div>
+                <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
+                  <EmptyState isLoading={isLoading} activeTab="events" />
+                </div>
+                <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
+                  <EmptyState isLoading={isLoading} activeTab="trending" />
+                </div>
+              </div>
+            )}
+          </div>
 
-        <div className="flex-1 w-full overflow-hidden relative mt-1">
-          {isSearching ? (
-            <SearchView searchQuery={searchQuery} />
-          ) : (
-            <div 
-              ref={contentTrackRef}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-              className="absolute inset-0 flex w-[300%] h-full will-change-transform"
-              style={{ transform: `translateX(0px)` }}
+        </main>
+      </div>
+
+      {/* Нативное iOS Модальное Окно (src/views/main/new.tsx) */}
+      <div 
+        className={`fixed inset-0 z-[100] flex flex-col justify-end transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) ${
+          isNewModalOpen ? "pointer-events-auto bg-black/30" : "pointer-events-none bg-transparent"
+        }`}
+        onClick={() => setIsNewModalOpen(false)}
+      >
+        <div 
+          onClick={(e) => e.stopPropagation()}
+          className="w-full bg-[#1C1C1E] rounded-t-[40px] flex flex-col relative shadow-2xl transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1)"
+          style={{
+            height: "91vh",
+            transform: isNewModalOpen ? "translateY(0)" : "translateY(100%)",
+          }}
+        >
+          {/* Верхняя панель модалки */}
+          <div className="w-full h-14 flex items-center justify-center relative px-5 flex-shrink-0">
+            <h2 className="text-base font-bold text-white tracking-tight">Новый контент</h2>
+            
+            {/* Круг с крестиком справа вверху */}
+            <button 
+              onClick={() => {
+                triggerHaptic();
+                setIsNewModalOpen(false);
+              }}
+              className="absolute right-4 w-7 h-7 bg-white/10 active:scale-90 transition-transform rounded-full flex items-center justify-center outline-none"
             >
-              <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
-                <EmptyState isLoading={isLoading} activeTab="feed" />
-              </div>
-              <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
-                <EmptyState isLoading={isLoading} activeTab="events" />
-              </div>
-              <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
-                <EmptyState isLoading={isLoading} activeTab="trending" />
-              </div>
-            </div>
-          )}
-        </div>
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="stroke-white/80 stroke-[1.5]">
+                <path d="M1 1L9 9M9 1L1 9" />
+              </svg>
+            </button>
+          </div>
 
-      </main>
+          {/* Тело модалки (пока пустое) */}
+          <div className="flex-1 w-full overflow-y-auto px-5 pb-8">
+            {/* Сюда позже встанет контент из new.tsx */}
+          </div>
+
+        </div>
+      </div>
+
     </div>
   );
 }
