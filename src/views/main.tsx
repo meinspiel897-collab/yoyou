@@ -387,23 +387,23 @@ export default function MainView({ isLoading = false }: MainViewProps) {
           {isSearching ? (
             <SearchView searchQuery={searchQuery} />
           ) : (
-            <div \
-              ref={contentTrackRef}\
-              onTouchStart={handleTouchStart}\
-              onTouchMove={handleTouchMove}\
-              onTouchEnd={handleTouchEnd}\
-              className="absolute inset-0 flex w-[300%] h-full will-change-transform"\
-              style={{ transform: `translateX(0px)` }}\
-            >\
-              <div className="w-screen h-full flex-shrink-0 overflow-y-auto">\
-                <EmptyState isLoading={isLoading} activeTab="feed" />\
-              </div>\
-              <div className="w-screen h-full flex-shrink-0 overflow-y-auto">\
-                <EmptyState isLoading={isLoading} activeTab="events" />\
-              </div>\
-              <div className="w-screen h-full flex-shrink-0 overflow-y-auto">\
-                <EmptyState isLoading={isLoading} activeTab="trending" />\
-              </div>\
+            <div 
+              ref={contentTrackRef}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              className="absolute inset-0 flex w-[300%] h-full will-change-transform"
+              style={{ transform: `translateX(0px)` }}
+            >
+              <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
+                <EmptyState isLoading={isLoading} activeTab="feed" />
+              </div>
+              <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
+                <EmptyState isLoading={isLoading} activeTab="events" />
+              </div>
+              <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
+                <EmptyState isLoading={isLoading} activeTab="trending" />
+              </div>
             </div>
           )}
         </div>
