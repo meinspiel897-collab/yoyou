@@ -22,41 +22,37 @@ export default function SettingsView() {
     return (first + last).toUpperCase() || "A";
   };
 
-  // Функция генерации иконок по круговым орбитам
+  // Функция генерации круговых орбит без поворота иконок
   const renderCircularIcons = () => {
     const orbits = [
-      { radius: 65, count: 5, size: 20, maxOpacity: 0.45 },  // Ближний круг (крупнее, ярче)
-      { radius: 105, count: 8, size: 18, maxOpacity: 0.30 }, // Средний круг
-      { radius: 145, count: 12, size: 16, maxOpacity: 0.15 }, // Дальний круг (мельче, прозрачнее)
-      { radius: 190, count: 16, size: 14, maxOpacity: 0.05 }, // Самый край (почти исчезают к углам)
+      { radius: 65, count: 5, size: 20, maxOpacity: 0.35 },  // Ближний круг (серые, аккуратные)
+      { radius: 105, count: 8, size: 18, maxOpacity: 0.22 }, // Средний круг
+      { radius: 145, count: 12, size: 16, maxOpacity: 0.12 }, // Дальний круг
+      { radius: 190, count: 16, size: 14, maxOpacity: 0.04 }, // Край (растворяются к углам)
     ];
 
     return orbits.flatMap((orbit, orbitIdx) => {
       const icons = [];
-      // Добавляем случайное смещение для каждой орбиты, чтобы круги не выглядели слишком послушными
       const startAngle = orbitIdx * 25; 
 
       for (let i = 0; i < orbit.count; i++) {
         const angle = (i * 360) / orbit.count + startAngle;
         const radians = (angle * Math.PI) / 180;
 
-        // Считаем координаты относительно центра плашки
         const x = Math.cos(radians) * orbit.radius;
         const y = Math.sin(radians) * orbit.radius;
-
-        // Небольшой хаотичный наклон для живости
-        const rotation = angle + (orbitIdx % 2 === 0 ? 15 : -20);
 
         icons.push(
           <img
             key={`icon-${orbitIdx}-${i}`}
             src="/icons/logo.png"
             alt=""
-            className="absolute left-1/2 top-1/2 object-contain pointer-events-none select-none filter grayscale contrast-200"
+            // brightness-50 делает иконки темно-серыми, убирая ядовитый белый контраст
+            className="absolute left-1/2 top-1/2 object-contain pointer-events-none select-none filter grayscale brightness-50 contrast-120"
             style={{
               width: `${orbit.size}px`,
               height: `${orbit.size}px`,
-              transform: `translate(-50%, -50%) translate(${x}px, ${y}px) rotate(${rotation}deg)`,
+              transform: `translate(-50%, -50%) translate(${x}px, ${y}px)`, // rotate убран
               opacity: orbit.maxOpacity,
             }}
           />
@@ -81,19 +77,15 @@ export default function SettingsView() {
 
       <main className="flex-1 w-full pt-[calc(var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))+44px)] flex flex-col overflow-y-auto select-none px-5 box-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         
-        {/* Блок профиля */}
-        <div 
-          className="mt-6 flex flex-col items-center w-full rounded-[28px] p-8 box-border relative overflow-hidden min-h-[250px] justify-center"
-          style={{
-            backgroundColor: "var(--tg-theme-bg-color, #1c1c1e)",
-          }}
-        >
-          {/* Динамический круговой паттерн из наших логотипов */}
+        {/* Блок профиля — теперь совпадает по стилю с нижними меню */}
+        <div className="mt-6 flex flex-col items-center w-full bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-[28px] p-8 box-border relative overflow-hidden min-h-[250px] justify-center shadow-sm border border-appleLight-text/[0.02] dark:border-white/[0.02]">
+          
+          {/* Круговой узор */}
           <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
             {renderCircularIcons()}
           </div>
 
-          {/* Контент пользователя */}
+          {/* Контент */}
           <div className="relative z-10 flex flex-col items-center w-full">
             
             {/* Аватарка */}
@@ -109,12 +101,12 @@ export default function SettingsView() {
               </div>
             )}
             
-            {/* Имя (Никаких уровней, чисто имя) */}
+            {/* Имя */}
             <h2 className="mt-5 text-2xl font-semibold text-appleLight-text dark:text-appleDark-text tracking-tight">
               {user ? `${user.first_name || ""} ${user.last_name || ""}`.trim() : "админ"}
             </h2>
             
-            {/* Подпись */}
+            {/* Подпись / Юзернейм */}
             <p className="mt-1.5 text-sm font-medium text-appleLight-text/40 dark:text-appleDark-text/45 tracking-wide">
               {user?.username ? `@${user.username}` : "0 / 10 TON"}
             </p>
