@@ -37,71 +37,74 @@ export default function SettingsView() {
 
       <main className="flex-1 w-full pt-[calc(var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))+44px)] flex flex-col overflow-y-auto select-none px-5 box-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         
-        {/* Блок профиля (Улучшенный макет) */}
+        {/* Блок профиля */}
         <div className="mt-6 flex flex-col w-full relative select-none">
           
-          {/* Верхняя компактная акцентная плашка */}
-          <div className="w-full h-28 bg-[#FC062D] rounded-[28px] relative overflow-hidden flex items-center">
+          {/* Верхняя акцентная плашка */}
+          <div className="w-full h-28 bg-[#FC062D] rounded-[28px] relative flex items-center">
             
-            {/* Огромная наклоненная влево белая иконка logo.png (сильнее обрезается краями) */}
-            <img 
-              src="/icons/logo.png" 
-              alt="" 
-              className="absolute -left-7 top-1 w-36 h-36 object-contain pointer-events-none opacity-20 invert brightness-0 rotate-[-16deg]"
-            />
+            {/* Контейнер маски для логотипа, чтобы он аккуратно обрезался внутри баннера */}
+            <div className="absolute inset-0 rounded-[28px] overflow-hidden pointer-events-none">
+              <img 
+                src="/icons/logo.png" 
+                alt="" 
+                className="absolute -left-8 -top-6 w-40 h-40 object-contain opacity-20 invert brightness-0 rotate-[-16deg]"
+              />
+            </div>
 
-            {/* Контент внутри плашки */}
-            <div className="relative z-10 w-full h-full flex items-center px-7 box-border">
-              
-              {/* Аватарка: Смещена ВЛЕВО, наполовину утоплена */}
-              <div className="relative w-24 h-24 rounded-full flex items-center justify-center translate-y-1/2 flex-shrink-0">
-                {user?.photo_url ? (
-                  <img 
-                    src={user.photo_url} 
-                    alt="Аватар" 
-                    className="w-24 h-24 rounded-full object-cover border-4 border-appleLight-bg dark:border-appleDark-bg shadow-md transition-colors duration-300"
-                  />
-                ) : (
-                  <div className="w-24 h-24 rounded-full bg-[#75df77] flex items-center justify-center text-white text-4xl font-normal border-4 border-appleLight-bg dark:border-appleDark-bg shadow-md transition-colors duration-300">
-                    {getInitials()}
-                  </div>
-                )}
-              </div>
-
-              {/* Текст: Имя и Юзернейм СПРАВА от авы, текст белый для контраста */}
-              <div className="flex-1 ml-6 flex flex-col pt-1 pr-2">
-                <h2 className="text-xl font-bold tracking-tight text-white truncate">
-                  {user ? `${user.first_name || ""} ${user.last_name || ""}`.trim() : "админ"}
-                </h2>
-                <p className="mt-0.5 text-sm font-medium text-white/70 tracking-wide truncate">
-                  {user?.username ? `@${user.username}` : "@username"}
-                </p>
-              </div>
-
+            {/* Круг аватарки: Строго по центру оси X, наполовину утоплен вниз */}
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-24 h-24 rounded-full flex items-center justify-center z-10">
+              {user?.photo_url ? (
+                <img 
+                  src={user.photo_url} 
+                  alt="Аватар" 
+                  className="w-24 h-24 rounded-full object-cover border-4 border-appleLight-bg dark:border-appleDark-bg shadow-md transition-colors duration-300"
+                />
+              ) : (
+                <div className="w-24 h-24 rounded-full bg-[#75df77] flex items-center justify-center text-white text-4xl font-normal border-4 border-appleLight-bg dark:border-appleDark-bg shadow-md transition-colors duration-300">
+                  {getInitials()}
+                </div>
+              )}
             </div>
 
           </div>
 
-          {/* Блок статистики (Оценки, Посты, Награды) */}
-          {/* mt-16 нужен, чтобы не перекрывать вылезающую аватарку */}
-          <div className="mt-16 w-full flex justify-around items-center gap-1.5">
+          {/* Блок с именем и юзернеймом по центру на основном фоне */}
+          <div className="mt-14 flex flex-col items-center w-full text-center">
+            <h2 className="text-xl font-bold text-appleLight-text dark:text-appleDark-text tracking-tight">
+              {user ? `${user.first_name || ""} ${user.last_name || ""}`.trim() : "админ"}
+            </h2>
             
-            {/* Плитка Оценки */}
-            <div className="flex flex-col items-center justify-center bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-2xl p-4 flex-1 shadow-sm border border-appleLight-text/[0.02] dark:border-white/[0.02]">
-              <span className="text-xl font-extrabold text-appleLight-text dark:text-appleDark-text">0</span>
-              <span className="mt-0.5 text-xs font-semibold text-appleLight-text/45 dark:text-appleDark-text/45 uppercase tracking-wider">Оценки</span>
+            <p className="mt-0.5 text-sm font-medium text-appleLight-text/40 dark:text-appleDark-text/45 tracking-wide">
+              {user?.username ? `@${user.username}` : "@username"}
+            </p>
+          </div>
+
+          {/* Объединенная единая плашка статистики (Компактная, без внешних контуров) */}
+          <div className="mt-5 w-full bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-[28px] py-3.5 flex justify-around items-center shadow-sm transition-colors duration-300">
+            
+            {/* Оценки */}
+            <div className="flex flex-col items-center justify-center flex-1">
+              <span className="text-lg font-extrabold text-appleLight-text dark:text-appleDark-text">0</span>
+              <span className="text-[10px] font-bold text-appleLight-text/40 dark:text-appleDark-text/45 uppercase tracking-wider mt-0.5">Оценки</span>
             </div>
 
-            {/* Плитка Посты */}
-            <div className="flex flex-col items-center justify-center bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-2xl p-4 flex-1 shadow-sm border border-appleLight-text/[0.02] dark:border-white/[0.02]">
-              <span className="text-xl font-extrabold text-appleLight-text dark:text-appleDark-text">0</span>
-              <span className="mt-0.5 text-xs font-semibold text-appleLight-text/45 dark:text-appleDark-text/45 uppercase tracking-wider">Посты</span>
+            {/* Мягкий внутренний разделитель */}
+            <div className="h-6 w-[1px] bg-appleLight-text/10 dark:bg-white/10" />
+
+            {/* Посты */}
+            <div className="flex flex-col items-center justify-center flex-1">
+              <span className="text-lg font-extrabold text-appleLight-text dark:text-appleDark-text">0</span>
+              <span className="text-[10px] font-bold text-appleLight-text/40 dark:text-appleDark-text/45 uppercase tracking-wider mt-0.5">Посты</span>
             </div>
 
-            {/* Плитка Награды */}
-            <div className="flex flex-col items-center justify-center bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-2xl p-4 flex-1 shadow-sm border border-appleLight-text/[0.02] dark:border-white/[0.02]">
-              <span className="text-xl font-extrabold text-appleLight-text dark:text-appleDark-text">0</span>
-              <span className="mt-0.5 text-xs font-semibold text-appleLight-text/45 dark:text-appleDark-text/45 uppercase tracking-wider">Награды</span>
+            {/* Мягкий внутренний разделитель */}
+            <div className="h-6 w-[1px] bg-appleLight-text/10 dark:bg-white/10" />
+
+            {/* Награды */}
+            <div className="flex flex-col items-center justify-center flex-1">
+              <span className="text-lg font-extrabold text-appleLight-text dark:text-appleDark-text">0</span>
+              <span className="text-[10px] font-bold text-appleLight-text/40 dark:text-appleDark-text/45 uppercase tracking-wider mt-0.5">Награды</span>
             </div>
 
           </div>
