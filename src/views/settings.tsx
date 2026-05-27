@@ -43,12 +43,12 @@ export default function SettingsView() {
           {/* Верхняя акцентная плашка */}
           <div className="w-full h-28 bg-[#FC062D] rounded-[28px] relative flex items-center">
             
-            {/* Контейнер маски для логотипа, чтобы он аккуратно обрезался внутри баннера */}
+            {/* Контейнер маски для логотипа (стал чуть меньше и сдвинут правее) */}
             <div className="absolute inset-0 rounded-[28px] overflow-hidden pointer-events-none">
               <img 
                 src="/icons/logo.png" 
                 alt="" 
-                className="absolute -left-8 -top-6 w-40 h-40 object-contain opacity-20 invert brightness-0 rotate-[-16deg]"
+                className="absolute -left-2 -top-4 w-36 h-36 object-contain opacity-20 invert brightness-0 rotate-[-16deg]"
               />
             </div>
 
@@ -69,7 +69,7 @@ export default function SettingsView() {
 
           </div>
 
-          {/* Блок с именем и юзернеймом по центру на основном фоне */}
+          {/* Блок с именем и юзернеймом по центру */}
           <div className="mt-14 flex flex-col items-center w-full text-center">
             <h2 className="text-xl font-bold text-appleLight-text dark:text-appleDark-text tracking-tight">
               {user ? `${user.first_name || ""} ${user.last_name || ""}`.trim() : "админ"}
@@ -80,7 +80,7 @@ export default function SettingsView() {
             </p>
           </div>
 
-          {/* Объединенная единая плашка статистики (Компактная, без внешних контуров) */}
+          {/* Объединенная единая плашка статистики (Без контуров) */}
           <div className="mt-5 w-full bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-[28px] py-3.5 flex justify-around items-center shadow-sm transition-colors duration-300">
             
             {/* Оценки */}
@@ -89,7 +89,7 @@ export default function SettingsView() {
               <span className="text-[10px] font-bold text-appleLight-text/40 dark:text-appleDark-text/45 uppercase tracking-wider mt-0.5">Оценки</span>
             </div>
 
-            {/* Мягкий внутренний разделитель */}
+            {/* Разделитель */}
             <div className="h-6 w-[1px] bg-appleLight-text/10 dark:bg-white/10" />
 
             {/* Посты */}
@@ -98,7 +98,7 @@ export default function SettingsView() {
               <span className="text-[10px] font-bold text-appleLight-text/40 dark:text-appleDark-text/45 uppercase tracking-wider mt-0.5">Посты</span>
             </div>
 
-            {/* Мягкий внутренний разделитель */}
+            {/* Разделитель */}
             <div className="h-6 w-[1px] bg-appleLight-text/10 dark:bg-white/10" />
 
             {/* Награды */}
@@ -111,8 +111,8 @@ export default function SettingsView() {
 
         </div>
 
-        {/* Меню настроек */}
-        <div className="mt-6 w-full bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-[28px] overflow-hidden flex flex-col shadow-sm border border-appleLight-text/[0.02] dark:border-white/[0.02]">
+        {/* Меню настроек (Контур успешно убран!) */}
+        <div className="mt-6 w-full bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-[28px] overflow-hidden flex flex-col shadow-sm">
           <div className="flex items-center justify-between px-5 py-4 border-b border-appleLight-text/5 dark:border-white/5 active:bg-appleLight-text/5 dark:active:bg-white/5 transition-colors cursor-pointer">
             <span className="text-sm font-bold text-appleLight-text dark:text-appleDark-text">Уведомления</span>
             <span className="text-xs text-appleLight-text/35 dark:text-appleDark-text/35 font-semibold">Вкл.</span>
