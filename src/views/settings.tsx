@@ -1,15 +1,35 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+
+// Наш кастомный плавный свитчер с фирменным акцентным цветом #FC062D
+const AppleSwitch = ({ isOn, onToggle }: { isOn: boolean; onToggle: () => void }) => (
+  <button 
+    onClick={onToggle} 
+    className={`relative w-[66px] h-[32px] rounded-[16px] transition-colors duration-300 flex items-center px-[3.5px] ${
+      isOn ? "bg-[#FC062D]" : "bg-appleLight-text/10 dark:bg-white/10"
+    }`}
+  >
+    <motion.div 
+      animate={{ x: isOn ? 18.5 : 0 }} 
+      transition={{ type: "spring", stiffness: 500, damping: 35 }} 
+      className="h-[25px] w-[40.5px] bg-white rounded-[12px] shadow-sm"
+    />
+  </button>
+);
 
 export default function SettingsView() {
   const [user, setUser] = useState<any>(null);
   
-  // Состояния для свитчеров и настроек
+  // Состояния для интерактивных элементов
   const [animations, setAnimations] = useState(true);
   const [vibration, setVibration] = useState(true);
   const [notifications, setNotifications] = useState(true);
-  const [currentStyle, setCurrentStyle] = useState("Зумерский"); // По дефолту, конечно же, он
+  
+  // Состояния для выпадающего меню стиля
+  const [currentStyle, setCurrentStyle] = useState("🫪 Зумерский");
+  const [isStyleOpen, setIsStyleOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -28,21 +48,15 @@ export default function SettingsView() {
     return (first + last).toUpperCase() || "A";
   };
 
-  // Вспомогательный компонент для кастомного iOS-like свитчера
-  const Toggle = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => (
-    <button
-      onClick={onChange}
-      className={`w-11 h-6 rounded-full transition-colors duration-200 relative flex items-center px-0.5 ${
-        checked ? "bg-[#FC062D]" : "bg-appleLight-text/10 dark:bg-white/10"
-      }`}
-    >
-      <div
-        className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 transform ${
-          checked ? "translate-x-5" : "translate-x-0"
-        }`}
-      />
-    </button>
-  );
+  const handleVibrationToggle = () => {
+    const nextState = !vibration;
+    setVibration(nextState);
+    
+    const tg = (window as any).Telegram?.WebApp;
+    if (nextState && tg?.HapticFeedback) {
+      tg.HapticFeedback.impactOccurred("light");
+    }
+  };
 
   return (
     <div className="flex flex-col w-full h-full bg-appleLight-bg dark:bg-appleDark-bg transition-colors duration-300">
@@ -64,13 +78,11 @@ export default function SettingsView() {
           
           {/* Верхняя акцентная плашка */}
           <div className="w-full h-28 bg-[#FC062D] rounded-[28px] relative flex items-center">
-            
-            {/* Контейнер маски для логотипа (смещен еще правее — левый край теперь на 0) */}
             <div className="absolute inset-0 rounded-[28px] overflow-hidden pointer-events-none">
               <img 
                 src="/icons/logo.png" 
                 alt="" 
-                className="absolute -left-0 -top-4 w-36 h-36 object-contain opacity-20 invert brightness-0 rotate-[-16deg]"
+                className="absolute -left-2 -top-4 w-36 h-36 object-contain opacity-20 invert brightness-0 rotate-[-16deg]"
               />
             </div>
 
@@ -88,7 +100,6 @@ export default function SettingsView() {
                 </div>
               )}
             </div>
-
           </div>
 
           {/* Блок с именем */}
@@ -121,49 +132,90 @@ export default function SettingsView() {
 
         </div>
 
-        {/* ================= РАЗБИТЫЕ БЛОКИ НАСТРОЕК ================= */}
+        {/* ================= ОБНОВЛЕННЫЕ БЛОКИ НАСТРОЕК ================= */}
 
         {/* БЛОК 1: Кастомизация интерфейса */}
         <div className="mt-6 w-full bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-[28px] overflow-hidden flex flex-col shadow-sm">
-          {/* Выбор стиля */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-appleLight-text/5 dark:border-white/5 active:bg-appleLight-text/5 dark:active:bg-white/5 transition-colors cursor-pointer">
+          
+          {/* Пункт: Выбор стиля */}
+          <div 
+            onClick={() => setIsStyleOpen(!isStyleOpen)}
+            className="flex items-center justify-between px-5 py-4 active:bg-appleLight-text/5 dark:active:bg-white/5 transition-colors cursor-pointer"
+          >
             <span className="text-sm font-bold text-appleLight-text dark:text-appleDark-text">Стиль приложения</span>
-            <span className="text-xs text-appleLight-text/40 dark:text-appleDark-text/45 font-bold flex items-center gap-1">
-              {currentStyle === "Зумерский" && "🫪 Зумерский"}
-              {currentStyle === "Официальный" && "👔 Официальный"}
-              {currentStyle === "Нефорский" && "🕷️ Нефорский"}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-appleLight-text/40 dark:text-appleDark-text/45">{currentStyle}</span>
+              <motion.span 
+                animate={{ rotate: isStyleOpen ? 90 : 0 }}
+                className="text-xs opacity-30 text-appleLight-text dark:text-white"
+              >
+                ▶
+              </motion.span>
+            </div>
           </div>
-          {/* Свитчер анимаций */}
-          <div className="flex items-center justify-between px-5 py-3.5">
+
+          {/* Выпадающее меню выбора стилей */}
+          <AnimatePresence initial={false}>
+            {isStyleOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="px-3 pb-3.5 flex flex-col gap-1">
+                  {["🫪 Зумерский", "👔 Официальный", "🕷️ Нефорский"].map((style) => (
+                    <button
+                      key={style}
+                      onClick={() => { setCurrentStyle(style); setIsStyleOpen(false); }}
+                      className="relative w-full h-10 px-4 flex items-center rounded-xl transition-all active:scale-[0.98]"
+                    >
+                      {currentStyle === style && (
+                        <motion.div 
+                          layoutId="activeStyleBg"
+                          className="absolute inset-0 bg-appleLight-text/5 dark:bg-white/5 rounded-xl"
+                        />
+                      )}
+                      <span className={`relative z-10 text-sm font-bold ${currentStyle === style ? "text-appleLight-text dark:text-white" : "text-appleLight-text/30 dark:text-white/20"}`}>
+                        {style}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Пункт: Анимации */}
+          <div className="flex items-center justify-between px-5 py-3">
             <span className="text-sm font-bold text-appleLight-text dark:text-appleDark-text">Анимации</span>
-            <Toggle checked={animations} onChange={() => setAnimations(!animations)} />
+            <AppleSwitch isOn={animations} onToggle={() => setAnimations(!animations)} />
           </div>
         </div>
 
-        {/* БЛОК 2: Взаимодействие и тактильность */}
+        {/* БЛОК 2: Взаимодействие */}
         <div className="mt-4 w-full bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-[28px] overflow-hidden flex flex-col shadow-sm">
-          {/* Свитчер уведомлений */}
-          <div className="flex items-center justify-between px-5 py-3.5 border-b border-appleLight-text/5 dark:border-white/5">
+          {/* Пункт: Уведомления */}
+          <div className="flex items-center justify-between px-5 py-3">
             <span className="text-sm font-bold text-appleLight-text dark:text-appleDark-text">Уведомления</span>
-            <Toggle checked={notifications} onChange={() => setNotifications(!notifications)} />
+            <AppleSwitch isOn={notifications} onToggle={() => setNotifications(!notifications)} />
           </div>
-          {/* Свитчер вибрации */}
-          <div className="flex items-center justify-between px-5 py-3.5">
+          {/* Пункт: Вибрация */}
+          <div className="flex items-center justify-between px-5 py-3">
             <span className="text-sm font-bold text-appleLight-text dark:text-appleDark-text">Вибрация (Haptic)</span>
-            <Toggle checked={vibration} onChange={() => setVibration(!vibration)} />
+            <AppleSwitch isOn={vibration} onToggle={handleVibrationToggle} />
           </div>
         </div>
 
-        {/* БЛОК 3: Системные */}
+        {/* БЛОК 3: Система */}
         <div className="mt-4 w-full bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-[28px] overflow-hidden flex flex-col shadow-sm">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-appleLight-text/5 dark:border-white/5 active:bg-appleLight-text/5 dark:active:bg-white/5 transition-colors cursor-pointer">
+          <div className="flex items-center justify-between px-5 py-4 active:bg-appleLight-text/5 dark:active:bg-white/5 transition-colors cursor-pointer">
             <span className="text-sm font-bold text-appleLight-text dark:text-appleDark-text">Язык</span>
-            <span className="text-xs text-appleLight-text/35 dark:text-appleDark-text/35 font-semibold">Русский</span>
+            <span className="text-sm font-bold text-appleLight-text/40 dark:text-appleDark-text/45">Русский</span>
           </div>
           <div className="flex items-center justify-between px-5 py-4">
             <span className="text-sm font-bold text-appleLight-text dark:text-appleDark-text">Версия</span>
-            <span className="text-xs text-appleLight-text/35 dark:text-appleDark-text/35 font-semibold">1.0.0</span>
+            <span className="text-sm font-bold text-appleLight-text/40 dark:text-appleDark-text/45">1.0.0</span>
           </div>
         </div>
 
