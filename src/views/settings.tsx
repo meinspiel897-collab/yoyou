@@ -22,21 +22,21 @@ export default function SettingsView() {
     return (first + last).toUpperCase() || "A";
   };
 
-  // Функция генерации круговых орбит без поворота иконок
+  // Функция генерации строго симметричных круговых орбит
   const renderCircularIcons = () => {
     const orbits = [
-      { radius: 65, count: 5, size: 20, maxOpacity: 0.35 },  // Ближний круг (серые, аккуратные)
-      { radius: 105, count: 8, size: 18, maxOpacity: 0.22 }, // Средний круг
-      { radius: 145, count: 12, size: 16, maxOpacity: 0.12 }, // Дальний круг
-      { radius: 190, count: 16, size: 14, maxOpacity: 0.04 }, // Край (растворяются к углам)
+      { radius: 65, count: 6, size: 20, maxOpacity: 0.35 },  // Ближний круг (ровное деление)
+      { radius: 105, count: 10, size: 18, maxOpacity: 0.22 }, // Средний круг
+      { radius: 145, count: 14, size: 16, maxOpacity: 0.12 }, // Дальний круг
+      { radius: 190, count: 18, size: 14, maxOpacity: 0.04 }, // Край (растворяются к углам)
     ];
 
     return orbits.flatMap((orbit, orbitIdx) => {
       const icons = [];
-      const startAngle = orbitIdx * 25; 
 
       for (let i = 0; i < orbit.count; i++) {
-        const angle = (i * 360) / orbit.count + startAngle;
+        // Строгое распределение без смещений, все круги начинаются с 0 градусов
+        const angle = (i * 360) / orbit.count;
         const radians = (angle * Math.PI) / 180;
 
         const x = Math.cos(radians) * orbit.radius;
@@ -47,12 +47,11 @@ export default function SettingsView() {
             key={`icon-${orbitIdx}-${i}`}
             src="/icons/logo.png"
             alt=""
-            // brightness-50 делает иконки темно-серыми, убирая ядовитый белый контраст
             className="absolute left-1/2 top-1/2 object-contain pointer-events-none select-none filter grayscale brightness-50 contrast-120"
             style={{
               width: `${orbit.size}px`,
               height: `${orbit.size}px`,
-              transform: `translate(-50%, -50%) translate(${x}px, ${y}px)`, // rotate убран
+              transform: `translate(-50%, -50%) translate(${x}px, ${y}px)`, // Все смотрят ровно вверх
               opacity: orbit.maxOpacity,
             }}
           />
@@ -77,10 +76,10 @@ export default function SettingsView() {
 
       <main className="flex-1 w-full pt-[calc(var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))+44px)] flex flex-col overflow-y-auto select-none px-5 box-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         
-        {/* Блок профиля — теперь совпадает по стилю с нижними меню */}
+        {/* Блок профиля */}
         <div className="mt-6 flex flex-col items-center w-full bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-[28px] p-8 box-border relative overflow-hidden min-h-[250px] justify-center shadow-sm border border-appleLight-text/[0.02] dark:border-white/[0.02]">
           
-          {/* Круговой узор */}
+          {/* Строгий круговой узор */}
           <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
             {renderCircularIcons()}
           </div>
@@ -88,18 +87,20 @@ export default function SettingsView() {
           {/* Контент */}
           <div className="relative z-10 flex flex-col items-center w-full">
             
-            {/* Аватарка */}
-            {user?.photo_url ? (
-              <img 
-                src={user.photo_url} 
-                alt="Аватар" 
-                className="w-24 h-24 rounded-full object-cover border-2 border-white/10 shadow-xl"
-              />
-            ) : (
-              <div className="w-24 h-24 rounded-full bg-[#75df77] flex items-center justify-center text-white text-4xl font-normal shadow-lg">
-                {getInitials()}
-              </div>
-            )}
+            {/* Аватарка с акцентным контуром сайта */}
+            <div className="relative p-1 rounded-full border-2 border-[#FC062D] shadow-lg flex items-center justify-center">
+              {user?.photo_url ? (
+                <img 
+                  src={user.photo_url} 
+                  alt="Аватар" 
+                  className="w-24 h-24 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-24 h-24 rounded-full bg-[#75df77] flex items-center justify-center text-white text-4xl font-normal">
+                  {getInitials()}
+                </div>
+              )}
+            </div>
             
             {/* Имя */}
             <h2 className="mt-5 text-2xl font-semibold text-appleLight-text dark:text-appleDark-text tracking-tight">
