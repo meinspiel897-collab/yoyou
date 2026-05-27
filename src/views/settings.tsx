@@ -22,26 +22,22 @@ export default function SettingsView() {
     return (first + last).toUpperCase() || "A";
   };
 
-  // Функция генерации концентрических рядов строго вокруг авы
+  // Функция генерации 3-х четких концентрических окружностей
   const renderCircularIcons = () => {
     const orbits = [
-      { radius: 68, size: 20, maxOpacity: 0.35 },  // Первый круг (аккуратный отступ от края авы)
-      { radius: 110, size: 18, maxOpacity: 0.20 }, // Второй круг
-      { radius: 152, size: 16, maxOpacity: 0.10 }, // Третий круг
-      { radius: 195, size: 14, maxOpacity: 0.03 }, // Крайний круг (тухнет к углам)
+      { radius: 75, size: 19, maxOpacity: 0.28 },  // 1-й круг: аккуратный отступ от авы
+      { radius: 135, size: 17, maxOpacity: 0.12 }, // 2-й круг: далеко, с ощутимым расстоянием
+      { radius: 195, size: 14, maxOpacity: 0.02 }, // 3-й круг: на грани видимости, почти исчез
     ];
 
     const ICONS_PER_ORBIT = 9;
 
     return orbits.flatMap((orbit, orbitIdx) => {
       const icons = [];
-      
-      // Смещаем стартовый угол для каждой второй орбиты на половину шага (20 градусов),
-      // чтобы разбить визуальные линии и подчеркнуть форму кругов
-      const orbitOffsetAngle = (orbitIdx % 2 === 0) ? 0 : 20;
 
       for (let i = 0; i < ICONS_PER_ORBIT; i++) {
-        const angle = (i * 360) / ICONS_PER_ORBIT + orbitOffsetAngle;
+        // Строгое деление на 9 без каких-либо смещений между кругами
+        const angle = (i * 360) / ICONS_PER_ORBIT;
         const radians = (angle * Math.PI) / 180;
 
         const x = Math.cos(radians) * orbit.radius;
@@ -56,7 +52,7 @@ export default function SettingsView() {
             style={{
               width: `${orbit.size}px`,
               height: `${orbit.size}px`,
-              transform: `translate(-50%, -50%) translate(${x}px, ${y}px)`, // Стоят ровно, без наклона
+              transform: `translate(-50%, -50%) translate(${x}px, ${y}px)`, // Идеально ровное положение
               opacity: orbit.maxOpacity,
             }}
           />
@@ -87,15 +83,15 @@ export default function SettingsView() {
           {/* Контент */}
           <div className="relative z-10 flex flex-col items-center w-full">
             
-            {/* Контейнер аватарки — теперь он Центр Вселенной */}
+            {/* Контейнер аватарки с концентрическим узором вокруг */}
             <div className="relative w-24 h-24 flex items-center justify-center select-none">
               
-              {/* Узор переехал сюда, теперь он генерируется абсолютно точно ОТ АВАТАРКИ */}
+              {/* Геометрический узор из 3-х кругов */}
               <div className="absolute inset-0 pointer-events-none z-0">
                 {renderCircularIcons()}
               </div>
 
-              {/* Сама фотка перекрывает узор сверху за счет z-10 */}
+              {/* Аватарка */}
               {user?.photo_url ? (
                 <img 
                   src={user.photo_url} 
