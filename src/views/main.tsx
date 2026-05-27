@@ -40,6 +40,14 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     isMoving: false,
   });
 
+  // Фикс капли: сбрасываем параметры физики при открытии/закрытии настроек, чтобы пересчитать ширину новых DOM-элементов
+  useEffect(() => {
+    if (isSettingsOpen) {
+      physicsState.current.w = 0;
+      physicsState.current.x = 0;
+    }
+  }, [isSettingsOpen]);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const anyWindow = window as any;
@@ -101,7 +109,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   }, [isSettingsOpen]);
 
   useEffect(() => {
-    if (isLoading || isSearching) return;
+    if (isLoading || isSearching || isSettingsOpen) return;
 
     const PHYSICS = {
       pos: { k: 340, d: 28, m: 1 },    
@@ -165,10 +173,10 @@ export default function MainView({ isLoading = false }: MainViewProps) {
 
     rafId = requestAnimationFrame(updatePhysics);
     return () => cancelAnimationFrame(rafId);
-  }, [isLoading, isSearching]);
+  }, [isLoading, isSearching, isSettingsOpen]);
 
   useEffect(() => {
-    if (isLoading || isSearching) return;
+    if (isLoading || isSearching || isSettingsOpen) return;
     
     const getTargetEl = () => {
       if (activeTab === "feed") return tabFeedRef.current;
@@ -189,7 +197,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
       state.tw = targetEl.offsetWidth;
       state.isMoving = true;
     }
-  }, [activeTab, isLoading, isSearching]);
+  }, [activeTab, isLoading, isSearching, isSettingsOpen]);
 
   const triggerHaptic = () => {
     if (typeof window !== "undefined") {
@@ -373,6 +381,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
           ) : (
             <div className="w-full h-11 relative flex items-center">
               
+              {/* Чузбар: изменен размер на text-sm и убрана жирность font-medium */}
               <div 
                 className="absolute left-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center overflow-x-auto transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1) [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                 style={{
@@ -391,7 +400,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                 <button
                   ref={tabFeedRef}
                   onClick={() => handleTabClick("feed")}
-                  className={`flex-1 px-3 h-full rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
+                  className={`flex-1 px-3 h-full rounded-full text-sm font-medium z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
                     activeTab === "feed" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
                   }`}
                 >
@@ -401,27 +410,22 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                 <button
                   ref={tabEventsRef}
                   onClick={() => handleTabClick("events")}
-                  className={`flex-1 px-3 h-full rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
+                  className={`flex-1 px-3 h-full rounded-full text-sm font-medium z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
                     activeTab === "events" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
                   }`}
                 >
                   События
                 </button>
 
+                {/* Таб «В тренде» без плашки "New" */}
                 <button
                   ref={tabTrendingRef}
                   onClick={() => handleTabClick("trending")}
-                  className={`flex-1 pl-3 pr-2.5 h-full rounded-full text-xs font-bold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center space-x-1 ${
+                  className={`flex-1 px-3 h-full rounded-full text-sm font-medium z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
                     activeTab === "trending" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
                   }`}
                 >
-                  <span>В тренде</span>
-                  <span 
-                    className="px-1.5 py-0.5 text-[8.5px] font-black uppercase bg-[#FC062D] text-white rounded-[5px] tracking-wider leading-none flex items-center justify-center"
-                    style={{ fontFamily: "ui-rounded, 'SF Pro Rounded', 'Montserrat', system-ui, sans-serif" }}
-                  >
-                    New
-                  </span>
+                  В тренде
                 </button>
               </div>
 
@@ -448,14 +452,15 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                             </span>
                           </div>
                         )}
+                        {/* Изменен текст подсказки и размер placeholder:text-sm */}
                         <input
                           ref={inputRef}
                           type="text"
-                          placeholder={activeTag ? "" : "Поиск..."}
+                          placeholder={activeTag ? "" : "Ищи что угодно"}
                           value={searchQuery}
                           onChange={handleInputChange}
                           onKeyDown={handleInputKeyDown}
-                          className="flex-1 h-full bg-transparent border-none outline-none text-base font-normal text-appleLight-text dark:text-appleDark-text placeholder-appleLight-text/35 dark:placeholder-appleDark-text/35 placeholder:text-xs placeholder:font-normal"
+                          className="flex-1 h-full bg-transparent border-none outline-none text-base font-normal text-appleLight-text dark:text-appleDark-text placeholder-appleLight-text/35 dark:placeholder-appleDark-text/35 placeholder:text-sm placeholder:font-normal"
                         />
                       </div>
                     </div>
