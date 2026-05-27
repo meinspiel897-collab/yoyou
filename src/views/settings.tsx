@@ -3,18 +3,18 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Твой оригинальный свитчер со скругленной прямоугольной плашкой, уменьшенный до 48x28px
+// Твой оригинальный свитчер, пропорционально уменьшенный до 58x28px
 const AppleSwitch = ({ isOn, onToggle }: { isOn: boolean; onToggle: () => void }) => (
   <button 
     onClick={onToggle} 
-    className={`relative w-[48px] h-[28px] rounded-[14px] transition-colors duration-300 flex items-center px-[3px] ${
+    className={`relative w-[58px] h-[28px] rounded-[14px] transition-colors duration-300 flex items-center px-[3px] ${
       isOn ? "bg-[#FC062D]" : "bg-[#39393d]"
     }`}
   >
     <motion.div 
-      animate={{ x: isOn ? 12 : 0 }} 
+      animate={{ x: isOn ? 17 : 0 }} 
       transition={{ type: "spring", stiffness: 500, damping: 35 }} 
-      className="h-[22px] w-[30px] bg-white rounded-[10px] shadow-sm"
+      className="h-[22px] w-[35px] bg-white rounded-[10px] shadow-sm"
     />
   </button>
 );
@@ -59,9 +59,9 @@ export default function SettingsView() {
   };
 
   return (
-    <div className="flex flex-col w-full h-full bg-appleLight-bg dark:bg-appleDark-bg transition-colors duration-300">
+    <div className="flex flex-col w-full h-full bg-appleLight-bg dark:bg-appleDark-bg transition-colors duration-300 overflow-hidden">
       
-      {/* Шапка */}
+      {/* Шапка (Фиксированная) */}
       <header className="absolute top-[var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))] left-0 right-0 h-11 flex items-center justify-center z-50 pointer-events-none select-none">
         <div className="flex items-center space-x-2.5">
           <img src="/icons/settings.png" alt="Настройки" className="w-5 h-5 object-contain" />
@@ -71,12 +71,10 @@ export default function SettingsView() {
         </div>
       </header>
 
-      {/* Контейнер с невидимым скроллбаром и увеличенным pb-24, чтобы ничего не застревало внизу */}
-      <main className="flex-1 w-full pt-[calc(var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))+44px)] flex flex-col overflow-y-auto select-none px-5 pb-24 box-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {/* ФИКСИРОВАННАЯ ЗОНА: Профиль и статистика (Не двигаются при скролле) */}
+      <div className="pt-[calc(var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))+44px)] px-5 flex flex-col select-none flex-shrink-0 w-full box-border">
         
-        {/* Блок профиля */}
-        <div className="mt-6 flex flex-col w-full relative select-none flex-shrink-0">
-          
+        <div className="mt-6 flex flex-col w-full relative">
           {/* Верхняя акцентная плашка */}
           <div className="w-full h-28 bg-[#FC062D] rounded-[28px] relative flex items-center">
             <div className="absolute inset-0 rounded-[28px] overflow-hidden pointer-events-none">
@@ -130,15 +128,17 @@ export default function SettingsView() {
               <span className="text-[10px] font-bold text-appleLight-text/40 dark:text-appleDark-text/45 uppercase tracking-wider mt-0.5">Награды</span>
             </div>
           </div>
-
         </div>
 
-        {/* ================= БЛОКИ НАСТРОЕК ================= */}
+      </div>
 
+      {/* СВОРУЕМЫЙ КОНТЕЙНЕР: Только зона блоков настроек со скрытым скроллбаром */}
+      <main className="flex-1 w-full overflow-y-auto select-none px-5 pb-12 mt-4 box-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        
         {/* БЛОК 1: Кастомизация */}
-        <div className="mt-6 w-full bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-[28px] overflow-hidden flex flex-col shadow-sm flex-shrink-0">
+        <div className="w-full bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-[28px] overflow-hidden flex flex-col shadow-sm">
           
-          {/* Кнопка выбора стиля (Чистый шрифт, без шевронов) */}
+          {/* Выбор стиля */}
           <div 
             onClick={() => setIsStyleOpen(!isStyleOpen)}
             className="flex items-center justify-between px-5 h-[54px] active:bg-appleLight-text/5 dark:active:bg-white/5 transition-colors cursor-pointer select-none"
@@ -147,7 +147,7 @@ export default function SettingsView() {
             <span className="text-sm font-normal text-appleLight-text/40 dark:text-appleDark-text/45">{currentStyle}</span>
           </div>
 
-          {/* Плавный выпадающий список в выделенной подсвеченной плашке */}
+          {/* Выдвижная часть с круглыми углами */}
           <AnimatePresence initial={false}>
             {isStyleOpen && (
               <motion.div
@@ -160,22 +160,23 @@ export default function SettingsView() {
                 exit={{ 
                   height: 0, 
                   opacity: 0,
-                  transition: { height: { duration: 0.25, ease: "easeInOut" }, opacity: { duration: 0.1 } }
+                  transition: { height: { duration: 0.2, ease: "easeInOut" }, opacity: { duration: 0.1 } }
                 }}
                 className="overflow-hidden"
               >
-                {/* Подсвеченный внутренний блок с круглыми углами */}
-                <div className="mx-3 mb-3 p-1.5 bg-appleLight-text/[0.03] dark:bg-white/[0.03] rounded-2xl flex flex-col gap-0.5 box-border">
+                {/* Внутренний фон получил выразительные круглые углы rounded-[24px] */}
+                <div className="mx-3 mb-3 p-1.5 bg-appleLight-text/[0.04] dark:bg-white/[0.04] rounded-[24px] flex flex-col gap-1 box-border">
                   {["🫪 Зумерский", "👔 Официальный", "🕷️ Нефорский"].map((style) => (
                     <button
                       key={style}
                       onClick={() => { setCurrentStyle(style); setIsStyleOpen(false); }}
-                      className="relative w-full h-10 px-4 flex items-center rounded-xl transition-all active:scale-[0.99] text-left"
+                      // Подсвеченный фон активного элемента теперь абсолютно круглый (rounded-full)
+                      className="relative w-full h-10 px-4 flex items-center rounded-full transition-all active:scale-[0.99] text-left"
                     >
                       {currentStyle === style && (
                         <motion.div 
                           layoutId="activeStyleBg"
-                          className="absolute inset-0 bg-appleLight-text/5 dark:bg-white/5 rounded-xl"
+                          className="absolute inset-0 bg-appleLight-text/5 dark:bg-white/5 rounded-full"
                         />
                       )}
                       <span className={`relative z-10 text-sm ${currentStyle === style ? "font-medium text-appleLight-text dark:text-white" : "font-normal text-appleLight-text/30 dark:text-white/20"}`}>
@@ -196,7 +197,7 @@ export default function SettingsView() {
         </div>
 
         {/* БЛОК 2: Взаимодействие */}
-        <div className="mt-4 w-full bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-[28px] overflow-hidden flex flex-col shadow-sm flex-shrink-0">
+        <div className="mt-4 w-full bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-[28px] overflow-hidden flex flex-col shadow-sm">
           <div className="flex items-center justify-between px-5 h-[54px]">
             <span className="text-sm font-medium text-appleLight-text dark:text-appleDark-text">Уведомления</span>
             <AppleSwitch isOn={notifications} onToggle={() => setNotifications(!notifications)} />
@@ -208,7 +209,7 @@ export default function SettingsView() {
         </div>
 
         {/* БЛОК 3: Система */}
-        <div className="mt-4 w-full bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-[28px] overflow-hidden flex flex-col shadow-sm flex-shrink-0">
+        <div className="mt-4 w-full bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-[28px] overflow-hidden flex flex-col shadow-sm">
           <div className="flex items-center justify-between px-5 h-[54px] active:bg-appleLight-text/5 dark:active:bg-white/5 transition-colors cursor-pointer">
             <span className="text-sm font-medium text-appleLight-text dark:text-appleDark-text">Язык</span>
             <span className="text-sm font-normal text-appleLight-text/40 dark:text-appleDark-text/45">Русский</span>
