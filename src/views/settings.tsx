@@ -218,15 +218,15 @@ export default function SettingsView() {
           </div>
         </div>
 
-        {/* Текст об авторстве (Не жирный, по центру, opacity 0.5) */}
-        <div className="mt-8 w-full flex justify-center text-center opacity-50 select-text">
+        {/* Фирменный копирайт авторства (Не жирный, по центру, всегда подчеркнут, opacity 0.25) */}
+        <div className="mt-8 w-full flex justify-center text-center opacity-25 select-text">
           <span className="text-xs font-normal tracking-tight text-appleLight-text dark:text-appleDark-text">
-            Приложение создано и разработано{" "}
+            Сие творение создано{" "}
             <a 
               href="https://t.me/temkazavr" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="font-medium hover:underline cursor-pointer transition-all text-appleLight-text dark:text-white"
+              className="font-medium underline cursor-pointer text-appleLight-text dark:text-white"
             >
               @temkazavr
             </a>
