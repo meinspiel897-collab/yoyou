@@ -22,21 +22,25 @@ export default function SettingsView() {
     return (first + last).toUpperCase() || "A";
   };
 
-  // Функция генерации круговых орбит: строго по 9 штук, разнесены дальше от центра
+  // Функция генерации идеальных концентрических рядов (по 9 иконок на каждый)
   const renderCircularIcons = () => {
+    // Ровный фиксированный шаг радиуса, начиная чуть дальше от аватара
     const orbits = [
-      { radius: 95, count: 9, size: 20, maxOpacity: 0.35 },  // Ближний круг (отодвинут дальше)
-      { radius: 135, count: 9, size: 18, maxOpacity: 0.22 }, // Средний круг
-      { radius: 175, count: 9, size: 16, maxOpacity: 0.12 }, // Дальний круг
-      { radius: 215, count: 9, size: 14, maxOpacity: 0.04 }, // Самый край (растворяются)
+      { radius: 85, size: 20, maxOpacity: 0.35 },  // Первый ряд (отодвинут от аватарки)
+      { radius: 130, size: 18, maxOpacity: 0.20 }, // Второй ряд (фиксированный шаг +45px)
+      { radius: 175, size: 16, maxOpacity: 0.10 }, // Третий ряд (фиксированный шаг +45px)
+      { radius: 220, size: 14, maxOpacity: 0.03 }, // Крайний ряд (исчезает в углах)
     ];
+
+    const ICONS_PER_ORBIT = 9;
 
     return orbits.flatMap((orbit, orbitIdx) => {
       const icons = [];
 
-      for (let i = 0; i < orbit.count; i++) {
-        // Строгое распределение по 9 точкам (каждые 40 градусов)
-        const angle = (i * 360) / orbit.count;
+      for (let i = 0; i < ICONS_PER_ORBIT; i++) {
+        // Идеально ровное деление окружности на 9 частей (шаг 40 градусов)
+        // Все ряды стартуют с 0, формируя прямые лучи от центра к краям
+        const angle = (i * 360) / ICONS_PER_ORBIT;
         const radians = (angle * Math.PI) / 180;
 
         const x = Math.cos(radians) * orbit.radius;
@@ -79,7 +83,7 @@ export default function SettingsView() {
         {/* Блок профиля */}
         <div className="mt-6 flex flex-col items-center w-full bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-[28px] p-8 box-border relative overflow-hidden min-h-[250px] justify-center shadow-sm border border-appleLight-text/[0.02] dark:border-white/[0.02]">
           
-          {/* Геометрический круговой узор */}
+          {/* Геометрический круговой узор из 9 лучей */}
           <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
             {renderCircularIcons()}
           </div>
@@ -87,16 +91,16 @@ export default function SettingsView() {
           {/* Контент */}
           <div className="relative z-10 flex flex-col items-center w-full">
             
-            {/* Аватарка (Чистая, без контуров) */}
-            <div className="relative shadow-lg flex items-center justify-center">
+            {/* Чистая аватарка без контуров */}
+            <div className="relative flex items-center justify-center select-none">
               {user?.photo_url ? (
                 <img 
                   src={user.photo_url} 
                   alt="Аватар" 
-                  className="w-24 h-24 rounded-full object-cover"
+                  className="w-24 h-24 rounded-full object-cover border border-white/5 shadow-xl"
                 />
               ) : (
-                <div className="w-24 h-24 rounded-full bg-[#75df77] flex items-center justify-center text-white text-4xl font-normal">
+                <div className="w-24 h-24 rounded-full bg-[#75df77] flex items-center justify-center text-white text-4xl font-normal shadow-lg">
                   {getInitials()}
                 </div>
               )}
