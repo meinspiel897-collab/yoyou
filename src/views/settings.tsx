@@ -22,20 +22,20 @@ export default function SettingsView() {
     return (first + last).toUpperCase() || "A";
   };
 
-  // Функция генерации строго симметричных круговых орбит
+  // Функция генерации круговых орбит: строго по 9 штук, разнесены дальше от центра
   const renderCircularIcons = () => {
     const orbits = [
-      { radius: 65, count: 6, size: 20, maxOpacity: 0.35 },  // Ближний круг (ровное деление)
-      { radius: 105, count: 10, size: 18, maxOpacity: 0.22 }, // Средний круг
-      { radius: 145, count: 14, size: 16, maxOpacity: 0.12 }, // Дальний круг
-      { radius: 190, count: 18, size: 14, maxOpacity: 0.04 }, // Край (растворяются к углам)
+      { radius: 95, count: 9, size: 20, maxOpacity: 0.35 },  // Ближний круг (отодвинут дальше)
+      { radius: 135, count: 9, size: 18, maxOpacity: 0.22 }, // Средний круг
+      { radius: 175, count: 9, size: 16, maxOpacity: 0.12 }, // Дальний круг
+      { radius: 215, count: 9, size: 14, maxOpacity: 0.04 }, // Самый край (растворяются)
     ];
 
     return orbits.flatMap((orbit, orbitIdx) => {
       const icons = [];
 
       for (let i = 0; i < orbit.count; i++) {
-        // Строгое распределение без смещений, все круги начинаются с 0 градусов
+        // Строгое распределение по 9 точкам (каждые 40 градусов)
         const angle = (i * 360) / orbit.count;
         const radians = (angle * Math.PI) / 180;
 
@@ -51,7 +51,7 @@ export default function SettingsView() {
             style={{
               width: `${orbit.size}px`,
               height: `${orbit.size}px`,
-              transform: `translate(-50%, -50%) translate(${x}px, ${y}px)`, // Все смотрят ровно вверх
+              transform: `translate(-50%, -50%) translate(${x}px, ${y}px)`,
               opacity: orbit.maxOpacity,
             }}
           />
@@ -79,7 +79,7 @@ export default function SettingsView() {
         {/* Блок профиля */}
         <div className="mt-6 flex flex-col items-center w-full bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-[28px] p-8 box-border relative overflow-hidden min-h-[250px] justify-center shadow-sm border border-appleLight-text/[0.02] dark:border-white/[0.02]">
           
-          {/* Строгий круговой узор */}
+          {/* Геометрический круговой узор */}
           <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
             {renderCircularIcons()}
           </div>
@@ -87,8 +87,8 @@ export default function SettingsView() {
           {/* Контент */}
           <div className="relative z-10 flex flex-col items-center w-full">
             
-            {/* Аватарка с акцентным контуром сайта */}
-            <div className="relative p-1 rounded-full border-2 border-[#FC062D] shadow-lg flex items-center justify-center">
+            {/* Аватарка (Чистая, без контуров) */}
+            <div className="relative shadow-lg flex items-center justify-center">
               {user?.photo_url ? (
                 <img 
                   src={user.photo_url} 
