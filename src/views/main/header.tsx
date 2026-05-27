@@ -10,11 +10,11 @@ interface HeaderProps {
   isSearching: boolean;
   searchQuery: string;
   activeTag: string | null;
-  sliderRef: React.RefObject<HTMLDivElement | null>;
-  tabFeedRef: React.RefObject<HTMLButtonElement | null>;
-  tabEventsRef: React.RefObject<HTMLButtonElement | null>;
-  tabTrendingRef: React.RefObject<HTMLButtonElement | null>;
-  inputRef: React.RefObject<HTMLInputElement | null>;
+  sliderRef: React.RefObject<HTMLDivElement>;
+  tabFeedRef: React.RefObject<HTMLButtonElement>;
+  tabEventsRef: React.RefObject<HTMLButtonElement>;
+  tabTrendingRef: React.RefObject<HTMLButtonElement>;
+  inputRef: React.RefObject<HTMLInputElement>;
   handleTabClick: (tab: TabType) => void;
   enableSearch: () => void;
   disableSearch: () => void;
