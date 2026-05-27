@@ -4,6 +4,12 @@ import { useEffect, useState } from "react";
 
 export default function SettingsView() {
   const [user, setUser] = useState<any>(null);
+  
+  // Состояния для свитчеров и настроек
+  const [animations, setAnimations] = useState(true);
+  const [vibration, setVibration] = useState(true);
+  const [notifications, setNotifications] = useState(true);
+  const [currentStyle, setCurrentStyle] = useState("Зумерский"); // По дефолту, конечно же, он
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -22,6 +28,22 @@ export default function SettingsView() {
     return (first + last).toUpperCase() || "A";
   };
 
+  // Вспомогательный компонент для кастомного iOS-like свитчера
+  const Toggle = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => (
+    <button
+      onClick={onChange}
+      className={`w-11 h-6 rounded-full transition-colors duration-200 relative flex items-center px-0.5 ${
+        checked ? "bg-[#FC062D]" : "bg-appleLight-text/10 dark:bg-white/10"
+      }`}
+    >
+      <div
+        className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 transform ${
+          checked ? "translate-x-5" : "translate-x-0"
+        }`}
+      />
+    </button>
+  );
+
   return (
     <div className="flex flex-col w-full h-full bg-appleLight-bg dark:bg-appleDark-bg transition-colors duration-300">
       
@@ -35,7 +57,7 @@ export default function SettingsView() {
         </div>
       </header>
 
-      <main className="flex-1 w-full pt-[calc(var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))+44px)] flex flex-col overflow-y-auto select-none px-5 box-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <main className="flex-1 w-full pt-[calc(var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))+44px)] flex flex-col overflow-y-auto select-none px-5 pb-8 box-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         
         {/* Блок профиля */}
         <div className="mt-6 flex flex-col w-full relative select-none">
@@ -43,16 +65,16 @@ export default function SettingsView() {
           {/* Верхняя акцентная плашка */}
           <div className="w-full h-28 bg-[#FC062D] rounded-[28px] relative flex items-center">
             
-            {/* Контейнер маски для логотипа (стал чуть меньше и сдвинут правее) */}
+            {/* Контейнер маски для логотипа (смещен еще правее — левый край теперь на 0) */}
             <div className="absolute inset-0 rounded-[28px] overflow-hidden pointer-events-none">
               <img 
                 src="/icons/logo.png" 
                 alt="" 
-                className="absolute -left-2 -top-4 w-36 h-36 object-contain opacity-20 invert brightness-0 rotate-[-16deg]"
+                className="absolute -left-0 -top-4 w-36 h-36 object-contain opacity-20 invert brightness-0 rotate-[-16deg]"
               />
             </div>
 
-            {/* Круг аватарки: Строго по центру оси X, наполовину утоплен вниз */}
+            {/* Круг аватарки */}
             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-24 h-24 rounded-full flex items-center justify-center z-10">
               {user?.photo_url ? (
                 <img 
@@ -69,59 +91,77 @@ export default function SettingsView() {
 
           </div>
 
-          {/* Блок с именем и юзернеймом по центру */}
+          {/* Блок с именем */}
           <div className="mt-14 flex flex-col items-center w-full text-center">
             <h2 className="text-xl font-bold text-appleLight-text dark:text-appleDark-text tracking-tight">
               {user ? `${user.first_name || ""} ${user.last_name || ""}`.trim() : "админ"}
             </h2>
-            
             <p className="mt-0.5 text-sm font-medium text-appleLight-text/40 dark:text-appleDark-text/45 tracking-wide">
               {user?.username ? `@${user.username}` : "@username"}
             </p>
           </div>
 
-          {/* Объединенная единая плашка статистики (Без контуров) */}
+          {/* Объединенная единая плашка статистики */}
           <div className="mt-5 w-full bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-[28px] py-3.5 flex justify-around items-center shadow-sm transition-colors duration-300">
-            
-            {/* Оценки */}
             <div className="flex flex-col items-center justify-center flex-1">
               <span className="text-lg font-extrabold text-appleLight-text dark:text-appleDark-text">0</span>
               <span className="text-[10px] font-bold text-appleLight-text/40 dark:text-appleDark-text/45 uppercase tracking-wider mt-0.5">Оценки</span>
             </div>
-
-            {/* Разделитель */}
             <div className="h-6 w-[1px] bg-appleLight-text/10 dark:bg-white/10" />
-
-            {/* Посты */}
             <div className="flex flex-col items-center justify-center flex-1">
               <span className="text-lg font-extrabold text-appleLight-text dark:text-appleDark-text">0</span>
               <span className="text-[10px] font-bold text-appleLight-text/40 dark:text-appleDark-text/45 uppercase tracking-wider mt-0.5">Посты</span>
             </div>
-
-            {/* Разделитель */}
             <div className="h-6 w-[1px] bg-appleLight-text/10 dark:bg-white/10" />
-
-            {/* Награды */}
             <div className="flex flex-col items-center justify-center flex-1">
               <span className="text-lg font-extrabold text-appleLight-text dark:text-appleDark-text">0</span>
               <span className="text-[10px] font-bold text-appleLight-text/40 dark:text-appleDark-text/45 uppercase tracking-wider mt-0.5">Награды</span>
             </div>
-
           </div>
 
         </div>
 
-        {/* Меню настроек (Контур успешно убран!) */}
+        {/* ================= РАЗБИТЫЕ БЛОКИ НАСТРОЕК ================= */}
+
+        {/* БЛОК 1: Кастомизация интерфейса */}
         <div className="mt-6 w-full bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-[28px] overflow-hidden flex flex-col shadow-sm">
+          {/* Выбор стиля */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-appleLight-text/5 dark:border-white/5 active:bg-appleLight-text/5 dark:active:bg-white/5 transition-colors cursor-pointer">
-            <span className="text-sm font-bold text-appleLight-text dark:text-appleDark-text">Уведомления</span>
-            <span className="text-xs text-appleLight-text/35 dark:text-appleDark-text/35 font-semibold">Вкл.</span>
+            <span className="text-sm font-bold text-appleLight-text dark:text-appleDark-text">Стиль приложения</span>
+            <span className="text-xs text-appleLight-text/40 dark:text-appleDark-text/45 font-bold flex items-center gap-1">
+              {currentStyle === "Зумерский" && "🫪 Зумерский"}
+              {currentStyle === "Официальный" && "👔 Официальный"}
+              {currentStyle === "Нефорский" && "🕷️ Нефорский"}
+            </span>
           </div>
+          {/* Свитчер анимаций */}
+          <div className="flex items-center justify-between px-5 py-3.5">
+            <span className="text-sm font-bold text-appleLight-text dark:text-appleDark-text">Анимации</span>
+            <Toggle checked={animations} onChange={() => setAnimations(!animations)} />
+          </div>
+        </div>
+
+        {/* БЛОК 2: Взаимодействие и тактильность */}
+        <div className="mt-4 w-full bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-[28px] overflow-hidden flex flex-col shadow-sm">
+          {/* Свитчер уведомлений */}
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-appleLight-text/5 dark:border-white/5">
+            <span className="text-sm font-bold text-appleLight-text dark:text-appleDark-text">Уведомления</span>
+            <Toggle checked={notifications} onChange={() => setNotifications(!notifications)} />
+          </div>
+          {/* Свитчер вибрации */}
+          <div className="flex items-center justify-between px-5 py-3.5">
+            <span className="text-sm font-bold text-appleLight-text dark:text-appleDark-text">Вибрация (Haptic)</span>
+            <Toggle checked={vibration} onChange={() => setVibration(!vibration)} />
+          </div>
+        </div>
+
+        {/* БЛОК 3: Системные */}
+        <div className="mt-4 w-full bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-[28px] overflow-hidden flex flex-col shadow-sm">
           <div className="flex items-center justify-between px-5 py-4 border-b border-appleLight-text/5 dark:border-white/5 active:bg-appleLight-text/5 dark:active:bg-white/5 transition-colors cursor-pointer">
             <span className="text-sm font-bold text-appleLight-text dark:text-appleDark-text">Язык</span>
             <span className="text-xs text-appleLight-text/35 dark:text-appleDark-text/35 font-semibold">Русский</span>
           </div>
-          <div className="flex items-center justify-between px-5 py-4 active:bg-appleLight-text/5 dark:active:bg-white/5 transition-colors cursor-pointer">
+          <div className="flex items-center justify-between px-5 py-4">
             <span className="text-sm font-bold text-appleLight-text dark:text-appleDark-text">Версия</span>
             <span className="text-xs text-appleLight-text/35 dark:text-appleDark-text/35 font-semibold">1.0.0</span>
           </div>
