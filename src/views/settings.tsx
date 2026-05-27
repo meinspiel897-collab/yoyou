@@ -71,7 +71,7 @@ export default function SettingsView() {
         </div>
       </header>
 
-      {/* ФИКСИРОВАННАЯ ЗОНА: Профиль и статистика (Не двигаются при скролле) */}
+      {/* ФИКСИРОВАННАЯ ЗОНА: Профиль и статистика */}
       <div className="pt-[calc(var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))+44px)] px-5 flex flex-col select-none flex-shrink-0 w-full box-border">
         
         <div className="mt-6 flex flex-col w-full relative">
@@ -132,8 +132,8 @@ export default function SettingsView() {
 
       </div>
 
-      {/* СВОРУЕМЫЙ КОНТЕЙНЕР: Только зона блоков настроек со скрытым скроллбаром */}
-      <main className="flex-1 w-full overflow-y-auto select-none px-5 pb-12 mt-4 box-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {/* СВОРУЕМЫЙ КОНТЕЙНЕР: Только зона блоков настроек */}
+      <main className="flex-1 w-full overflow-y-auto select-none px-5 pb-16 mt-4 box-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         
         {/* БЛОК 1: Кастомизация */}
         <div className="w-full bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-[28px] overflow-hidden flex flex-col shadow-sm">
@@ -147,7 +147,7 @@ export default function SettingsView() {
             <span className="text-sm font-normal text-appleLight-text/40 dark:text-appleDark-text/45">{currentStyle}</span>
           </div>
 
-          {/* Выдвижная часть с круглыми углами */}
+          {/* Выдвижная часть */}
           <AnimatePresence initial={false}>
             {isStyleOpen && (
               <motion.div
@@ -164,13 +164,11 @@ export default function SettingsView() {
                 }}
                 className="overflow-hidden"
               >
-                {/* Внутренний фон получил выразительные круглые углы rounded-[24px] */}
                 <div className="mx-3 mb-3 p-1.5 bg-appleLight-text/[0.04] dark:bg-white/[0.04] rounded-[24px] flex flex-col gap-1 box-border">
                   {["🫪 Зумерский", "👔 Официальный", "🕷️ Нефорский"].map((style) => (
                     <button
                       key={style}
                       onClick={() => { setCurrentStyle(style); setIsStyleOpen(false); }}
-                      // Подсвеченный фон активного элемента теперь абсолютно круглый (rounded-full)
                       className="relative w-full h-10 px-4 flex items-center rounded-full transition-all active:scale-[0.99] text-left"
                     >
                       {currentStyle === style && (
@@ -218,6 +216,21 @@ export default function SettingsView() {
             <span className="text-sm font-medium text-appleLight-text dark:text-appleDark-text">Версия</span>
             <span className="text-sm font-normal text-appleLight-text/40 dark:text-appleDark-text/45">1.0.0</span>
           </div>
+        </div>
+
+        {/* Текст об авторстве (Не жирный, по центру, opacity 0.5) */}
+        <div className="mt-8 w-full flex justify-center text-center opacity-50 select-text">
+          <span className="text-xs font-normal tracking-tight text-appleLight-text dark:text-appleDark-text">
+            Приложение создано и разработано{" "}
+            <a 
+              href="https://t.me/temkazavr" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="font-medium hover:underline cursor-pointer transition-all text-appleLight-text dark:text-white"
+            >
+              @temkazavr
+            </a>
+          </span>
         </div>
 
       </main>
