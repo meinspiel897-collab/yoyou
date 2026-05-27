@@ -22,25 +22,26 @@ export default function SettingsView() {
     return (first + last).toUpperCase() || "A";
   };
 
-  // Функция генерации идеальных концентрических рядов (по 9 иконок на каждый)
+  // Функция генерации концентрических рядов строго вокруг авы
   const renderCircularIcons = () => {
-    // Ровный фиксированный шаг радиуса, начиная чуть дальше от аватара
     const orbits = [
-      { radius: 85, size: 20, maxOpacity: 0.35 },  // Первый ряд (отодвинут от аватарки)
-      { radius: 130, size: 18, maxOpacity: 0.20 }, // Второй ряд (фиксированный шаг +45px)
-      { radius: 175, size: 16, maxOpacity: 0.10 }, // Третий ряд (фиксированный шаг +45px)
-      { radius: 220, size: 14, maxOpacity: 0.03 }, // Крайний ряд (исчезает в углах)
+      { radius: 68, size: 20, maxOpacity: 0.35 },  // Первый круг (аккуратный отступ от края авы)
+      { radius: 110, size: 18, maxOpacity: 0.20 }, // Второй круг
+      { radius: 152, size: 16, maxOpacity: 0.10 }, // Третий круг
+      { radius: 195, size: 14, maxOpacity: 0.03 }, // Крайний круг (тухнет к углам)
     ];
 
     const ICONS_PER_ORBIT = 9;
 
     return orbits.flatMap((orbit, orbitIdx) => {
       const icons = [];
+      
+      // Смещаем стартовый угол для каждой второй орбиты на половину шага (20 градусов),
+      // чтобы разбить визуальные линии и подчеркнуть форму кругов
+      const orbitOffsetAngle = (orbitIdx % 2 === 0) ? 0 : 20;
 
       for (let i = 0; i < ICONS_PER_ORBIT; i++) {
-        // Идеально ровное деление окружности на 9 частей (шаг 40 градусов)
-        // Все ряды стартуют с 0, формируя прямые лучи от центра к краям
-        const angle = (i * 360) / ICONS_PER_ORBIT;
+        const angle = (i * 360) / ICONS_PER_ORBIT + orbitOffsetAngle;
         const radians = (angle * Math.PI) / 180;
 
         const x = Math.cos(radians) * orbit.radius;
@@ -55,7 +56,7 @@ export default function SettingsView() {
             style={{
               width: `${orbit.size}px`,
               height: `${orbit.size}px`,
-              transform: `translate(-50%, -50%) translate(${x}px, ${y}px)`,
+              transform: `translate(-50%, -50%) translate(${x}px, ${y}px)`, // Стоят ровно, без наклона
               opacity: orbit.maxOpacity,
             }}
           />
@@ -83,36 +84,38 @@ export default function SettingsView() {
         {/* Блок профиля */}
         <div className="mt-6 flex flex-col items-center w-full bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-[28px] p-8 box-border relative overflow-hidden min-h-[250px] justify-center shadow-sm border border-appleLight-text/[0.02] dark:border-white/[0.02]">
           
-          {/* Геометрический круговой узор из 9 лучей */}
-          <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-            {renderCircularIcons()}
-          </div>
-
           {/* Контент */}
           <div className="relative z-10 flex flex-col items-center w-full">
             
-            {/* Чистая аватарка без контуров */}
-            <div className="relative flex items-center justify-center select-none">
+            {/* Контейнер аватарки — теперь он Центр Вселенной */}
+            <div className="relative w-24 h-24 flex items-center justify-center select-none">
+              
+              {/* Узор переехал сюда, теперь он генерируется абсолютно точно ОТ АВАТАРКИ */}
+              <div className="absolute inset-0 pointer-events-none z-0">
+                {renderCircularIcons()}
+              </div>
+
+              {/* Сама фотка перекрывает узор сверху за счет z-10 */}
               {user?.photo_url ? (
                 <img 
                   src={user.photo_url} 
                   alt="Аватар" 
-                  className="w-24 h-24 rounded-full object-cover border border-white/5 shadow-xl"
+                  className="w-24 h-24 rounded-full object-cover border border-white/5 shadow-xl relative z-10"
                 />
               ) : (
-                <div className="w-24 h-24 rounded-full bg-[#75df77] flex items-center justify-center text-white text-4xl font-normal shadow-lg">
+                <div className="w-24 h-24 rounded-full bg-[#75df77] flex items-center justify-center text-white text-4xl font-normal shadow-lg relative z-10">
                   {getInitials()}
                 </div>
               )}
             </div>
             
             {/* Имя */}
-            <h2 className="mt-5 text-2xl font-semibold text-appleLight-text dark:text-appleDark-text tracking-tight">
+            <h2 className="mt-5 text-2xl font-semibold text-appleLight-text dark:text-appleDark-text tracking-tight relative z-10">
               {user ? `${user.first_name || ""} ${user.last_name || ""}`.trim() : "админ"}
             </h2>
             
             {/* Подпись / Юзернейм */}
-            <p className="mt-1.5 text-sm font-medium text-appleLight-text/40 dark:text-appleDark-text/45 tracking-wide">
+            <p className="mt-1.5 text-sm font-medium text-appleLight-text/40 dark:text-appleDark-text/45 tracking-wide relative z-10">
               {user?.username ? `@${user.username}` : "0 / 10 TON"}
             </p>
           </div>
