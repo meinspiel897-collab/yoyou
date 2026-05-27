@@ -22,46 +22,6 @@ export default function SettingsView() {
     return (first + last).toUpperCase() || "A";
   };
 
-  // Функция генерации 3-х четких концентрических окружностей
-  const renderCircularIcons = () => {
-    const orbits = [
-      { radius: 75, size: 19, maxOpacity: 0.28 },  // 1-й круг: аккуратный отступ от авы
-      { radius: 135, size: 17, maxOpacity: 0.12 }, // 2-й круг: далеко, с ощутимым расстоянием
-      { radius: 195, size: 14, maxOpacity: 0.02 }, // 3-й круг: на грани видимости, почти исчез
-    ];
-
-    const ICONS_PER_ORBIT = 9;
-
-    return orbits.flatMap((orbit, orbitIdx) => {
-      const icons = [];
-
-      for (let i = 0; i < ICONS_PER_ORBIT; i++) {
-        // Строгое деление на 9 без каких-либо смещений между кругами
-        const angle = (i * 360) / ICONS_PER_ORBIT;
-        const radians = (angle * Math.PI) / 180;
-
-        const x = Math.cos(radians) * orbit.radius;
-        const y = Math.sin(radians) * orbit.radius;
-
-        icons.push(
-          <img
-            key={`icon-${orbitIdx}-${i}`}
-            src="/icons/logo.png"
-            alt=""
-            className="absolute left-1/2 top-1/2 object-contain pointer-events-none select-none filter grayscale brightness-50 contrast-120"
-            style={{
-              width: `${orbit.size}px`,
-              height: `${orbit.size}px`,
-              transform: `translate(-50%, -50%) translate(${x}px, ${y}px)`, // Идеально ровное положение
-              opacity: orbit.maxOpacity,
-            }}
-          />
-        );
-      }
-      return icons;
-    });
-  };
-
   return (
     <div className="flex flex-col w-full h-full bg-appleLight-bg dark:bg-appleDark-bg transition-colors duration-300">
       
@@ -77,41 +37,45 @@ export default function SettingsView() {
 
       <main className="flex-1 w-full pt-[calc(var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))+44px)] flex flex-col overflow-y-auto select-none px-5 box-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         
-        {/* Блок профиля */}
-        <div className="mt-6 flex flex-col items-center w-full bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-[28px] p-8 box-border relative overflow-hidden min-h-[250px] justify-center shadow-sm border border-appleLight-text/[0.02] dark:border-white/[0.02]">
+        {/* Блок профиля нового формата */}
+        <div className="mt-6 flex flex-col w-full relative select-none">
           
-          {/* Контент */}
-          <div className="relative z-10 flex flex-col items-center w-full">
+          {/* Верхняя акцентная плашка (компактная, без контуров) */}
+          <div className="w-full h-28 bg-[#FC062D] rounded-[28px] relative overflow-visible flex items-center">
             
-            {/* Контейнер аватарки с концентрическим узором вокруг */}
-            <div className="relative w-24 h-24 flex items-center justify-center select-none">
-              
-              {/* Геометрический узор из 3-х кругов */}
-              <div className="absolute inset-0 pointer-events-none z-0">
-                {renderCircularIcons()}
-              </div>
+            {/* Крупная наклоненная белая иконка logo.png слева */}
+            <img 
+              src="/icons/logo.png" 
+              alt="" 
+              className="absolute left-6 w-16 h-16 object-contain pointer-events-none opacity-20 invert brightness-0 rotate-12"
+            />
 
-              {/* Аватарка */}
+            {/* Круг аватарки: строго по центру оси X, наполовину утоплен в плашку */}
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-24 h-24 rounded-full flex items-center justify-center z-10">
               {user?.photo_url ? (
                 <img 
                   src={user.photo_url} 
                   alt="Аватар" 
-                  className="w-24 h-24 rounded-full object-cover border border-white/5 shadow-xl relative z-10"
+                  className="w-24 h-24 rounded-full object-cover border-4 border-appleLight-bg dark:border-appleDark-bg shadow-md transition-colors duration-300"
                 />
               ) : (
-                <div className="w-24 h-24 rounded-full bg-[#75df77] flex items-center justify-center text-white text-4xl font-normal shadow-lg relative z-10">
+                <div className="w-24 h-24 rounded-full bg-[#75df77] flex items-center justify-center text-white text-4xl font-normal border-4 border-appleLight-bg dark:border-appleDark-bg shadow-md transition-colors duration-300">
                   {getInitials()}
                 </div>
               )}
             </div>
-            
-            {/* Имя */}
-            <h2 className="mt-5 text-2xl font-semibold text-appleLight-text dark:text-appleDark-text tracking-tight relative z-10">
+
+          </div>
+
+          {/* Блок с текстом под плашкой (mt-14 компенсирует вылезающую аватарку) */}
+          <div className="mt-14 flex flex-col items-center w-full text-center">
+            {/* Имя (аккуратный размер) */}
+            <h2 className="text-xl font-bold text-appleLight-text dark:text-appleDark-text tracking-tight">
               {user ? `${user.first_name || ""} ${user.last_name || ""}`.trim() : "админ"}
             </h2>
             
-            {/* Подпись / Юзернейм */}
-            <p className="mt-1.5 text-sm font-medium text-appleLight-text/40 dark:text-appleDark-text/45 tracking-wide relative z-10">
+            {/* Юзернейм */}
+            <p className="mt-1 text-sm font-medium text-appleLight-text/40 dark:text-appleDark-text/45 tracking-wide">
               {user?.username ? `@${user.username}` : "0 / 10 TON"}
             </p>
           </div>
