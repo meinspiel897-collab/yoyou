@@ -132,7 +132,7 @@ export default function SettingsView() {
 
       </div>
 
-      {/* СВОРУЕМЫЙ КОНТЕЙНЕР: Только зона блоков настроек */}
+      {/* СКРОЛЛИРУЕМЫЙ КОНТЕЙНЕР: Зона блоков настроек */}
       <main className="flex-1 w-full overflow-y-auto select-none px-5 pb-16 mt-4 box-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         
         {/* БЛОК 1: Кастомизация */}
@@ -200,8 +200,9 @@ export default function SettingsView() {
             <span className="text-sm font-medium text-appleLight-text dark:text-appleDark-text">Уведомления</span>
             <AppleSwitch isOn={notifications} onToggle={() => setNotifications(!notifications)} />
           </div>
+          {/* Текст заменен на чистую «Вибрация» */}
           <div className="flex items-center justify-between px-5 h-[54px]">
-            <span className="text-sm font-medium text-appleLight-text dark:text-appleDark-text">Вибрация (Haptic)</span>
+            <span className="text-sm font-medium text-appleLight-text dark:text-appleDark-text">Вибрация</span>
             <AppleSwitch isOn={vibration} onToggle={handleVibrationToggle} />
           </div>
         </div>
@@ -218,7 +219,7 @@ export default function SettingsView() {
           </div>
         </div>
 
-        {/* Фирменный копирайт авторства (Не жирный, по центру, всегда подчеркнут, opacity 0.25) */}
+        {/* Блок авторства */}
         <div className="mt-8 w-full flex justify-center text-center opacity-25 select-text">
           <span className="text-xs font-normal tracking-tight text-appleLight-text dark:text-appleDark-text">
             Сие творение создано{" "}
@@ -226,7 +227,7 @@ export default function SettingsView() {
               href="https://t.me/temkazavr" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="font-medium underline cursor-pointer text-appleLight-text dark:text-white"
+              className="font-medium underline cursor-pointer transition-all text-appleLight-text dark:text-white"
             >
               @temkazavr
             </a>
