@@ -41,51 +41,62 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   });
 
   useEffect(() => {
-    if (typeof window !== "undefined" && window.Telegram?.WebApp) {
-      const webApp = window.Telegram.WebApp;
-      const theme = webApp.colorScheme || "dark";
-      const bgColor = theme === "dark" ? "#000000" : "#FFFFFF";
-      
-      webApp.setHeaderColor(bgColor);
-      webApp.setBackgroundColor(bgColor);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (typeof window !== "undefined" && window.Telegram?.WebApp?.SettingsButton) {
-      const tg = window.Telegram.WebApp;
-      const handleSettingsClick = () => {
-        setIsSettingsOpen(true);
-      };
-      
-      tg.SettingsButton.onClick(handleSettingsClick);
-      tg.SettingsButton.show();
-      
-      return () => {
-        tg.SettingsButton.offClick(handleSettingsClick);
-        tg.SettingsButton.hide();
-      };
-    }
-  }, []);
-
-  useEffect(() => {
-    if (typeof window !== "undefined" && window.Telegram?.WebApp?.BackButton) {
-      const tg = window.Telegram.WebApp;
-      const handleBackClick = () => {
-        setIsSettingsOpen(false);
-      };
-      
-      if (isSettingsOpen) {
-        tg.BackButton.onClick(handleBackClick);
-        tg.BackButton.show();
-      } else {
-        tg.BackButton.hide();
-        tg.BackButton.offClick(handleBackClick);
+    if (typeof window !== "undefined") {
+      const anyWindow = window as any;
+      const webApp = anyWindow.Telegram?.WebApp;
+      if (webApp) {
+        const theme = webApp.colorScheme || "dark";
+        const bgColor = theme === "dark" ? "#000000" : "#FFFFFF";
+        
+        webApp.setHeaderColor(bgColor);
+        webApp.setBackgroundColor(bgColor);
       }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const anyWindow = window as any;
+      const tg = anyWindow.Telegram?.WebApp;
       
-      return () => {
-        tg.BackButton.offClick(handleBackClick);
-      };
+      if (tg?.SettingsButton) {
+        const handleSettingsClick = () => {
+          setIsSettingsOpen(true);
+        };
+        
+        tg.SettingsButton.onClick(handleSettingsClick);
+        tg.SettingsButton.show();
+        
+        return () => {
+          tg.SettingsButton.offClick(handleSettingsClick);
+          tg.SettingsButton.hide();
+        };
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const anyWindow = window as any;
+      const tg = anyWindow.Telegram?.WebApp;
+      
+      if (tg?.BackButton) {
+        const handleBackClick = () => {
+          setIsSettingsOpen(false);
+        };
+        
+        if (isSettingsOpen) {
+          tg.BackButton.onClick(handleBackClick);
+          tg.BackButton.show();
+        } else {
+          tg.BackButton.hide();
+          tg.BackButton.offClick(handleBackClick);
+        }
+        
+        return () => {
+          tg.BackButton.offClick(handleBackClick);
+        };
+      }
     }
   }, [isSettingsOpen]);
 
