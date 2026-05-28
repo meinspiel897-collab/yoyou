@@ -2,7 +2,7 @@
 
 import React from "react";
 
-type TabType = "trending" | "events";
+type TabType = "trending" | "events" | "favorites";
 
 interface HeaderProps {
   isLoading: boolean;
@@ -11,8 +11,9 @@ interface HeaderProps {
   searchQuery: string;
   activeTag: string | null;
   sliderRef: React.RefObject<HTMLDivElement>;
-  tabEventsRef: React.RefObject<HTMLButtonElement>;
   tabTrendingRef: React.RefObject<HTMLButtonElement>;
+  tabEventsRef: React.RefObject<HTMLButtonElement>;
+  tabFavoritesRef: React.RefObject<HTMLButtonElement>;
   inputRef: React.RefObject<HTMLInputElement>;
   handleTabClick: (tab: TabType) => void;
   enableSearch: () => void;
@@ -29,8 +30,9 @@ export default function Header({
   searchQuery,
   activeTag,
   sliderRef,
-  tabEventsRef,
   tabTrendingRef,
+  tabEventsRef,
+  tabFavoritesRef,
   inputRef,
   handleTabClick,
   enableSearch,
@@ -39,6 +41,10 @@ export default function Header({
   handleInputKeyDown,
   onAddClick,
 }: HeaderProps) {
+  
+  // Условие, когда кнопка добавления должна скрыться
+  const shouldHideAdd = isSearching || activeTab === "trending";
+
   return (
     <>
       {/* Нативный логотип */}
@@ -62,11 +68,11 @@ export default function Header({
         ) : (
           <div className="w-full h-11 relative flex items-center">
             
-            {/* Чузбар (Вкладки) — теперь ширина урезана под две акцентные кнопки справа */}
+            {/* Чузбар (Вкладки) — ширина динамически меняется со 104px до 54px */}
             <div 
               className="absolute left-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center overflow-x-auto transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1) [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               style={{
-                width: "calc(100% - 104px)",
+                width: shouldHideAdd ? "calc(100% - 54px)" : "calc(100% - 104px)",
                 opacity: isSearching ? 0 : 1,
                 transform: isSearching ? "scale(0.97)" : "scale(1)",
                 visibility: isSearching ? "hidden" : "visible",
@@ -81,7 +87,7 @@ export default function Header({
               <button
                 ref={tabTrendingRef}
                 onClick={() => handleTabClick("trending")}
-                className={`flex-1 px-3 h-full rounded-full text-sm font-medium z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
+                className={`flex-1 px-2.5 h-full rounded-full text-xs font-semibold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
                   activeTab === "trending" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
                 }`}
               >
@@ -91,23 +97,33 @@ export default function Header({
               <button
                 ref={tabEventsRef}
                 onClick={() => handleTabClick("events")}
-                className={`flex-1 px-3 h-full rounded-full text-sm font-medium z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
+                className={`flex-1 px-2.5 h-full rounded-full text-xs font-semibold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
                   activeTab === "events" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
                 }`}
               >
                 Ивенты
               </button>
+
+              <button
+                ref={tabFavoritesRef}
+                onClick={() => handleTabClick("favorites")}
+                className={`flex-1 px-2.5 h-full rounded-full text-xs font-semibold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
+                  activeTab === "favorites" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
+                }`}
+              >
+                Избранное
+              </button>
             </div>
 
-            {/* Акцентная кнопка «Добавить» (add.png) */}
+            {/* Кнопка «Добавить» — плавно исчезает/сужается на вкладке трендов */}
             <button
               onClick={onAddClick}
-              className="absolute right-[52px] top-0 bottom-0 w-11 h-11 bg-[#FC062D] rounded-full flex items-center justify-center outline-none active:scale-95 transition-all duration-200 z-20"
+              className="absolute right-[52px] top-0 bottom-0 w-11 h-11 bg-[#FC062D] rounded-full flex items-center justify-center outline-none active:scale-95 transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1) z-20"
               style={{
-                opacity: isSearching ? 0 : 1,
-                transform: isSearching ? "scale(0.8)" : "scale(1)",
-                visibility: isSearching ? "hidden" : "visible",
-                pointerEvents: isSearching ? "none" : "auto",
+                opacity: shouldHideAdd ? 0 : 1,
+                transform: shouldHideAdd ? "scale(0.7)" : "scale(1)",
+                visibility: shouldHideAdd ? "hidden" : "visible",
+                pointerEvents: shouldHideAdd ? "none" : "auto",
               }}
             >
               <img 
