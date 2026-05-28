@@ -11,7 +11,7 @@ interface MainViewProps {
   isLoading?: boolean;
 }
 
-type TabType = "trending" | "events";
+type TabType = "trending" | "events" | "favorites";
 
 export default function MainView({ isLoading = false }: MainViewProps) {
   const [activeTab, setActiveTab] = useState<TabType>("trending");
@@ -21,10 +21,12 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  const tabsOrder: TabType[] = ["trending", "events"];
+  // Новый порядок табов
+  const tabsOrder: TabType[] = ["trending", "events", "favorites"];
 
-  const tabEventsRef = useRef<HTMLButtonElement>(null);
   const tabTrendingRef = useRef<HTMLButtonElement>(null);
+  const tabEventsRef = useRef<HTMLButtonElement>(null);
+  const tabFavoritesRef = useRef<HTMLButtonElement>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const contentTrackRef = useRef<HTMLDivElement>(null);
@@ -42,7 +44,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     isMoving: false,
   });
 
-  // Пересчет физики при изменении экранов настроек
   useEffect(() => {
     if (isSettingsOpen) {
       physicsState.current.w = 0;
@@ -182,7 +183,8 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     
     const getTargetEl = () => {
       if (activeTab === "trending") return tabTrendingRef.current;
-      return tabEventsRef.current;
+      if (activeTab === "events") return tabEventsRef.current;
+      return tabFavoritesRef.current;
     };
 
     const targetEl = getTargetEl();
@@ -369,20 +371,18 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   }
 
   return (
-    /* Внешний контейнер с черным фоном для удержания «темноты» при уменьшении основного экрана */
     <div className="w-full h-full bg-black overflow-hidden relative">
       
-      {/* Основной контент, который плавно скейлится при открытии модалки (Apple 3D-deck effect) */}
+      {/* Контент сжимается при открытии модалки */}
       <div 
         className="flex flex-col w-full h-full bg-appleLight-bg dark:bg-appleDark-bg transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform"
         style={{
           transform: isAddModalOpen ? "scale(0.95)" : "scale(1)",
-          borderRadius: isAddModalOpen ? "20px" : "0px",
+          borderRadius: isAddModalOpen ? "24px" : "0px",
         }}
       >
         <main className="flex-1 w-full pt-[calc(var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))+44px)] flex flex-col overflow-hidden select-none">
           
-          {/* Компонент шапки */}
           <Header
             isLoading={isLoading}
             activeTab={activeTab}
@@ -390,8 +390,9 @@ export default function MainView({ isLoading = false }: MainViewProps) {
             searchQuery={searchQuery}
             activeTag={activeTag}
             sliderRef={sliderRef}
-            tabEventsRef={tabEventsRef}
             tabTrendingRef={tabTrendingRef}
+            tabEventsRef={tabEventsRef}
+            tabFavoritesRef={tabFavoritesRef}
             inputRef={inputRef}
             handleTabClick={handleTabClick}
             enableSearch={enableSearch}
@@ -401,7 +402,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
             onAddClick={handleOpenAddModal}
           />
 
-          {/* Скролл-трек контента (теперь на 2 экрана: w-[200%]) */}
+          {/* Трек на 3 вкладки (w-[300%]) */}
           <div className="flex-1 w-full overflow-hidden relative mt-1">
             {isSearching ? (
               <SearchView searchQuery={searchQuery} />
@@ -411,14 +412,20 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
-                className="absolute inset-0 flex w-[200%] h-full will-change-transform"
+                className="absolute inset-0 flex w-[300%] h-full will-change-transform"
                 style={{ transform: `translateX(0px)` }}
               >
+                {/* 1. В тренде (наследует старый конфиг "Ленты") */}
                 <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
                   <EmptyState isLoading={isLoading} activeTab="trending" />
                 </div>
+                {/* 2. Ивенты */}
                 <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
                   <EmptyState isLoading={isLoading} activeTab="events" />
+                </div>
+                {/* 3. Избранное (наследует старый конфиг "Трендов") */}
+                <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
+                  <EmptyState isLoading={isLoading} activeTab="favorites" />
                 </div>
               </div>
             )}
@@ -427,7 +434,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
         </main>
       </div>
 
-      {/* Вызов новой модалки */}
       <NewModal isOpen={isAddModalOpen} onClose={handleCloseAddModal} />
       
     </div>
