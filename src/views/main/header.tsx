@@ -2,7 +2,7 @@
 
 import React from "react";
 
-type TabType = "feed" | "events" | "trending";
+type TabType = "trending" | "events";
 
 interface HeaderProps {
   isLoading: boolean;
@@ -11,7 +11,6 @@ interface HeaderProps {
   searchQuery: string;
   activeTag: string | null;
   sliderRef: React.RefObject<HTMLDivElement>;
-  tabFeedRef: React.RefObject<HTMLButtonElement>;
   tabEventsRef: React.RefObject<HTMLButtonElement>;
   tabTrendingRef: React.RefObject<HTMLButtonElement>;
   inputRef: React.RefObject<HTMLInputElement>;
@@ -20,6 +19,7 @@ interface HeaderProps {
   disableSearch: () => void;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleInputKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  onAddClick: () => void;
 }
 
 export default function Header({
@@ -29,7 +29,6 @@ export default function Header({
   searchQuery,
   activeTag,
   sliderRef,
-  tabFeedRef,
   tabEventsRef,
   tabTrendingRef,
   inputRef,
@@ -38,6 +37,7 @@ export default function Header({
   disableSearch,
   handleInputChange,
   handleInputKeyDown,
+  onAddClick,
 }: HeaderProps) {
   return (
     <>
@@ -55,18 +55,18 @@ export default function Header({
         )}
       </header>
 
-      {/* Панель управления: Табы и Поиск */}
+      {/* Панель управления: Табы, Поиск, Добавить */}
       <div className="w-[calc(100%-40px)] mx-auto pt-3 box-border">
         {isLoading ? (
           <div className="w-full h-11 bg-neutral-300 dark:bg-neutral-800 rounded-full animate-pulse" />
         ) : (
           <div className="w-full h-11 relative flex items-center">
             
-            {/* Чузбар (Вкладки) */}
+            {/* Чузбар (Вкладки) — теперь ширина урезана под две акцентные кнопки справа */}
             <div 
               className="absolute left-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center overflow-x-auto transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1) [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               style={{
-                width: "calc(100% - 54px)",
+                width: "calc(100% - 104px)",
                 opacity: isSearching ? 0 : 1,
                 transform: isSearching ? "scale(0.97)" : "scale(1)",
                 visibility: isSearching ? "hidden" : "visible",
@@ -79,13 +79,13 @@ export default function Header({
               />
 
               <button
-                ref={tabFeedRef}
-                onClick={() => handleTabClick("feed")}
+                ref={tabTrendingRef}
+                onClick={() => handleTabClick("trending")}
                 className={`flex-1 px-3 h-full rounded-full text-sm font-medium z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
-                  activeTab === "feed" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
+                  activeTab === "trending" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
                 }`}
               >
-                Лента
+                В тренде
               </button>
 
               <button
@@ -95,19 +95,27 @@ export default function Header({
                   activeTab === "events" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
                 }`}
               >
-                События
-              </button>
-
-              <button
-                ref={tabTrendingRef}
-                onClick={() => handleTabClick("trending")}
-                className={`flex-1 px-3 h-full rounded-full text-sm font-medium z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
-                  activeTab === "trending" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
-                }`}
-              >
-                В тренде
+                Ивенты
               </button>
             </div>
+
+            {/* Акцентная кнопка «Добавить» (add.png) */}
+            <button
+              onClick={onAddClick}
+              className="absolute right-[52px] top-0 bottom-0 w-11 h-11 bg-[#FC062D] rounded-full flex items-center justify-center outline-none active:scale-95 transition-all duration-200 z-20"
+              style={{
+                opacity: isSearching ? 0 : 1,
+                transform: isSearching ? "scale(0.8)" : "scale(1)",
+                visibility: isSearching ? "hidden" : "visible",
+                pointerEvents: isSearching ? "none" : "auto",
+              }}
+            >
+              <img 
+                src="/icons/add.png" 
+                alt="Добавить" 
+                className="w-5 h-5 object-contain brightness-0 invert"
+              />
+            </button>
 
             {/* Блок поиска */}
             <div 
