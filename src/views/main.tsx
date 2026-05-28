@@ -5,23 +5,24 @@ import EmptyState from "@/views/main/empty";
 import SearchView from "@/views/main/search";
 import SettingsView from "@/views/settings";
 import Header from "@/views/main/header";
+import NewModal from "@/views/main/new";
 
 interface MainViewProps {
   isLoading?: boolean;
 }
 
-type TabType = "feed" | "events" | "trending";
+type TabType = "trending" | "events";
 
 export default function MainView({ isLoading = false }: MainViewProps) {
-  const [activeTab, setActiveTab] = useState<TabType>("feed");
+  const [activeTab, setActiveTab] = useState<TabType>("trending");
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  const tabsOrder: TabType[] = ["feed", "events", "trending"];
+  const tabsOrder: TabType[] = ["trending", "events"];
 
-  const tabFeedRef = useRef<HTMLButtonElement>(null);
   const tabEventsRef = useRef<HTMLButtonElement>(null);
   const tabTrendingRef = useRef<HTMLButtonElement>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -41,7 +42,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     isMoving: false,
   });
 
-  // Фикс капли: сбрасываем параметры физики при открытии/закрытии настроек, чтобы пересчитать ширину новых DOM-элементов
+  // Пересчет физики при изменении экранов настроек
   useEffect(() => {
     if (isSettingsOpen) {
       physicsState.current.w = 0;
@@ -180,9 +181,8 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     if (isLoading || isSearching || isSettingsOpen) return;
     
     const getTargetEl = () => {
-      if (activeTab === "feed") return tabFeedRef.current;
-      if (activeTab === "events") return tabEventsRef.current;
-      return tabTrendingRef.current;
+      if (activeTab === "trending") return tabTrendingRef.current;
+      return tabEventsRef.current;
     };
 
     const targetEl = getTargetEl();
@@ -354,61 +354,82 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     }
   };
 
+  const handleOpenAddModal = () => {
+    triggerHaptic();
+    setIsAddModalOpen(true);
+  };
+
+  const handleCloseAddModal = () => {
+    triggerHaptic();
+    setIsAddModalOpen(false);
+  };
+
   if (isSettingsOpen) {
     return <SettingsView />;
   }
 
   return (
-    <div className="flex flex-col w-full h-full bg-appleLight-bg dark:bg-appleDark-bg transition-colors duration-300">
+    /* Внешний контейнер с черным фоном для удержания «темноты» при уменьшении основного экрана */
+    <div className="w-full h-full bg-black overflow-hidden relative">
       
-      <main className="flex-1 w-full pt-[calc(var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))+44px)] flex flex-col overflow-hidden select-none">
-        
-        {/* Вынесенный компонент шапки (Логотип, Поиск и Таббар) */}
-        <Header
-          isLoading={isLoading}
-          activeTab={activeTab}
-          isSearching={isSearching}
-          searchQuery={searchQuery}
-          activeTag={activeTag}
-          sliderRef={sliderRef}
-          tabFeedRef={tabFeedRef}
-          tabEventsRef={tabEventsRef}
-          tabTrendingRef={tabTrendingRef}
-          inputRef={inputRef}
-          handleTabClick={handleTabClick}
-          enableSearch={enableSearch}
-          disableSearch={disableSearch}
-          handleInputChange={handleInputChange}
-          handleInputKeyDown={handleInputKeyDown}
-        />
+      {/* Основной контент, который плавно скейлится при открытии модалки (Apple 3D-deck effect) */}
+      <div 
+        className="flex flex-col w-full h-full bg-appleLight-bg dark:bg-appleDark-bg transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform"
+        style={{
+          transform: isAddModalOpen ? "scale(0.95)" : "scale(1)",
+          borderRadius: isAddModalOpen ? "20px" : "0px",
+        }}
+      >
+        <main className="flex-1 w-full pt-[calc(var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))+44px)] flex flex-col overflow-hidden select-none">
+          
+          {/* Компонент шапки */}
+          <Header
+            isLoading={isLoading}
+            activeTab={activeTab}
+            isSearching={isSearching}
+            searchQuery={searchQuery}
+            activeTag={activeTag}
+            sliderRef={sliderRef}
+            tabEventsRef={tabEventsRef}
+            tabTrendingRef={tabTrendingRef}
+            inputRef={inputRef}
+            handleTabClick={handleTabClick}
+            enableSearch={enableSearch}
+            disableSearch={disableSearch}
+            handleInputChange={handleInputChange}
+            handleInputKeyDown={handleInputKeyDown}
+            onAddClick={handleOpenAddModal}
+          />
 
-        {/* Скролл-трек контента */}
-        <div className="flex-1 w-full overflow-hidden relative mt-1">
-          {isSearching ? (
-            <SearchView searchQuery={searchQuery} />
-          ) : (
-            <div 
-              ref={contentTrackRef}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-              className="absolute inset-0 flex w-[300%] h-full will-change-transform"
-              style={{ transform: `translateX(0px)` }}
-            >
-              <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
-                <EmptyState isLoading={isLoading} activeTab="feed" />
+          {/* Скролл-трек контента (теперь на 2 экрана: w-[200%]) */}
+          <div className="flex-1 w-full overflow-hidden relative mt-1">
+            {isSearching ? (
+              <SearchView searchQuery={searchQuery} />
+            ) : (
+              <div 
+                ref={contentTrackRef}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                className="absolute inset-0 flex w-[200%] h-full will-change-transform"
+                style={{ transform: `translateX(0px)` }}
+              >
+                <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
+                  <EmptyState isLoading={isLoading} activeTab="trending" />
+                </div>
+                <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
+                  <EmptyState isLoading={isLoading} activeTab="events" />
+                </div>
               </div>
-              <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
-                <EmptyState isLoading={isLoading} activeTab="events" />
-              </div>
-              <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
-                <EmptyState isLoading={isLoading} activeTab="trending" />
-              </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
 
-      </main>
+        </main>
+      </div>
+
+      {/* Вызов новой модалки */}
+      <NewModal isOpen={isAddModalOpen} onClose={handleCloseAddModal} />
+      
     </div>
   );
 }
