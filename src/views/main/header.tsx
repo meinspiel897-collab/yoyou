@@ -42,6 +42,9 @@ export default function Header({
   onAddClick,
 }: HeaderProps) {
   
+  // Флаг для скрытия кнопки на Ивентах и в Избранном
+  const shouldHideAdd = activeTab === "events" || activeTab === "favorites";
+
   return (
     <>
       {/* Нативный логотип */}
@@ -111,25 +114,20 @@ export default function Header({
                 Избранное
               </button>
 
-              {/* Кнопка «Добавить» — Схлопывается полностью в ноль (w-0 scale-0) */}
+              {/* Кнопка «Добавить» — Цвет пузыря (белый/серый), иконка add.png (75% размера) */}
               <button
                 onClick={onAddClick}
-                className={`h-9 bg-[#FC062D] rounded-full flex items-center justify-center outline-none active:scale-95 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) z-20 flex-shrink-0 ${
-                  activeTab === "events" 
+                className={`h-9 bg-white dark:bg-neutral-700 shadow-sm rounded-full flex items-center justify-center outline-none active:scale-95 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) z-20 flex-shrink-0 ${
+                  shouldHideAdd 
                     ? "w-0 opacity-0 scale-0 ml-0 pointer-events-none" 
                     : "w-9 opacity-100 scale-100 ml-1.5"
                 }`}
               >
-                {/* Иконка занимает ~75% от размера кнопки (26px) */}
-                <svg 
-                  width="26" 
-                  height="26" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  className="stroke-white stroke-[2.5] stroke-linecap-round"
-                >
-                  <path d="M12 5v14M5 12h14" />
-                </svg>
+                <img 
+                  src="/icons/add.png" 
+                  alt="Добавить" 
+                  className="w-[26px] h-[26px] object-contain dark:brightness-0 dark:invert"
+                />
               </button>
             </div>
 
@@ -172,9 +170,12 @@ export default function Header({
                     onClick={disableSearch}
                     className="w-8 h-8 flex items-center justify-center rounded-full bg-appleLight-text/10 dark:bg-white/10 outline-none active:scale-90 transition-transform flex-shrink-0"
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="stroke-appleLight-text dark:stroke-appleDark-text stroke-[2] stroke-linecap-round">
-                      <path d="M18 6L6 18M6 6l12 12" />
-                    </svg>
+                    {/* Переиспользован cross.png на 75% вместо SVG */}
+                    <img 
+                      src="/icons/cross.png" 
+                      alt="Очистить" 
+                      className="w-[22px] h-[22px] object-contain dark:brightness-0 dark:invert opacity-60"
+                    />
                   </button>
                 </div>
               ) : (
@@ -182,7 +183,6 @@ export default function Header({
                   onClick={enableSearch}
                   className="w-full h-full flex items-center justify-center rounded-full outline-none active:scale-95 transition-transform"
                 >
-                  {/* Лупа теперь крупнее — ~75% от ширины (30px) */}
                   <img 
                     src="/icons/search.png" 
                     alt="Поиск" 
