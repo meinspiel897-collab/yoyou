@@ -65,9 +65,9 @@ export default function Header({
         ) : (
           <div className="w-full h-11 relative flex items-center">
             
-            {/* Таббар (Чузбар) — теперь всегда занимает всю ширину до кнопки поиска */}
+            {/* Таббар (Чузбар) */}
             <div 
-              className="absolute left-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1) overflow-hidden"
+              className="absolute left-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) overflow-hidden"
               style={{
                 width: "calc(100% - 54px)",
                 opacity: isSearching ? 0 : 1,
@@ -111,26 +111,27 @@ export default function Header({
                 Избранное
               </button>
 
-              {/* Кнопка «Добавить» — интегрирована прямо внутрь таббара справа */}
+              {/* Кнопка «Добавить» — теперь ужимается строго в scale-0 и w-0 без затупов */}
               <button
                 onClick={onAddClick}
-                className={`h-9 bg-[#FC062D] rounded-full flex items-center justify-center outline-none active:scale-95 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) z-20 flex-shrink-0 ${
+                className={`h-9 bg-[#FC062D] rounded-full flex items-center justify-center outline-none active:scale-95 transition-all duration-[350ms] cubic-bezier(0.23, 1, 0.32, 1) z-20 flex-shrink-0 ${
                   activeTab === "events" 
-                    ? "w-0 opacity-0 scale-75 ml-0 pointer-events-none" 
+                    ? "w-0 opacity-0 scale-0 ml-0 pointer-events-none" 
                     : "w-9 opacity-100 scale-100 ml-1.5"
                 }`}
               >
+                {/* Иконка плюса стала крупнее и отчетливее */}
                 <img 
                   src="/icons/add.png" 
                   alt="Добавить" 
-                  className="w-3.5 h-3.5 object-contain brightness-0 invert"
+                  className="w-4.5 h-4.5 object-contain brightness-0 invert"
                 />
               </button>
             </div>
 
             {/* Блок поиска */}
             <div 
-              className="absolute right-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1) flex items-center overflow-hidden z-30"
+              className="absolute right-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) flex items-center overflow-hidden z-30"
               style={{
                 width: isSearching ? "100%" : "44px",
                 padding: isSearching ? "0 6px 0 14px" : "0px",
@@ -142,7 +143,7 @@ export default function Header({
                     <img 
                       src="/icons/search.png" 
                       alt="Поиск" 
-                      className="w-4 h-4 object-contain brightness-0 invert opacity-35 flex-shrink-0"
+                      className="w-4.5 h-4.5 object-contain brightness-0 invert opacity-35 flex-shrink-0"
                     />
                     <div className="flex items-center flex-1 h-full space-x-1.5 overflow-hidden">
                       {activeTag && (
@@ -177,10 +178,11 @@ export default function Header({
                   onClick={enableSearch}
                   className="w-full h-full flex items-center justify-center rounded-full outline-none active:scale-95 transition-transform"
                 >
+                  {/* Иконка лупы в таббаре тоже подросла для баланса */}
                   <img 
                     src="/icons/search.png" 
                     alt="Поиск" 
-                    className="w-5 h-5 object-contain brightness-0 invert"
+                    className="w-5.5 h-5.5 object-contain brightness-0 invert"
                   />
                 </button>
               )}
