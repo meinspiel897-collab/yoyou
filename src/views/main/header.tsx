@@ -42,9 +42,6 @@ export default function Header({
   onAddClick,
 }: HeaderProps) {
   
-  // Условие, когда кнопка добавления должна скрыться
-  const shouldHideAdd = isSearching || activeTab === "trending";
-
   return (
     <>
       {/* Нативный логотип */}
@@ -61,18 +58,18 @@ export default function Header({
         )}
       </header>
 
-      {/* Панель управления: Табы, Поиск, Добавить */}
+      {/* Панель управления */}
       <div className="w-[calc(100%-40px)] mx-auto pt-3 box-border">
         {isLoading ? (
           <div className="w-full h-11 bg-neutral-300 dark:bg-neutral-800 rounded-full animate-pulse" />
         ) : (
           <div className="w-full h-11 relative flex items-center">
             
-            {/* Чузбар (Вкладки) — ширина динамически меняется со 104px до 54px */}
+            {/* Таббар (Чузбар) — теперь всегда занимает всю ширину до кнопки поиска */}
             <div 
-              className="absolute left-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center overflow-x-auto transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1) [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              className="absolute left-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1) overflow-hidden"
               style={{
-                width: shouldHideAdd ? "calc(100% - 54px)" : "calc(100% - 104px)",
+                width: "calc(100% - 54px)",
                 opacity: isSearching ? 0 : 1,
                 transform: isSearching ? "scale(0.97)" : "scale(1)",
                 visibility: isSearching ? "hidden" : "visible",
@@ -87,7 +84,7 @@ export default function Header({
               <button
                 ref={tabTrendingRef}
                 onClick={() => handleTabClick("trending")}
-                className={`flex-1 px-2.5 h-full rounded-full text-xs font-semibold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
+                className={`flex-1 px-2 h-full rounded-full text-xs font-semibold z-20 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
                   activeTab === "trending" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
                 }`}
               >
@@ -97,7 +94,7 @@ export default function Header({
               <button
                 ref={tabEventsRef}
                 onClick={() => handleTabClick("events")}
-                className={`flex-1 px-2.5 h-full rounded-full text-xs font-semibold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
+                className={`flex-1 px-2 h-full rounded-full text-xs font-semibold z-20 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
                   activeTab === "events" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
                 }`}
               >
@@ -107,31 +104,29 @@ export default function Header({
               <button
                 ref={tabFavoritesRef}
                 onClick={() => handleTabClick("favorites")}
-                className={`flex-1 px-2.5 h-full rounded-full text-xs font-semibold z-20 transition-colors duration-250 outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
+                className={`flex-1 px-2 h-full rounded-full text-xs font-semibold z-20 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
                   activeTab === "favorites" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
                 }`}
               >
                 Избранное
               </button>
-            </div>
 
-            {/* Кнопка «Добавить» — плавно исчезает/сужается на вкладке трендов */}
-            <button
-              onClick={onAddClick}
-              className="absolute right-[52px] top-0 bottom-0 w-11 h-11 bg-[#FC062D] rounded-full flex items-center justify-center outline-none active:scale-95 transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1) z-20"
-              style={{
-                opacity: shouldHideAdd ? 0 : 1,
-                transform: shouldHideAdd ? "scale(0.7)" : "scale(1)",
-                visibility: shouldHideAdd ? "hidden" : "visible",
-                pointerEvents: shouldHideAdd ? "none" : "auto",
-              }}
-            >
-              <img 
-                src="/icons/add.png" 
-                alt="Добавить" 
-                className="w-5 h-5 object-contain brightness-0 invert"
-              />
-            </button>
+              {/* Кнопка «Добавить» — интегрирована прямо внутрь таббара справа */}
+              <button
+                onClick={onAddClick}
+                className={`h-9 bg-[#FC062D] rounded-full flex items-center justify-center outline-none active:scale-95 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) z-20 flex-shrink-0 ${
+                  activeTab === "events" 
+                    ? "w-0 opacity-0 scale-75 ml-0 pointer-events-none" 
+                    : "w-9 opacity-100 scale-100 ml-1.5"
+                }`}
+              >
+                <img 
+                  src="/icons/add.png" 
+                  alt="Добавить" 
+                  className="w-3.5 h-3.5 object-contain brightness-0 invert"
+                />
+              </button>
+            </div>
 
             {/* Блок поиска */}
             <div 
