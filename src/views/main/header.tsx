@@ -69,7 +69,7 @@ export default function Header({
             <div 
               className="absolute left-0 top-0 bottom-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) overflow-hidden"
               style={{
-                width: "calc(100% - 54px)",
+                width: isSearching ? "100%" : "calc(100% - 54px)",
                 opacity: isSearching ? 0 : 1,
                 transform: isSearching ? "scale(0.97)" : "scale(1)",
                 visibility: isSearching ? "hidden" : "visible",
@@ -84,7 +84,7 @@ export default function Header({
               <button
                 ref={tabTrendingRef}
                 onClick={() => handleTabClick("trending")}
-                className={`flex-1 px-2 h-full rounded-full text-xs font-semibold z-20 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
+                className={`flex-1 px-2 h-full rounded-full text-xs font-bold z-20 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
                   activeTab === "trending" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
                 }`}
               >
@@ -94,7 +94,7 @@ export default function Header({
               <button
                 ref={tabEventsRef}
                 onClick={() => handleTabClick("events")}
-                className={`flex-1 px-2 h-full rounded-full text-xs font-semibold z-20 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
+                className={`flex-1 px-2 h-full rounded-full text-xs font-bold z-20 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
                   activeTab === "events" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
                 }`}
               >
@@ -104,28 +104,32 @@ export default function Header({
               <button
                 ref={tabFavoritesRef}
                 onClick={() => handleTabClick("favorites")}
-                className={`flex-1 px-2 h-full rounded-full text-xs font-semibold z-20 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
+                className={`flex-1 px-2 h-full rounded-full text-xs font-bold z-20 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) outline-none whitespace-nowrap flex-shrink-0 flex items-center justify-center ${
                   activeTab === "favorites" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
                 }`}
               >
                 Избранное
               </button>
 
-              {/* Кнопка «Добавить» — теперь ужимается строго в scale-0 и w-0 без затупов */}
+              {/* Кнопка «Добавить» — Схлопывается полностью в ноль (w-0 scale-0) */}
               <button
                 onClick={onAddClick}
-                className={`h-9 bg-[#FC062D] rounded-full flex items-center justify-center outline-none active:scale-95 transition-all duration-[350ms] cubic-bezier(0.23, 1, 0.32, 1) z-20 flex-shrink-0 ${
+                className={`h-9 bg-[#FC062D] rounded-full flex items-center justify-center outline-none active:scale-95 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) z-20 flex-shrink-0 ${
                   activeTab === "events" 
                     ? "w-0 opacity-0 scale-0 ml-0 pointer-events-none" 
                     : "w-9 opacity-100 scale-100 ml-1.5"
                 }`}
               >
-                {/* Иконка плюса стала крупнее и отчетливее */}
-                <img 
-                  src="/icons/add.png" 
-                  alt="Добавить" 
-                  className="w-4.5 h-4.5 object-contain brightness-0 invert"
-                />
+                {/* Иконка занимает ~75% от размера кнопки (26px) */}
+                <svg 
+                  width="26" 
+                  height="26" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  className="stroke-white stroke-[2.5] stroke-linecap-round"
+                >
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
               </button>
             </div>
 
@@ -143,12 +147,12 @@ export default function Header({
                     <img 
                       src="/icons/search.png" 
                       alt="Поиск" 
-                      className="w-4.5 h-4.5 object-contain brightness-0 invert opacity-35 flex-shrink-0"
+                      className="w-5 h-5 object-contain brightness-0 invert opacity-35 flex-shrink-0"
                     />
                     <div className="flex items-center flex-1 h-full space-x-1.5 overflow-hidden">
                       {activeTag && (
                         <div className="h-7 px-3 rounded-full bg-[#FC062D]/30 flex items-center justify-center flex-shrink-0 select-none">
-                          <span className="text-xs font-medium text-[#FC062D] tracking-wide whitespace-nowrap">
+                          <span className="text-xs font-bold text-[#FC062D] tracking-wide whitespace-nowrap">
                             от: {activeTag}
                           </span>
                         </div>
@@ -160,7 +164,7 @@ export default function Header({
                         value={searchQuery}
                         onChange={handleInputChange}
                         onKeyDown={handleInputKeyDown}
-                        className="flex-1 h-full bg-transparent border-none outline-none text-base font-normal text-appleLight-text dark:text-appleDark-text placeholder-appleLight-text/35 dark:placeholder-appleDark-text/35 placeholder:text-sm placeholder:font-normal"
+                        className="flex-1 h-full bg-transparent border-none outline-none text-base font-medium text-appleLight-text dark:text-appleDark-text placeholder-appleLight-text/35 dark:placeholder-appleDark-text/35 placeholder:text-sm placeholder:font-normal"
                       />
                     </div>
                   </div>
@@ -168,8 +172,8 @@ export default function Header({
                     onClick={disableSearch}
                     className="w-8 h-8 flex items-center justify-center rounded-full bg-appleLight-text/10 dark:bg-white/10 outline-none active:scale-90 transition-transform flex-shrink-0"
                   >
-                    <svg width="12" height="12" viewBox="0 0 10 10" fill="none" className="stroke-appleLight-text dark:stroke-appleDark-text stroke-[1.5]">
-                      <path d="M1 1L9 9M9 1L1 9" />
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="stroke-appleLight-text dark:stroke-appleDark-text stroke-[2] stroke-linecap-round">
+                      <path d="M18 6L6 18M6 6l12 12" />
                     </svg>
                   </button>
                 </div>
@@ -178,11 +182,11 @@ export default function Header({
                   onClick={enableSearch}
                   className="w-full h-full flex items-center justify-center rounded-full outline-none active:scale-95 transition-transform"
                 >
-                  {/* Иконка лупы в таббаре тоже подросла для баланса */}
+                  {/* Лупа теперь крупнее — ~75% от ширины (30px) */}
                   <img 
                     src="/icons/search.png" 
                     alt="Поиск" 
-                    className="w-5.5 h-5.5 object-contain brightness-0 invert"
+                    className="w-[30px] h-[30px] object-contain brightness-0 invert"
                   />
                 </button>
               )}
