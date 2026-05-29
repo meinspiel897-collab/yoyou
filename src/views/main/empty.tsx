@@ -6,7 +6,8 @@ import noneAnimation from "@/../public/icons/none.json";
 import none2Animation from "@/../public/icons/none2.json";
 import none3Animation from "@/../public/icons/none3.json";
 
-type TabType = "feed" | "events" | "trending";
+// Обновленные типы под новый порядок вкладок
+type TabType = "trending" | "events" | "favorites";
 
 interface EmptyStateProps {
   isLoading?: boolean;
@@ -14,13 +15,11 @@ interface EmptyStateProps {
 }
 
 export default function EmptyState({ isLoading = false, activeTab }: EmptyStateProps) {
-  // Локальный стейт для имитации обновления при нажатии кнопки
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleTryAgain = () => {
     if (isRefreshing) return;
 
-    // Вызываем хаптик
     if (typeof window !== "undefined") {
       const anyWindow = window as any;
       if (anyWindow.Telegram?.WebApp?.HapticFeedback) {
@@ -30,36 +29,35 @@ export default function EmptyState({ isLoading = false, activeTab }: EmptyStateP
       }
     }
 
-    // Включаем лоадер кнопки
     setIsRefreshing(true);
 
-    // Имитируем поход на бэкенд (2 секунды)
     setTimeout(() => {
       setIsRefreshing(false);
     }, 2000);
   };
 
+  // Рокировка контента: первая вкладка забрала анимацию удаленной «Ленты», а «Избранное» забрало анимацию «Трендов»
   const tabContent = {
-    feed: {
+    trending: {
       animation: noneAnimation,
       title: "Тут 100 проц что-то есть",
-      desc: "Но у тебя этого пока не видно. Проверь там свое соединение, чтоль",
+      desc: "Но в трендах этого пока не видно. Проверь там соединение, чтоль",
     },
     events: {
       animation: none2Animation,
       title: "Либо все дома, либо движ отменили",
       desc: "Календарь пустой, ивентов ноль. Попробуй обновить, вдруг че залетит",
     },
-    trending: {
+    favorites: {
       animation: none3Animation,
       title: "Хайп еще не подвезли",
-      desc: "Тренды чистые как моя совесть. Давай рефрешнем, пока админы спят",
+      desc: "Избранное чистое как моя совесть. Давай рефрешнем, пока админы спят",
     },
   };
 
-  const currentContent = tabContent[activeTab] || tabContent.feed;
+  const currentContent = tabContent[activeTab] || tabContent.trending;
 
-  // Режим глобальной заглушки (Skeleton)
+  // Режим скелетона при загрузке
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center w-full h-full px-6 select-none animate-pulse">
@@ -95,7 +93,6 @@ export default function EmptyState({ isLoading = false, activeTab }: EmptyStateP
           {currentContent.desc}
         </p>
         
-        {/* Кнопка с динамическим переключением стилей и iOS лоадером */}
         <button 
           onClick={handleTryAgain}
           disabled={isRefreshing}
@@ -106,7 +103,6 @@ export default function EmptyState({ isLoading = false, activeTab }: EmptyStateP
           }`}
         >
           {isRefreshing ? (
-            // Нативный iOS Спиннер на SVG
             <svg 
               className="animate-spin h-5 w-5 text-neutral-400" 
               xmlns="http://www.w3.org/2000/svg" 
