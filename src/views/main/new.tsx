@@ -10,44 +10,40 @@ interface NewModalProps {
 export default function NewModal({ isOpen, onClose }: NewModalProps) {
   return (
     <div 
-      className={`fixed inset-0 z-50 flex flex-col justify-end transition-all duration-500 ${
+      className={`fixed inset-0 z-50 flex flex-col justify-end transition-all duration-400 ${
         isOpen ? "pointer-events-auto" : "pointer-events-none"
       }`}
     >
       {/* Затемнение фона с аккуратным размытием */}
       <div 
-        className={`absolute inset-0 bg-black/15 dark:bg-black/30 transition-all duration-500 ${
+        className={`absolute inset-0 bg-black/15 dark:bg-black/30 transition-all duration-400 ${
           isOpen ? "opacity-100 backdrop-blur-[3px]" : "opacity-0 backdrop-blur-0"
         }`} 
         onClick={onClose} 
       />
 
-      {/* Контейнер модалки (Замедление на конце увеличенным таймингом 550ms) */}
+      {/* Контейнер модалки (Ускорен до 400ms для лучшего отклика) */}
       <div 
-        className={`relative w-full h-[90%] bg-white dark:bg-neutral-900 rounded-t-[32px] shadow-2xl flex flex-col transition-transform duration-[550ms] cubic-bezier(0.15, 1, 0.2, 1) will-change-transform ${
+        className={`relative w-full h-[90%] bg-white dark:bg-neutral-900 rounded-t-[32px] shadow-2xl flex flex-col transition-transform duration-400 cubic-bezier(0.15, 1, 0.2, 1) will-change-transform ${
           isOpen ? "translate-y-0" : "translate-y-full"
         }`}
       >
-        {/* Крупная кнопка закрытия с белым крестиком (75% размера) на контрастной подложке */}
+        {/* Кнопка закрытия с кастомной иконкой cross.png (75% от размера кнопки) */}
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 w-10 h-10 bg-neutral-900/50 dark:bg-neutral-800 hover:bg-neutral-900/60 dark:hover:bg-neutral-700 rounded-full flex items-center justify-center transition-all outline-none active:scale-90 z-10"
+          className="absolute top-4 right-4 w-10 h-10 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-full flex items-center justify-center transition-all outline-none active:scale-90 z-10"
         >
-          <svg 
-            width="26" 
-            height="26" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            className="stroke-white stroke-[2.2] stroke-linecap-round"
-          >
-            <path d="M18 6L6 18M6 6l12 12" />
-          </svg>
+          <img 
+            src="/icons/cross.png" 
+            alt="Закрыть" 
+            className="w-[30px] h-[30px] object-contain dark:brightness-0 dark:invert"
+          />
         </button>
 
         {/* Шапка модалки с жирным шрифтом */}
         <div className="relative w-full h-16 flex items-center justify-center px-4 flex-shrink-0">
           <h2 className="text-base font-bold text-appleLight-text dark:text-appleDark-text tracking-tight">
-            Что-то новенькое
+            What's New
           </h2>
         </div>
 
