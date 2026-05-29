@@ -21,7 +21,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  // Новый порядок табов
   const tabsOrder: TabType[] = ["trending", "events", "favorites"];
 
   const tabTrendingRef = useRef<HTMLButtonElement>(null);
@@ -30,6 +29,12 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   const sliderRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const contentTrackRef = useRef<HTMLDivElement>(null);
+
+  // Реф для отслеживания таба внутри физического движка без лишних ререндеров
+  const activeTabRef = useRef<TabType>(activeTab);
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+  }, [activeTab]);
 
   const touchStart = useRef({ x: 0, y: 0, time: 0 });
   const isSwiping = useRef(false);
@@ -134,6 +139,19 @@ export default function MainView({ isLoading = false }: MainViewProps) {
       const state = physicsState.current;
       const slider = sliderRef.current;
       if (!slider) return;
+
+      // Динамически пересчитываем координаты цели прямо во время движения (для поддержки плавного реразливания табов)
+      if (state.isMoving) {
+        const currentTab = activeTabRef.current;
+        const targetEl = currentTab === "trending" ? tabTrendingRef.current 
+                       : currentTab === "events" ? tabEventsRef.current 
+                       : tabFavoritesRef.current;
+        
+        if (targetEl) {
+          state.tx = targetEl.offsetLeft;
+          state.tw = targetEl.offsetWidth;
+        }
+      }
 
       const dist = Math.abs(state.x - state.tx);
       const vel = Math.abs(state.vx);
@@ -373,7 +391,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   return (
     <div className="w-full h-full bg-black overflow-hidden relative">
       
-      {/* Контент сжимается при открытии модалки */}
+      {/* Подложка контента */}
       <div 
         className="flex flex-col w-full h-full bg-appleLight-bg dark:bg-appleDark-bg transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform"
         style={{
@@ -402,7 +420,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
             onAddClick={handleOpenAddModal}
           />
 
-          {/* Трек на 3 вкладки (w-[300%]) */}
           <div className="flex-1 w-full overflow-hidden relative mt-1">
             {isSearching ? (
               <SearchView searchQuery={searchQuery} />
@@ -415,15 +432,12 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                 className="absolute inset-0 flex w-[300%] h-full will-change-transform"
                 style={{ transform: `translateX(0px)` }}
               >
-                {/* 1. В тренде (наследует старый конфиг "Ленты") */}
                 <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
                   <EmptyState isLoading={isLoading} activeTab="trending" />
                 </div>
-                {/* 2. Ивенты */}
                 <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
                   <EmptyState isLoading={isLoading} activeTab="events" />
                 </div>
-                {/* 3. Избранное (наследует старый конфиг "Трендов") */}
                 <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
                   <EmptyState isLoading={isLoading} activeTab="favorites" />
                 </div>
