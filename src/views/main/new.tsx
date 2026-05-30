@@ -10,31 +10,30 @@ interface NewModalProps {
 export default function NewModal({ isOpen, onClose }: NewModalProps) {
   return (
     <div 
-      className={`fixed inset-0 z-50 flex flex-col justify-end transition-all duration-[450ms] ${
+      className={`fixed inset-0 z-50 flex flex-col justify-end transition-all duration-300 ${
         isOpen ? "pointer-events-auto" : "pointer-events-none"
       }`}
     >
       {/* Затемнение фона */}
       <div 
-        className={`absolute inset-0 bg-black/15 dark:bg-black/30 transition-all duration-[450ms] ${
+        className={`absolute inset-0 bg-black/15 dark:bg-black/30 transition-all duration-300 ${
           isOpen ? "opacity-100 backdrop-blur-[3px]" : "opacity-0 backdrop-blur-0"
         }`} 
-        onClick={onClose} 
-      />
+        onClick={onClose} />
 
-      {/* Контейнер модалки (Замедлен до 450ms по ТЗ) */}
+      {/* Контейнер модалки (Ускорен до 300ms для нативной отзывчивости) */}
       <div 
-        className={`relative w-full h-[90%] bg-white dark:bg-neutral-900 rounded-t-[32px] shadow-2xl flex flex-col transition-transform duration-[450ms] cubic-bezier(0.15, 1, 0.2, 1) will-change-transform ${
+        className={`relative w-full h-[90%] bg-white dark:bg-neutral-900 rounded-t-[32px] shadow-2xl flex flex-col transition-transform duration-300 cubic-bezier(0.15, 1, 0.2, 1) will-change-transform ${
           isOpen ? "translate-y-0" : "translate-y-full"
         }`}
       >
-        {/* Шапка модалки — теперь это единый флекс-контейнер для идеального центрирования по оси Y */}
-        <div className="relative w-full h-16 flex items-center justify-center px-4 flex-shrink-0 border-b border-neutral-100/50 dark:border-neutral-800/40">
+        {/* Шапка модалки (Линия убрана) */}
+        <div className="relative w-full h-16 flex items-center justify-center px-4 flex-shrink-0">
           <h2 className="text-base font-bold text-appleLight-text dark:text-appleDark-text tracking-tight">
             Что-то новенькое
           </h2>
 
-          {/* Кнопка закрытия — теперь позиционируется строго по центру Y-оси шапки */}
+          {/* Кнопка закрытия — центрирована по Y */}
           <button 
             onClick={onClose}
             className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-full flex items-center justify-center transition-all outline-none active:scale-90 z-10"
