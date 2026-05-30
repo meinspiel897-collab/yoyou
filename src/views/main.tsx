@@ -11,7 +11,7 @@ interface MainViewProps {
   isLoading?: boolean;
 }
 
-type TabType = "trending" | "events" | "favorites";
+type TabType = "trending" | "events";
 
 export default function MainView({ isLoading = false }: MainViewProps) {
   const [activeTab, setActiveTab] = useState<TabType>("trending");
@@ -21,16 +21,14 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  const tabsOrder: TabType[] = ["trending", "events", "favorites"];
+  const tabsOrder: TabType[] = ["trending", "events"];
 
   const tabTrendingRef = useRef<HTMLButtonElement>(null);
   const tabEventsRef = useRef<HTMLButtonElement>(null);
-  const tabFavoritesRef = useRef<HTMLButtonElement>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const contentTrackRef = useRef<HTMLDivElement>(null);
 
-  // Реф для отслеживания таба внутри физического движка без лишних ререндеров
   const activeTabRef = useRef<TabType>(activeTab);
   useEffect(() => {
     activeTabRef.current = activeTab;
@@ -48,6 +46,18 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     sy: 1, tsy: 1, vsy: 0,
     isMoving: false,
   });
+
+  useEffect(() => {
+    const meta = document.querySelector("meta[name='viewport']");
+    if (meta) {
+      meta.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
+    } else {
+      const newMeta = document.createElement("meta");
+      newMeta.name = "viewport";
+      newMeta.content = "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no";
+      document.head.appendChild(newMeta);
+    }
+  }, []);
 
   useEffect(() => {
     if (isSettingsOpen) {
@@ -140,12 +150,9 @@ export default function MainView({ isLoading = false }: MainViewProps) {
       const slider = sliderRef.current;
       if (!slider) return;
 
-      // Динамически пересчитываем координаты цели прямо во время движения (для поддержки плавного реразливания табов)
       if (state.isMoving) {
         const currentTab = activeTabRef.current;
-        const targetEl = currentTab === "trending" ? tabTrendingRef.current 
-                       : currentTab === "events" ? tabEventsRef.current 
-                       : tabFavoritesRef.current;
+        const targetEl = currentTab === "trending" ? tabTrendingRef.current : tabEventsRef.current;
         
         if (targetEl) {
           state.tx = targetEl.offsetLeft;
@@ -199,13 +206,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
   useEffect(() => {
     if (isLoading || isSearching || isSettingsOpen) return;
     
-    const getTargetEl = () => {
-      if (activeTab === "trending") return tabTrendingRef.current;
-      if (activeTab === "events") return tabEventsRef.current;
-      return tabFavoritesRef.current;
-    };
-
-    const targetEl = getTargetEl();
+    const targetEl = activeTab === "trending" ? tabTrendingRef.current : tabEventsRef.current;
     if (targetEl) {
       const state = physicsState.current;
       
@@ -390,8 +391,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
 
   return (
     <div className="w-full h-full bg-black overflow-hidden relative">
-      
-      {/* Подложка контента */}
       <div 
         className="flex flex-col w-full h-full bg-appleLight-bg dark:bg-appleDark-bg transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform"
         style={{
@@ -410,7 +409,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
             sliderRef={sliderRef}
             tabTrendingRef={tabTrendingRef}
             tabEventsRef={tabEventsRef}
-            tabFavoritesRef={tabFavoritesRef}
             inputRef={inputRef}
             handleTabClick={handleTabClick}
             enableSearch={enableSearch}
@@ -429,7 +427,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
-                className="absolute inset-0 flex w-[300%] h-full will-change-transform"
+                className="absolute inset-0 flex w-[200%] h-full will-change-transform"
                 style={{ transform: `translateX(0px)` }}
               >
                 <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
@@ -437,9 +435,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                 </div>
                 <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
                   <EmptyState isLoading={isLoading} activeTab="events" />
-                </div>
-                <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
-                  <EmptyState isLoading={isLoading} activeTab="favorites" />
                 </div>
               </div>
             )}
@@ -449,7 +444,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
       </div>
 
       <NewModal isOpen={isAddModalOpen} onClose={handleCloseAddModal} />
-      
     </div>
   );
 }
