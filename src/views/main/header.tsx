@@ -106,7 +106,7 @@ export default function Header({
                   <img 
                     src="/icons/search.png" 
                     alt="Поиск" 
-                    className="!w-5 !h-5 object-contain dark:brightness-0 dark:invert"
+                    className="!w-[22px] !h-[22px] object-contain dark:brightness-0 dark:invert"
                   />
                 </button>
               </div>
@@ -167,7 +167,7 @@ export default function Header({
                 <img 
                   src="/icons/cross.png" 
                   alt="Очистить" 
-                  className="!w-5 !h-5 object-contain dark:brightness-0 dark:invert opacity-60"
+                  className="!w-[19px] !h-[19px] object-contain dark:brightness-0 dark:invert opacity-60"
                 />
               </button>
             </div>
