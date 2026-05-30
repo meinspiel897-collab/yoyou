@@ -101,28 +101,44 @@ export default function Header({
 
                 <button
                   onClick={enableSearch}
-                  className="w-9 h-9 ml-1.5 bg-white dark:bg-neutral-700 shadow-sm rounded-full flex items-center justify-center outline-none active:scale-95 transition-transform z-20 flex-shrink-0"
+                  className="w-9 h-9 ml-1.5 bg-white dark:bg-neutral-700 shadow-sm rounded-full flex items-center justify-center outline-none active:scale-95 transition-transform z-20 flex-shrink-0 text-appleLight-text dark:text-appleDark-text"
                 >
-                  <img 
-                    src="/icons/search.png" 
-                    alt="Поиск" 
-                    className="!w-[27px] !h-[27px] object-contain dark:brightness-0 dark:invert"
+                  <div 
+                    className="w-3/4 h-3/4 bg-current"
+                    style={{
+                      WebkitMaskImage: "url('/icons/search.png')",
+                      maskImage: "url('/icons/search.png')",
+                      WebkitMaskSize: "contain",
+                      maskSize: "contain",
+                      WebkitMaskRepeat: "no-repeat",
+                      maskRepeat: "no-repeat",
+                      WebkitMaskPosition: "center",
+                      maskPosition: "center"
+                    }}
                   />
                 </button>
               </div>
 
               <button
                 onClick={onAddClick}
-                className={`h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full flex items-center justify-center outline-none active:scale-95 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform flex-shrink-0 ${
+                className={`h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full flex items-center justify-center outline-none active:scale-95 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform flex-shrink-0 text-appleLight-text dark:text-appleDark-text ${
                   shouldHideAdd 
                     ? "w-0 opacity-0 scale-0 pointer-events-none" 
                     : "w-11 opacity-100 scale-100 pointer-events-auto"
                 }`}
               >
-                <img 
-                  src="/icons/add.png" 
-                  alt="Добавить" 
-                  className="!w-[33px] !h-[33px] object-contain dark:brightness-0 dark:invert"
+                <div 
+                  className="w-3/4 h-3/4 bg-current"
+                  style={{
+                    WebkitMaskImage: "url('/icons/add.png')",
+                    maskImage: "url('/icons/add.png')",
+                    WebkitMaskSize: "contain",
+                    maskSize: "contain",
+                    WebkitMaskRepeat: "no-repeat",
+                    maskRepeat: "no-repeat",
+                    WebkitMaskPosition: "center",
+                    maskPosition: "center"
+                  }}
                 />
               </button>
             </div>
@@ -162,12 +178,20 @@ export default function Header({
               
               <button 
                 onClick={disableSearch}
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-appleLight-text/10 dark:bg-white/10 outline-none active:scale-90 transition-transform flex-shrink-0"
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-appleLight-text/10 dark:bg-white/10 outline-none active:scale-90 transition-transform flex-shrink-0 text-appleLight-text dark:text-appleDark-text"
               >
-                <img 
-                  src="/icons/cross.png" 
-                  alt="Очистить" 
-                  className="!w-[24px] !h-[24px] object-contain dark:brightness-0 dark:invert opacity-60"
+                <div 
+                  className="w-3/4 h-3/4 bg-current opacity-60"
+                  style={{
+                    WebkitMaskImage: "url('/icons/cross.png')",
+                    maskImage: "url('/icons/cross.png')",
+                    WebkitMaskSize: "contain",
+                    maskSize: "contain",
+                    WebkitMaskRepeat: "no-repeat",
+                    maskRepeat: "no-repeat",
+                    WebkitMaskPosition: "center",
+                    maskPosition: "center"
+                  }}
                 />
               </button>
             </div>
