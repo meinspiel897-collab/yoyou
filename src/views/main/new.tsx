@@ -28,21 +28,21 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
           isOpen ? "translate-y-0" : "translate-y-full"
         }`}
       >
-        {/* Шапка модалки */}
-        <div className="relative w-full h-16 flex items-center justify-center px-4 flex-shrink-0 border-b border-neutral-100 dark:border-neutral-800/50">
+        {/* Шапка модалки (без разделительной линии) */}
+        <div className="relative w-full h-16 flex items-center justify-center px-4 flex-shrink-0">
           <h2 className="text-base font-bold text-appleLight-text dark:text-appleDark-text tracking-tight">
-            What's new
+            Что создаем?
           </h2>
 
-          {/* Кнопка Закрыть модалку: кнопка 44px -> иконка жестко 26px (60%) */}
+          {/* Кнопка Закрыть: кнопка 36px (как поиск) -> иконка жестко 14px (40%) */}
           <button 
             onClick={onClose}
-            className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-full flex items-center justify-center transition-all outline-none active:scale-90 z-10 flex-shrink-0"
+            className="absolute right-4 top-1/2 -translate-y-1/2 w-9 h-9 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-full flex items-center justify-center transition-all outline-none active:scale-90 z-10 flex-shrink-0"
           >
             <img 
               src="/icons/cross.png" 
               alt="Закрыть" 
-              className="w-[26px] h-[26px] object-contain block dark:brightness-0 dark:invert"
+              className="w-[14px] h-[14px] object-contain block dark:brightness-0 dark:invert"
             />
           </button>
         </div>
