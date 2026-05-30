@@ -102,7 +102,7 @@ export default function Header({
                   Ивенты
                 </button>
 
-                {/* Кнопка Поиска: кнопка 36px -> иконка жестко 22px (60%) */}
+                {/* Кнопка Поиска: кнопка 36px -> иконка жестко 14px (40%) */}
                 <button
                   onClick={enableSearch}
                   className="w-9 h-9 ml-1.5 bg-white dark:bg-neutral-700 shadow-sm rounded-full flex items-center justify-center outline-none active:scale-95 transition-transform z-20 flex-shrink-0"
@@ -110,12 +110,12 @@ export default function Header({
                   <img 
                     src="/icons/search.png" 
                     alt="Поиск" 
-                    className="w-[22px] h-[22px] object-contain block dark:brightness-0 dark:invert"
+                    className="w-[14px] h-[14px] object-contain block dark:brightness-0 dark:invert"
                   />
                 </button>
               </div>
 
-              {/* Кнопка Плюс: кнопка 44px -> иконка жестко 26px (60%) */}
+              {/* Кнопка Плюс: кнопка 44px -> иконка жестко 18px (40%) */}
               <button
                 onClick={onAddClick}
                 className={`h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full flex items-center justify-center outline-none active:scale-95 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform flex-shrink-0 ${
@@ -127,7 +127,7 @@ export default function Header({
                 <img 
                   src="/icons/add.png" 
                   alt="Добавить" 
-                  className="w-[26px] h-[26px] object-contain block dark:brightness-0 dark:invert"
+                  className="w-[18px] h-[18px] object-contain block dark:brightness-0 dark:invert"
                 />
               </button>
             </div>
@@ -166,7 +166,7 @@ export default function Header({
                 </div>
               </div>
               
-              {/* Кнопка Закрыть поиск: кнопка 32px -> иконка жестко 19px (60%) */}
+              {/* Кнопка Закрыть поиск: кнопка 32px -> иконка жестко 13px (40%) */}
               <button 
                 onClick={disableSearch}
                 className="w-8 h-8 flex items-center justify-center rounded-full bg-appleLight-text/10 dark:bg-white/10 outline-none active:scale-90 transition-transform flex-shrink-0"
@@ -174,7 +174,7 @@ export default function Header({
                 <img 
                   src="/icons/cross.png" 
                   alt="Очистить" 
-                  className="w-[19px] h-[19px] object-contain block dark:brightness-0 dark:invert opacity-60"
+                  className="w-[13px] h-[13px] object-contain block dark:brightness-0 dark:invert opacity-60"
                 />
               </button>
             </div>
