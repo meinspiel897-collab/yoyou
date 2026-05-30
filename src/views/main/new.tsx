@@ -28,17 +28,18 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
       >
         <div className="relative w-full h-16 flex items-center justify-center px-4 flex-shrink-0">
           <h2 className="text-base font-bold text-appleLight-text dark:text-appleDark-text tracking-tight">
-            Что-то новенькое
+            What's new
           </h2>
 
+          {/* Кнопка Крестик в модалке (Строго аккуратные 44x44, иконка ровно 60%, никаких лишних паддингов) */}
           <button 
             onClick={onClose}
-            className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-full flex items-center justify-center p-[20%] transition-all outline-none active:scale-90 z-10 flex-shrink-0"
+            className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-full flex items-center justify-center transition-all outline-none active:scale-90 z-10 flex-shrink-0"
           >
             <img 
               src="/icons/cross.png" 
               alt="Закрыть" 
-              className="!w-[60%] !h-[60%] object-contain dark:brightness-0 dark:invert"
+              className="w-[60%] h-[60%] object-contain dark:brightness-0 dark:invert"
             />
           </button>
         </div>
