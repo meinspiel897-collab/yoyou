@@ -44,9 +44,6 @@ export default function Header({
   
   const shouldHideAdd = activeTab === "events" || activeTab === "favorites";
 
-  // Наша премиальная пружина для нативного отклика
-  const springBezier = "cubic-bezier(0.34, 1.25, 0.64, 1)";
-
   return (
     <>
       {/* Нативный логотип */}
@@ -70,39 +67,30 @@ export default function Header({
         ) : (
           <div className="w-full h-11 relative">
             
-            {/* ================= РЕЖИМ 1: ТАББАР И ПОИСК ================= */}
+            {/* РЕЖИМ 1: ТАББАР И ПОИСК */}
             <div 
-              className="absolute inset-0 flex items-center justify-between transition-all duration-300 will-change-transform"
-              style={{
-                transitionTimingFunction: springBezier,
-                transform: isSearching ? "translateY(-100%)" : "translateY(0)",
-                opacity: isSearching ? 0 : 1,
-                pointerEvents: isSearching ? "none" : "auto"
-              }}
+              className={`absolute inset-0 flex items-center justify-between transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform ${
+                isSearching 
+                  ? "-translate-y-full opacity-0 pointer-events-none" 
+                  : "translate-y-0 opacity-100 pointer-events-auto"
+              }`}
             >
-              {/* Главный пузырь таббара с эффектом пружины при изменении ширины */}
               <div 
-                className="h-full bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center transition-all duration-300"
-                style={{ 
-                  transitionTimingFunction: springBezier,
-                  width: shouldHideAdd ? "100%" : "calc(100% - 50px)" 
-                }}
+                className="h-full bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1)"
+                style={{ width: shouldHideAdd ? "100%" : "calc(100% - 50px)" }}
               >
-                {/* Капля-слайдер (тоже подпружинена) */}
                 <div 
                   ref={sliderRef}
-                  className="absolute top-1 bottom-1 bg-white/95 dark:bg-neutral-700/90 rounded-full border border-transparent shadow-sm will-change-transform z-10 transition-all duration-300"
-                  style={{ transitionTimingFunction: springBezier }}
+                  className="absolute top-1 bottom-1 bg-white/95 dark:bg-neutral-700/90 rounded-full border border-transparent shadow-sm will-change-transform z-10"
                 />
 
-                {/* Текст в кнопках переведен на font-medium (не жирный) */}
+                {/* Надписи переведены на font-medium для легкости */}
                 <button
                   ref={tabTrendingRef}
                   onClick={() => handleTabClick("trending")}
-                  className={`flex-1 px-1 h-full rounded-full text-xs font-medium z-20 transition-all duration-300 outline-none whitespace-nowrap flex items-center justify-center ${
+                  className={`flex-1 px-1 h-full rounded-full text-xs font-medium z-20 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) outline-none whitespace-nowrap flex items-center justify-center ${
                     activeTab === "trending" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
                   }`}
-                  style={{ transitionTimingFunction: springBezier }}
                 >
                   В тренде
                 </button>
@@ -110,10 +98,9 @@ export default function Header({
                 <button
                   ref={tabEventsRef}
                   onClick={() => handleTabClick("events")}
-                  className={`flex-1 px-1 h-full rounded-full text-xs font-medium z-20 transition-all duration-300 outline-none whitespace-nowrap flex items-center justify-center ${
+                  className={`flex-1 px-1 h-full rounded-full text-xs font-medium z-20 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) outline-none whitespace-nowrap flex items-center justify-center ${
                     activeTab === "events" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
                   }`}
-                  style={{ transitionTimingFunction: springBezier }}
                 >
                   Ивенты
                 </button>
@@ -121,10 +108,9 @@ export default function Header({
                 <button
                   ref={tabFavoritesRef}
                   onClick={() => handleTabClick("favorites")}
-                  className={`flex-1 px-1 h-full rounded-full text-xs font-medium z-20 transition-all duration-300 outline-none whitespace-nowrap flex items-center justify-center ${
+                  className={`flex-1 px-1 h-full rounded-full text-xs font-medium z-20 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) outline-none whitespace-nowrap flex items-center justify-center ${
                     activeTab === "favorites" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
                   }`}
-                  style={{ transitionTimingFunction: springBezier }}
                 >
                   Избранное
                 </button>
@@ -141,15 +127,14 @@ export default function Header({
                 </button>
               </div>
 
-              {/* Кнопка ПЛЮСА — теперь пружинит при схлопывании/появлении */}
+              {/* Кнопка ПЛЮСА (Размер w-11 h-11) */}
               <button
                 onClick={onAddClick}
-                className={`h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full flex items-center justify-center outline-none active:scale-95 transition-all duration-300 will-change-transform flex-shrink-0 ${
+                className={`h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full flex items-center justify-center outline-none active:scale-95 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform flex-shrink-0 ${
                   shouldHideAdd 
                     ? "w-0 opacity-0 scale-0 pointer-events-none" 
                     : "w-11 opacity-100 scale-100 pointer-events-auto"
                 }`}
-                style={{ transitionTimingFunction: springBezier }}
               >
                 <img 
                   src="/icons/add.png" 
@@ -159,16 +144,13 @@ export default function Header({
               </button>
             </div>
 
-            {/* ================= РЕЖИМ 2: СТРОКА ВВОДА ПОИСКА ================= */}
-            {/* Вертикальный выезд теперь работает на мягкой физической пружине */}
+            {/* РЕЖИМ 2: СТРОКА ВВОДА ПОИСКА */}
             <div 
-              className="absolute inset-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full pl-4 pr-1.5 flex items-center justify-between space-x-2 transition-all duration-300 will-change-transform z-30"
-              style={{
-                transitionTimingFunction: springBezier,
-                transform: isSearching ? "translateY(0)" : "translateY(100%)",
-                opacity: isSearching ? 1 : 0,
-                pointerEvents: isSearching ? "auto" : "none"
-              }}
+              className={`absolute inset-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full pl-4 pr-1.5 flex items-center justify-between space-x-2 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform z-30 ${
+                isSearching 
+                  ? "translate-y-0 opacity-100 pointer-events-auto" 
+                  : "translate-y-full opacity-0 pointer-events-none"
+              }`}
             >
               <div className="flex items-center flex-1 h-full space-x-2 overflow-hidden">
                 <img 
@@ -184,7 +166,7 @@ export default function Header({
                       </span>
                     </div>
                   )}
-                  {/* Текст теперь text-sm (в размер плейсхолдера) */}
+                  {/* Текст инпута изменен на text-sm для идеального соответствия плейсхолдеру */}
                   <input
                     ref={inputRef}
                     type="text"
@@ -192,7 +174,7 @@ export default function Header({
                     value={searchQuery}
                     onChange={handleInputChange}
                     onKeyDown={handleInputKeyDown}
-                    className="flex-1 h-full bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text placeholder-appleLight-text/35 dark:placeholder-appleDark-text/35"
+                    className="flex-1 h-full bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text placeholder-appleLight-text/35 dark:placeholder-appleDark-text/35 placeholder:text-sm placeholder:font-normal"
                   />
                 </div>
               </div>
