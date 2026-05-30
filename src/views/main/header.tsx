@@ -102,7 +102,7 @@ export default function Header({
                   Ивенты
                 </button>
 
-                {/* Кнопка Поиска (размер 36x36, иконка ровно 60%) */}
+                {/* Кнопка Поиска (36x36, иконка строго 60%) */}
                 <button
                   onClick={enableSearch}
                   className="w-9 h-9 ml-1.5 bg-white dark:bg-neutral-700 shadow-sm rounded-full flex items-center justify-center outline-none active:scale-95 transition-transform z-20 flex-shrink-0"
@@ -110,12 +110,12 @@ export default function Header({
                   <img 
                     src="/icons/search.png" 
                     alt="Поиск" 
-                    className="!w-[60%] !h-[60%] object-contain dark:brightness-0 dark:invert"
+                    className="w-[60%] h-[60%] object-contain dark:brightness-0 dark:invert"
                   />
                 </button>
               </div>
 
-              {/* Кнопка Плюс (размер 44x44, иконка ровно 60%) */}
+              {/* Кнопка Плюс (44x44, иконка строго 60%) */}
               <button
                 onClick={onAddClick}
                 className={`h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full flex items-center justify-center outline-none active:scale-95 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform flex-shrink-0 ${
@@ -127,7 +127,7 @@ export default function Header({
                 <img 
                   src="/icons/add.png" 
                   alt="Добавить" 
-                  className="!w-[60%] !h-[60%] object-contain dark:brightness-0 dark:invert"
+                  className="w-[60%] h-[60%] object-contain dark:brightness-0 dark:invert"
                 />
               </button>
             </div>
@@ -166,7 +166,7 @@ export default function Header({
                 </div>
               </div>
               
-              {/* Кнопка Крестик (размер 32x32, иконка ровно 60%) */}
+              {/* Кнопка Крестик в поиске (32x32, иконка строго 60%) */}
               <button 
                 onClick={disableSearch}
                 className="w-8 h-8 flex items-center justify-center rounded-full bg-appleLight-text/10 dark:bg-white/10 outline-none active:scale-90 transition-transform flex-shrink-0"
@@ -174,7 +174,7 @@ export default function Header({
                 <img 
                   src="/icons/cross.png" 
                   alt="Очистить" 
-                  className="!w-[60%] !h-[60%] object-contain dark:brightness-0 dark:invert opacity-60"
+                  className="w-[60%] h-[60%] object-contain dark:brightness-0 dark:invert opacity-60"
                 />
               </button>
             </div>
