@@ -2,7 +2,7 @@
 
 import React from "react";
 
-type TabType = "trending" | "events" | "favorites";
+type TabType = "trending" | "events";
 
 interface HeaderProps {
   isLoading: boolean;
@@ -13,7 +13,6 @@ interface HeaderProps {
   sliderRef: React.RefObject<HTMLDivElement>;
   tabTrendingRef: React.RefObject<HTMLButtonElement>;
   tabEventsRef: React.RefObject<HTMLButtonElement>;
-  tabFavoritesRef: React.RefObject<HTMLButtonElement>;
   inputRef: React.RefObject<HTMLInputElement>;
   handleTabClick: (tab: TabType) => void;
   enableSearch: () => void;
@@ -32,7 +31,6 @@ export default function Header({
   sliderRef,
   tabTrendingRef,
   tabEventsRef,
-  tabFavoritesRef,
   inputRef,
   handleTabClick,
   enableSearch,
@@ -42,11 +40,10 @@ export default function Header({
   onAddClick,
 }: HeaderProps) {
   
-  const shouldHideAdd = activeTab === "events" || activeTab === "favorites";
+  const shouldHideAdd = activeTab === "events";
 
   return (
     <>
-      {/* Нативный логотип */}
       <header className="absolute top-[var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))] left-0 right-0 h-11 flex items-center justify-center z-50 pointer-events-none select-none">
         {isLoading ? (
           <div className="w-24 h-5 bg-neutral-300 dark:bg-neutral-800 rounded-md animate-pulse" />
@@ -60,14 +57,12 @@ export default function Header({
         )}
       </header>
 
-      {/* Панель управления */}
       <div className="w-[calc(100%-40px)] mx-auto pt-3 box-border h-[56px] relative overflow-hidden">
         {isLoading ? (
           <div className="w-full h-11 bg-neutral-300 dark:bg-neutral-800 rounded-full animate-pulse" />
         ) : (
           <div className="w-full h-11 relative">
             
-            {/* РЕЖИМ 1: ТАББАР И ПОИСК */}
             <div 
               className={`absolute inset-0 flex items-center justify-between transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform ${
                 isSearching 
@@ -84,7 +79,6 @@ export default function Header({
                   className="absolute top-1 bottom-1 bg-white/95 dark:bg-neutral-700/90 rounded-full border border-transparent shadow-sm will-change-transform z-10"
                 />
 
-                {/* Надписи переведены на font-medium для легкости */}
                 <button
                   ref={tabTrendingRef}
                   onClick={() => handleTabClick("trending")}
@@ -106,16 +100,6 @@ export default function Header({
                 </button>
 
                 <button
-                  ref={tabFavoritesRef}
-                  onClick={() => handleTabClick("favorites")}
-                  className={`flex-1 px-1 h-full rounded-full text-xs font-medium z-20 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) outline-none whitespace-nowrap flex items-center justify-center ${
-                    activeTab === "favorites" ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"
-                  }`}
-                >
-                  Избранное
-                </button>
-
-                <button
                   onClick={enableSearch}
                   className="w-9 h-9 ml-1.5 bg-white dark:bg-neutral-700 shadow-sm rounded-full flex items-center justify-center outline-none active:scale-95 transition-transform z-20 flex-shrink-0"
                 >
@@ -127,7 +111,6 @@ export default function Header({
                 </button>
               </div>
 
-              {/* Кнопка ПЛЮСА (Размер w-11 h-11) */}
               <button
                 onClick={onAddClick}
                 className={`h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full flex items-center justify-center outline-none active:scale-95 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform flex-shrink-0 ${
@@ -144,7 +127,6 @@ export default function Header({
               </button>
             </div>
 
-            {/* РЕЖИМ 2: СТРОКА ВВОДА ПОИСКА */}
             <div 
               className={`absolute inset-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full pl-4 pr-1.5 flex items-center justify-between space-x-2 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform z-30 ${
                 isSearching 
@@ -166,7 +148,6 @@ export default function Header({
                       </span>
                     </div>
                   )}
-                  {/* Текст инпута изменен на text-sm для идеального соответствия плейсхолдеру */}
                   <input
                     ref={inputRef}
                     type="text"
