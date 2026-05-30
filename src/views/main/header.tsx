@@ -101,19 +101,19 @@ export default function Header({
 
                 <button
                   onClick={enableSearch}
-                  className="!w-9 !h-9 min-w-[36px] min-h-[36px] ml-1.5 bg-white dark:bg-neutral-700 shadow-sm rounded-full flex items-center justify-center outline-none active:scale-95 transition-transform z-20 flex-shrink-0"
+                  className="w-9 h-9 ml-1.5 bg-white dark:bg-neutral-700 shadow-sm rounded-full flex items-center justify-center outline-none active:scale-95 transition-transform z-20 flex-shrink-0 aspect-square"
                 >
                   <img 
                     src="/icons/search.png" 
                     alt="Поиск" 
-                    className="!w-[22px] !h-[22px] object-contain dark:brightness-0 dark:invert"
+                    className="w-[60%] h-[60%] object-contain dark:brightness-0 dark:invert"
                   />
                 </button>
               </div>
 
               <button
                 onClick={onAddClick}
-                className={`!w-11 !h-11 min-w-[44px] min-h-[44px] bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full flex items-center justify-center outline-none active:scale-95 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform flex-shrink-0 ${
+                className={`h-11 aspect-square bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full flex items-center justify-center outline-none active:scale-95 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform flex-shrink-0 ${
                   shouldHideAdd 
                     ? "w-0 opacity-0 scale-0 pointer-events-none" 
                     : "w-11 opacity-100 scale-100 pointer-events-auto"
@@ -122,7 +122,7 @@ export default function Header({
                 <img 
                   src="/icons/add.png" 
                   alt="Добавить" 
-                  className="!w-[26px] !h-[26px] object-contain dark:brightness-0 dark:invert"
+                  className="w-[60%] h-[60%] object-contain dark:brightness-0 dark:invert"
                 />
               </button>
             </div>
@@ -162,12 +162,12 @@ export default function Header({
               
               <button 
                 onClick={disableSearch}
-                className="!w-8 !h-8 min-w-[32px] min-h-[32px] flex items-center justify-center rounded-full bg-appleLight-text/10 dark:bg-white/10 outline-none active:scale-90 transition-transform flex-shrink-0"
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-appleLight-text/10 dark:bg-white/10 outline-none active:scale-90 transition-transform flex-shrink-0 aspect-square"
               >
                 <img 
                   src="/icons/cross.png" 
                   alt="Очистить" 
-                  className="!w-[19px] !h-[19px] object-contain dark:brightness-0 dark:invert opacity-60"
+                  className="w-[60%] h-[60%] object-contain dark:brightness-0 dark:invert opacity-60"
                 />
               </button>
             </div>
