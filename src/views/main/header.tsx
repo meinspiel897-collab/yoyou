@@ -44,7 +44,7 @@ export default function Header({
 
   return (
     <>
-      {/* Шапка с логотипом */}
+      {/* Главный заголовок / Лого */}
       <header className="absolute top-[var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))] left-0 right-0 h-11 flex items-center justify-center z-50 pointer-events-none select-none">
         {isLoading ? (
           <div className="w-24 h-5 bg-neutral-300 dark:bg-neutral-800 rounded-md animate-pulse" />
@@ -58,14 +58,14 @@ export default function Header({
         )}
       </header>
 
-      {/* Панель навигации / Поиск */}
+      {/* Контейнер навигации */}
       <div className="w-[calc(100%-40px)] mx-auto pt-3 box-border h-[56px] relative overflow-hidden">
         {isLoading ? (
           <div className="w-full h-11 bg-neutral-300 dark:bg-neutral-800 rounded-full animate-pulse" />
         ) : (
           <div className="w-full h-11 relative">
             
-            {/* Обычное состояние: Табы и кнопки */}
+            {/* Панель табов (Обычное состояние) */}
             <div 
               className={`absolute inset-0 flex items-center justify-between transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform ${
                 isSearching 
@@ -102,7 +102,7 @@ export default function Header({
                   Ивенты
                 </button>
 
-                {/* Кнопка Поиска (36x36, иконка строго 60%) */}
+                {/* Кнопка Поиска: кнопка 36px -> иконка жестко 22px (60%) */}
                 <button
                   onClick={enableSearch}
                   className="w-9 h-9 ml-1.5 bg-white dark:bg-neutral-700 shadow-sm rounded-full flex items-center justify-center outline-none active:scale-95 transition-transform z-20 flex-shrink-0"
@@ -110,12 +110,12 @@ export default function Header({
                   <img 
                     src="/icons/search.png" 
                     alt="Поиск" 
-                    className="w-[60%] h-[60%] object-contain dark:brightness-0 dark:invert"
+                    className="w-[22px] h-[22px] object-contain block dark:brightness-0 dark:invert"
                   />
                 </button>
               </div>
 
-              {/* Кнопка Плюс (44x44, иконка строго 60%) */}
+              {/* Кнопка Плюс: кнопка 44px -> иконка жестко 26px (60%) */}
               <button
                 onClick={onAddClick}
                 className={`h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full flex items-center justify-center outline-none active:scale-95 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform flex-shrink-0 ${
@@ -127,12 +127,12 @@ export default function Header({
                 <img 
                   src="/icons/add.png" 
                   alt="Добавить" 
-                  className="w-[60%] h-[60%] object-contain dark:brightness-0 dark:invert"
+                  className="w-[26px] h-[26px] object-contain block dark:brightness-0 dark:invert"
                 />
               </button>
             </div>
 
-            {/* Состояние поиска */}
+            {/* Активная строка поиска */}
             <div 
               className={`absolute inset-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full pl-4 pr-1.5 flex items-center justify-between space-x-2 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform z-30 ${
                 isSearching 
@@ -166,7 +166,7 @@ export default function Header({
                 </div>
               </div>
               
-              {/* Кнопка Крестик в поиске (32x32, иконка строго 60%) */}
+              {/* Кнопка Закрыть поиск: кнопка 32px -> иконка жестко 19px (60%) */}
               <button 
                 onClick={disableSearch}
                 className="w-8 h-8 flex items-center justify-center rounded-full bg-appleLight-text/10 dark:bg-white/10 outline-none active:scale-90 transition-transform flex-shrink-0"
@@ -174,7 +174,7 @@ export default function Header({
                 <img 
                   src="/icons/cross.png" 
                   alt="Очистить" 
-                  className="w-[60%] h-[60%] object-contain dark:brightness-0 dark:invert opacity-60"
+                  className="w-[19px] h-[19px] object-contain block dark:brightness-0 dark:invert opacity-60"
                 />
               </button>
             </div>
