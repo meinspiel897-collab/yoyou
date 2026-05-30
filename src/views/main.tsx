@@ -47,6 +47,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     isMoving: false,
   });
 
+  // Блокировка зума на мобилках
   useEffect(() => {
     const meta = document.querySelector("meta[name='viewport']");
     if (meta) {
@@ -59,6 +60,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     }
   }, []);
 
+  // Сброс размеров физики при переходе в настройки
   useEffect(() => {
     if (isSettingsOpen) {
       physicsState.current.w = 0;
@@ -66,6 +68,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     }
   }, [isSettingsOpen]);
 
+  // Настройка цветов темы Telegram WebApp
   useEffect(() => {
     if (typeof window !== "undefined") {
       const anyWindow = window as any;
@@ -80,6 +83,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     }
   }, []);
 
+  // Кнопка настроек в TG
   useEffect(() => {
     if (typeof window !== "undefined") {
       const anyWindow = window as any;
@@ -101,6 +105,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     }
   }, []);
 
+  // Кнопка "Назад" в TG
   useEffect(() => {
     if (typeof window !== "undefined") {
       const anyWindow = window as any;
@@ -126,6 +131,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     }
   }, [isSettingsOpen]);
 
+  // Физика пружины для кастомного слайдера табов
   useEffect(() => {
     if (isLoading || isSearching || isSettingsOpen) return;
 
@@ -203,6 +209,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     return () => cancelAnimationFrame(rafId);
   }, [isLoading, isSearching, isSettingsOpen]);
 
+  // Слежка за изменением активного таба для физики
   useEffect(() => {
     if (isLoading || isSearching || isSettingsOpen) return;
     
@@ -247,6 +254,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     }
   };
 
+  // Логика свайпов контента (Swipeable views)
   const handleTouchStart = (e: React.TouchEvent) => {
     if (isSearching) return;
     
@@ -287,6 +295,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
       const width = window.innerWidth;
       let translate = -currentIdx * width + deltaX;
 
+      // Сопротивление при выходе за границы крайних табов (Rubber-banding)
       if ((currentIdx === 0 && deltaX > 0) || (currentIdx === tabsOrder.length - 1 && deltaX < 0)) {
         translate = -currentIdx * width + deltaX * 0.35; 
       }
@@ -340,6 +349,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     }
   }, [activeTab, isSearching]);
 
+  // Управление поиском
   const enableSearch = () => {
     triggerHaptic();
     setIsSearching(true);
@@ -375,6 +385,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
     }
   };
 
+  // Управление модалкой добавления контента
   const handleOpenAddModal = () => {
     triggerHaptic();
     setIsAddModalOpen(true);
@@ -443,6 +454,7 @@ export default function MainView({ isLoading = false }: MainViewProps) {
         </main>
       </div>
 
+      {/* Теперь типы сойдутся идеально 🫪 */}
       <NewModal isOpen={isAddModalOpen} onClose={handleCloseAddModal} />
     </div>
   );
