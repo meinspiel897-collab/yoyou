@@ -38,7 +38,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
             <img 
               src="/icons/cross.png" 
               alt="Закрыть" 
-              className="w-3/4 h-3/4 object-contain dark:brightness-0 dark:invert"
+              className="w-[33px] h-[33px] object-contain dark:brightness-0 dark:invert"
             />
           </button>
         </div>
