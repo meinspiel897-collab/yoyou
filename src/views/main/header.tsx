@@ -42,7 +42,6 @@ export default function Header({
   onAddClick,
 }: HeaderProps) {
   
-  // Кнопка добавления скрывается на Ивентах и в Избранном
   const shouldHideAdd = activeTab === "events" || activeTab === "favorites";
 
   return (
@@ -61,14 +60,14 @@ export default function Header({
         )}
       </header>
 
-      {/* Панель управления (Ограничена по высоте, чтобы вертикальная анимация скрывалась за overflow-hidden) */}
+      {/* Панель управления */}
       <div className="w-[calc(100%-40px)] mx-auto pt-3 box-border h-[56px] relative overflow-hidden">
         {isLoading ? (
           <div className="w-full h-11 bg-neutral-300 dark:bg-neutral-800 rounded-full animate-pulse" />
         ) : (
           <div className="w-full h-11 relative">
             
-            {/* ================= РЕЖИМ 1: ТАББАР И ПОИСК ================= */}
+            {/* РЕЖИМ 1: ТАББАР И ПОИСК */}
             <div 
               className={`absolute inset-0 flex items-center justify-between transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform ${
                 isSearching 
@@ -76,7 +75,6 @@ export default function Header({
                   : "translate-y-0 opacity-100 pointer-events-auto"
               }`}
             >
-              {/* Главный пузырь таббара (динамически расширяется, если плюс скрыт) */}
               <div 
                 className="h-full bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1)"
                 style={{ width: shouldHideAdd ? "100%" : "calc(100% - 50px)" }}
@@ -116,7 +114,6 @@ export default function Header({
                   Избранное
                 </button>
 
-                {/* Кнопка ЛУПЫ (Поиск) — теперь живет внутри таббара на месте старого плюса */}
                 <button
                   onClick={enableSearch}
                   className="w-9 h-9 ml-1.5 bg-white dark:bg-neutral-700 shadow-sm rounded-full flex items-center justify-center outline-none active:scale-95 transition-transform z-20 flex-shrink-0"
@@ -129,10 +126,10 @@ export default function Header({
                 </button>
               </div>
 
-              {/* Кнопка ПЛЮСА (Добавить) — переехала на правый край. Схлопывается в абсолютный ноль */}
+              {/* Кнопка ПЛЮСА — теперь цвета фона таббара, анимации полностью симметричны */}
               <button
                 onClick={onAddClick}
-                className={`h-11 bg-white dark:bg-neutral-700 shadow-sm rounded-full flex items-center justify-center outline-none active:scale-95 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) flex-shrink-0 ${
+                className={`h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full flex items-center justify-center outline-none active:scale-95 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform flex-shrink-0 ${
                   shouldHideAdd 
                     ? "w-0 opacity-0 scale-0 pointer-events-none" 
                     : "w-11 opacity-100 scale-100 pointer-events-auto"
@@ -146,10 +143,9 @@ export default function Header({
               </button>
             </div>
 
-            {/* ================= РЕЖИМ 2: СТРОКА ВВОДА ПОИСКА ================= */}
-            {/* Приезжает вертикально снизу вверх (`translate-y-full` -> `translate-y-0`) */}
+            {/* РЕЖИМ 2: СТРОКА ВВОДА ПОИСКА (Фикс отступов — крестик больше не съезжает) */}
             <div 
-              className={`absolute inset-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full px-3.5 flex items-center justify-between space-x-2 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform z-30 ${
+              className={`absolute inset-0 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg rounded-full pl-4 pr-1.5 flex items-center justify-between space-x-2 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform z-30 ${
                 isSearching 
                   ? "translate-y-0 opacity-100 pointer-events-auto" 
                   : "translate-y-full opacity-0 pointer-events-none"
@@ -181,7 +177,6 @@ export default function Header({
                 </div>
               </div>
               
-              {/* Кнопка закрытия поиска с иконкой cross.png */}
               <button 
                 onClick={disableSearch}
                 className="w-8 h-8 flex items-center justify-center rounded-full bg-appleLight-text/10 dark:bg-white/10 outline-none active:scale-90 transition-transform flex-shrink-0"
