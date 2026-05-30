@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import EmptyState from "@/views/main/empty";
-import SearchView from "@/views/main/search";
-import SettingsView from "@/views/settings";
-import Header from "@/views/main/header";
-import NewModal from "@/views/main/new";
+import EmptyState from "./main/empty";
+import SearchView from "./main/search";
+import SettingsView from "./settings";
+import Header from "./main/header";
+import NewModal from "./main/new";
 
 interface MainViewProps {
   isLoading?: boolean;
