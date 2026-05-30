@@ -33,12 +33,12 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
 
           <button 
             onClick={onClose}
-            className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-full flex items-center justify-center transition-all outline-none active:scale-90 z-10"
+            className="absolute right-4 top-1/2 -translate-y-1/2 !w-11 !h-11 min-w-[44px] min-h-[44px] bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-full flex items-center justify-center transition-all outline-none active:scale-90 z-10 flex-shrink-0"
           >
             <img 
               src="/icons/cross.png" 
               alt="Закрыть" 
-              className="w-[33px] h-[33px] object-contain dark:brightness-0 dark:invert"
+              className="!w-[26px] !h-[26px] object-contain dark:brightness-0 dark:invert"
             />
           </button>
         </div>
