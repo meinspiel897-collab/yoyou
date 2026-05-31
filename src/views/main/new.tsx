@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
+import { motion } from "framer-motion";
 
-// Импортируем облегченную lottie-light-react без SSR
 const Lottie = dynamic(() => import("lottie-light-react"), { ssr: false });
 
 interface NewModalProps {
@@ -49,7 +49,6 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
   ];
 
   const currentTab = tabs.find((t) => t.id === activeSubTab) || tabs[0];
-  const activeIndex = tabs.findIndex((t) => t.id === activeSubTab);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -86,7 +85,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
         {/* Шапка модалки */}
         <div className="relative w-full h-16 flex items-center justify-center px-4 flex-shrink-0">
           <h2 className="text-base font-bold text-appleLight-text dark:text-appleDark-text tracking-tight">
-            What's new
+            Что-то новенькое
           </h2>
 
           <button 
@@ -104,35 +103,34 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
         {/* Контент */}
         <div className="flex-1 overflow-y-auto px-5 pb-8 flex flex-col">
           
-          {/* Родной Таббар один в один как в хедере */}
+          {/* Нативный Таббар с жидкой каплей */}
           <div className="w-full h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center relative mb-6 flex-shrink-0 select-none">
-            <div 
-              className="absolute top-1 bottom-1 bg-white/95 dark:bg-neutral-700/90 rounded-full border border-transparent shadow-sm transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform z-10"
-              style={{ 
-                left: `calc(${activeIndex * 25}% + 4px)`,
-                width: "calc(25% - 8px)" 
-              }}
-            />
-
             {tabs.map((tab) => {
               const isActive = activeSubTab === tab.id;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveSubTab(tab.id)}
-                  className={`flex-1 h-full rounded-full text-xs font-medium transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) outline-none whitespace-nowrap flex items-center justify-center z-20 ${
+                  className={`flex-1 h-full rounded-full text-xs font-medium outline-none whitespace-nowrap flex items-center justify-center relative z-20 transition-colors duration-300 ${
                     isActive 
                       ? "text-appleLight-text dark:text-appleDark-text" 
                       : "text-appleLight-text/45 dark:text-appleDark-text/45"
                   }`}
                 >
-                  {tab.label}
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeSubTabIndicator"
+                      className="absolute inset-0 bg-white/95 dark:bg-neutral-700/90 rounded-full border border-transparent shadow-sm z-10"
+                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    />
+                  )}
+                  <span className="relative z-20">{tab.label}</span>
                 </button>
               );
             })}
           </div>
 
-          {/* Описание с увеличенным Lottie */}
+          {/* Описание с Lottie */}
           <div className="flex items-start space-x-3.5 px-1 mb-6 min-h-[52px] select-none">
             <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
               {animationData ? (
@@ -159,7 +157,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
                 <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
                   Имя тут
                 </label>
-                <div className="w-full h-11 bg-transparent border border-neutral-500 dark:border-neutral-700 focus-within:border-[#FC062D] rounded-full flex items-center px-4 transition-colors duration-200">
+                <div className="w-full h-11 bg-transparent border border-neutral-600 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-full flex items-center px-4 transition-colors duration-200">
                   <input
                     type="text"
                     placeholder="Что угодно"
@@ -179,7 +177,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
                 <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
                   Описание здесь
                 </label>
-                <div className="w-full min-h-[78px] bg-transparent border border-neutral-500 dark:border-neutral-700 focus-within:border-[#FC062D] rounded-[20px] flex items-start p-3.5 transition-colors duration-200 relative">
+                <div className="w-full min-h-[78px] bg-transparent border border-neutral-600 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-[20px] flex items-start p-3.5 transition-colors duration-200 relative">
                   <textarea
                     placeholder="Что угодно"
                     value={description}
@@ -194,24 +192,29 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
                 </div>
               </div>
 
-              {/* Ряд: Три вертикальные моковые карточки (заглушки как у Lottie) */}
-              <div className="grid grid-cols-3 gap-3 w-full pt-1">
-                {[0, 1, 2].map((index) => (
-                  <div 
-                    key={index}
-                    className="aspect-[3/4] w-full border border-neutral-500 dark:border-neutral-700 rounded-2xl flex items-center justify-center bg-neutral-50/50 dark:bg-neutral-950/20 relative overflow-hidden select-none"
-                  >
-                    {index === 0 ? (
-                      <img 
-                        src="/icons/add.png" 
-                        alt="Добавить" 
-                        className="w-9 h-9 object-contain block dark:brightness-0 dark:invert opacity-25"
-                      />
-                    ) : (
-                      <div className="w-5 h-5 bg-neutral-200 dark:bg-neutral-800 rounded-full animate-pulse opacity-40" />
-                    )}
-                  </div>
-                ))}
+              {/* Сетка: Картинки */}
+              <div className="flex flex-col space-y-1.5 pt-1">
+                <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
+                  Картинка
+                </label>
+                <div className="grid grid-cols-3 gap-3 w-full">
+                  {[0, 1, 2].map((index) => (
+                    <div 
+                      key={index}
+                      className={`aspect-[3/4] w-full border border-neutral-600 dark:border-neutral-800 rounded-2xl flex items-center justify-center relative overflow-hidden select-none ${
+                        index !== 0 ? "bg-neutral-200 dark:bg-neutral-800 animate-pulse" : "bg-neutral-50/50 dark:bg-neutral-950/20"
+                      }`}
+                    >
+                      {index === 0 && (
+                        <img 
+                          src="/icons/add.png" 
+                          alt="Добавить" 
+                          className="w-9 h-9 object-contain block dark:brightness-0 dark:invert opacity-25"
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
 
             </div>
