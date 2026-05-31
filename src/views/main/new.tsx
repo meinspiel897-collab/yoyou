@@ -18,8 +18,14 @@ interface TabConfig {
 
 export default function NewModal({ isOpen, onClose }: NewModalProps) {
   const [activeSubTab, setActiveSubTab] = useState<SubTabType>("rate");
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  
+  // Раздельные стейты для сохранения контента при свайпах
+  const [rateTitle, setRateTitle] = useState("");
+  const [rateDescription, setRateDescription] = useState("");
+  
+  const [takeTitle, setTakeTitle] = useState("");
+  const [takeDescription, setTakeDescription] = useState("");
+
   const [animationData, setAnimationData] = useState<any>(null);
 
   const tabs: TabConfig[] = [
@@ -29,6 +35,9 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
     { id: "over", label: "Оверрейт" },
   ];
 
+  const subTabOrder: SubTabType[] = ["rate", "take", "tier", "over"];
+  const activeIndex = subTabOrder.indexOf(activeSubTab);
+
   const sliderRef = useRef<HTMLDivElement>(null);
   const tabsRefs = useRef<{ [key in SubTabType]: HTMLButtonElement | null }>({
     rate: null,
@@ -37,13 +46,45 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
     over: null,
   });
 
+  // Логика свайпов (Touch tracking)
+  const touchStartX = useRef<number>(0);
+  const touchStartY = useRef<number>(0);
+  const isHorizontalSwipe = useRef<boolean>(false);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    isHorizontalSwipe.current = false;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const deltaX = e.touches[0].clientX - touchStartX.current;
+    const deltaY = e.touches[0].clientY - touchStartY.current;
+
+    // Если горизонтальный сдвиг явно преобладает над вертикальным, блокируем нативный скролл
+    if (!isHorizontalSwipe.current && Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+      isHorizontalSwipe.current = true;
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!isHorizontalSwipe.current) return;
+    
+    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+    const swipeThreshold = 60; // Чувствительность свайпа
+
+    if (deltaX < -swipeThreshold && activeIndex < subTabOrder.length - 1) {
+      // Свайп влево -> следующий таб
+      setActiveSubTab(subTabOrder[activeIndex + 1]);
+    } else if (deltaX > swipeThreshold && activeIndex > 0) {
+      // Свайп вправо -> предыдущий таб
+      setActiveSubTab(subTabOrder[activeIndex - 1]);
+    }
+  };
+
   const activeSubTabRef = useRef<SubTabType>(activeSubTab);
-  
   useEffect(() => {
     activeSubTabRef.current = activeSubTab;
-    // Сбрасываем текст при переключении экранов, чтобы контент не накладывался
-    setTitle("");
-    setDescription("");
   }, [activeSubTab]);
 
   const physicsState = useRef({
@@ -148,7 +189,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
     }
   }, [activeSubTab, isOpen]);
 
-  // Динамический фетч Lottie анимаций под текущий подтаб
+  // Загрузка анимаций Lottie
   useEffect(() => {
     if (!isOpen) return;
     
@@ -167,7 +208,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
         isOpen ? "pointer-events-auto" : "pointer-events-none"
       }`}
     >
-      {/* Задний блюр-оверлей */}
+      {/* Задний блюр */}
       <div 
         className={`absolute inset-0 bg-black/15 dark:bg-black/30 transition-all duration-300 ${
           isOpen ? "opacity-100 backdrop-blur-[3px]" : "opacity-0 backdrop-blur-0"
@@ -177,14 +218,14 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
 
       {/* Контейнер модального окна */}
       <div 
-        className={`relative w-full h-[90%] bg-white dark:bg-neutral-900 rounded-t-[32px] shadow-2xl flex flex-col transition-transform duration-300 cubic-bezier(0.15, 1, 0.2, 1) will-change-transform ${
+        className={`relative w-full h-[90%] bg-white dark:bg-neutral-900 rounded-t-[32px] shadow-2xl flex flex-col overflow-hidden transition-transform duration-300 cubic-bezier(0.15, 1, 0.2, 1) will-change-transform ${
           isOpen ? "translate-y-0" : "translate-y-full"
         }`}
       >
-        {/* Шапка */}
-        <div className="relative w-full h-16 flex items-center justify-center px-4 flex-shrink-0">
+        {/* Шапка модалки */}
+        <div className="relative w-full h-16 flex items-center justify-center px-4 flex-shrink-0 select-none">
           <h2 className="text-base font-bold text-appleLight-text dark:text-appleDark-text tracking-tight">
-            What's new?
+            Что-то новенькое
           </h2>
 
           <button 
@@ -199,9 +240,9 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
           </button>
         </div>
 
-        {/* Навигационный таббар с каплей */}
+        {/* Навигационный таббар */}
         <div className="px-5 flex-shrink-0">
-          <div className="w-full h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center relative mb-6 select-none">
+          <div className="w-full h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center relative mb-5 select-none">
             <div 
               ref={sliderRef}
               className="absolute top-1 bottom-1 bg-white/95 dark:bg-neutral-700/90 rounded-full border border-transparent shadow-sm will-change-transform z-10"
@@ -227,33 +268,55 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
           </div>
         </div>
 
-        {/* Динамическая область контента под каждый таб */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {activeSubTab === "rate" ? (
-            <RateView 
-              title={title}
-              setTitle={setTitle}
-              description={description}
-              setDescription={setDescription}
-              animationData={animationData}
-            />
-          ) : activeSubTab === "take" ? (
-            <TakeView 
-              title={title}
-              setTitle={setTitle}
-              description={description}
-              setDescription={setDescription}
-              animationData={animationData}
-            />
-          ) : (
-            /* Тир-лист и Оверрейт пока отдыхают в разработке */
-            <div className="flex-1 flex flex-col items-center justify-center py-12 text-center select-none animate-fadeIn">
+        {/* Свайп-контейнер контента */}
+        <div 
+          className="flex-1 w-full overflow-hidden"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          <div 
+            className="flex w-[400%] h-full transition-transform duration-300 ease-out will-change-transform"
+            style={{ transform: `translateX(-${activeIndex * 25}%)` }}
+          >
+            {/* Секция: Оценка */}
+            <div className="w-[25%] h-full flex flex-col overflow-hidden">
+              <RateView 
+                title={rateTitle}
+                setTitle={setRateTitle}
+                description={rateDescription}
+                setDescription={setRateDescription}
+                animationData={activeSubTab === "rate" ? animationData : null}
+              />
+            </div>
+
+            {/* Секция: Тейк */}
+            <div className="w-[25%] h-full flex flex-col overflow-hidden">
+              <TakeView 
+                title={takeTitle}
+                setTitle={setTakeTitle}
+                description={takeDescription}
+                setDescription={setTakeDescription}
+                animationData={activeSubTab === "take" ? animationData : null}
+              />
+            </div>
+
+            {/* Секция: Тир лист */}
+            <div className="w-[25%] h-full flex flex-col items-center justify-center text-center select-none">
               <span className="text-xl mb-2">🛠️</span>
               <p className="text-xs font-bold text-neutral-400 dark:text-neutral-600 uppercase tracking-widest">
                 В разработке
               </p>
             </div>
-          )}
+
+            {/* Секция: Оверрейт */}
+            <div className="w-[25%] h-full flex flex-col items-center justify-center text-center select-none">
+              <span className="text-xl mb-2">🛠️</span>
+              <p className="text-xs font-bold text-neutral-400 dark:text-neutral-600 uppercase tracking-widest">
+                В разработке
+              </p>
+            </div>
+          </div>
         </div>
 
       </div>
