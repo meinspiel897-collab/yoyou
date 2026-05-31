@@ -19,8 +19,8 @@ interface TabConfig {
 export default function NewModal({ isOpen, onClose }: NewModalProps) {
   const [activeSubTab, setActiveSubTab] = useState<SubTabType>("rate");
   const [dimensions, setDimensions] = useState({ top: "10vh", height: "90vh" });
+  const [isTyping, setIsTyping] = useState(false); // Стейт блокировки свайпов
   
-  // Раздельные стейты для сохранения контента
   const [rateTitle, setRateTitle] = useState("");
   const [rateDescription, setRateDescription] = useState("");
   
@@ -48,13 +48,11 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
     over: null,
   });
 
-  // Премиальные рефы для трекинга свайпа
   const touchStart = useRef({ x: 0, y: 0, time: 0 });
   const isSwiping = useRef(false);
   const currentTranslate = useRef(0);
   const isClickTransition = useRef(false);
 
-  // Тактильный отклик Telegram
   const triggerHaptic = (style: "light" | "medium" | "heavy") => {
     if (typeof window !== "undefined") {
       const anyWindow = window as any;
@@ -66,7 +64,6 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
     }
   };
 
-  // Фиксируем размеры один раз при монтировании против прыжков клавиатуры
   useEffect(() => {
     if (typeof window !== "undefined") {
       const h = window.innerHeight;
@@ -77,8 +74,11 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
     }
   }, []);
 
-  // Попиксельный трекинг пальца (Swipeable views)
+  // Попиксельный трекинг пальца
   const handleTouchStart = (e: React.TouchEvent) => {
+    // ОТКЛЮЧАЕМ СВАЙПЫ, ЕСЛИ ИДЁТ ВВОД В СТРОКУ
+    if (isTyping) return;
+    
     // Защита от зоны правого скроллбара
     if (e.touches[0].clientX > window.innerWidth - 30) return;
 
@@ -97,7 +97,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!touchStart.current.time) return;
+    if (isTyping || !touchStart.current.time) return;
 
     const touch = e.touches[0];
     const deltaX = touch.clientX - touchStart.current.x;
@@ -118,7 +118,6 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
       const width = window.innerWidth;
       let translate = -activeIndex * width + deltaX;
 
-      // Эффект резиновой ленты на границах первого и последнего табов
       if ((activeIndex === 0 && deltaX > 0) || (activeIndex === subTabOrder.length - 1 && deltaX < 0)) {
         translate = -activeIndex * width + deltaX * 0.35; 
       }
@@ -129,7 +128,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
   };
 
   const handleTouchEnd = () => {
-    if (!isSwiping.current) return;
+    if (isTyping || !isSwiping.current) return;
     isSwiping.current = false;
 
     const width = window.innerWidth;
@@ -138,7 +137,6 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
 
     let targetIdx = activeIndex;
 
-    // Проверка на сильный свайп или быстрое короткое движение (флик)
     if (Math.abs(movedX) > width * 0.35 || (duration < 250 && Math.abs(movedX) > 40)) {
       if (movedX > 0 && activeIndex > 0) {
         targetIdx = activeIndex - 1;
@@ -159,7 +157,6 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
     touchStart.current.time = 0;
   };
 
-  // Переключение через таббар (без плавной анимации контента, мгновенно)
   const handleTabClick = (id: SubTabType) => {
     if (id === activeSubTab) return;
     triggerHaptic("light");
@@ -173,7 +170,6 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
     setActiveSubTab(id);
   };
 
-  // Синхронизация положения трека при обычных обновлениях
   useEffect(() => {
     if (contentTrackRef.current) {
       const currentIdx = subTabOrder.indexOf(activeSubTab);
@@ -201,7 +197,6 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
     isMoving: false,
   });
 
-  // Пружинная физика капли-бегунка в таббаре
   useEffect(() => {
     if (!isOpen) return;
 
@@ -295,7 +290,6 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
     }
   }, [activeSubTab, isOpen]);
 
-  // Ленивая подгрузка Lottie
   useEffect(() => {
     if (!isOpen) return;
     setAnimationData(null);
@@ -313,7 +307,6 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
         isOpen ? "pointer-events-auto" : "pointer-events-none"
       }`}
     >
-      {/* Задний блюр */}
       <div 
         className={`absolute inset-0 bg-black/15 dark:bg-black/30 transition-all duration-300 ${
           isOpen ? "opacity-100 backdrop-blur-[3px]" : "opacity-0 backdrop-blur-0"
@@ -321,7 +314,6 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
         onClick={onClose} 
       />
 
-      {/* Контейнер модального окна */}
       <div 
         className={`absolute left-0 right-0 bg-white dark:bg-neutral-900 rounded-t-[32px] shadow-2xl flex flex-col overflow-hidden transition-transform duration-300 cubic-bezier(0.15, 1, 0.2, 1) will-change-transform ${
           isOpen ? "translate-y-0" : "translate-y-full"
@@ -377,7 +369,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
           </div>
         </div>
 
-        {/* Изолированная свайп-зона с абсолютным позиционированием трека */}
+        {/* Изолированная свайп-зона трека */}
         <div className="flex-1 w-full overflow-hidden relative">
           <div 
             ref={contentTrackRef}
@@ -398,7 +390,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
               />
             </div>
 
-            {/* Секция: Тейк (лимит теперь передаётся внутри компонента или берётся оттуда) */}
+            {/* Секция: Тейк */}
             <div className="w-[25%] h-full flex flex-col overflow-hidden">
               <TakeView 
                 title={takeTitle}
@@ -406,6 +398,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
                 description={takeDescription}
                 setDescription={setTakeDescription}
                 animationData={activeSubTab === "take" ? animationData : null}
+                setIsTyping={setIsTyping} // Передаём функцию трекинга
               />
             </div>
 
