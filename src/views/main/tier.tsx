@@ -20,7 +20,12 @@ export default function TierView({ animationData, setIsTyping }: TierViewProps) 
     { id: "item-1", text: "" }
   ]);
   
-  // Реф для отслеживания индекса перетаскиваемого элемента
+  // Состояние для анимации свайпа удаления
+  const [activeSwipeId, setActiveSwipeId] = useState<string | null>(null);
+  const [swipeX, setSwipeX] = useState<number>(0);
+  const rowTouchStart = useRef({ x: 0, y: 0 });
+
+  // Реф для Drag and Drop
   const dragItemIndex = useRef<number | null>(null);
 
   const triggerHaptic = (style: "light" | "medium" | "heavy") => {
@@ -44,20 +49,54 @@ export default function TierView({ animationData, setIsTyping }: TierViewProps) 
     ]);
   };
 
+  const handleDeleteItem = (id: string) => {
+    setItems(prev => prev.filter(item => item.id !== id));
+  };
+
   const handleInputChange = (id: string, value: string) => {
     setItems(items.map(item => item.id === id ? { ...item, text: value.slice(0, 40) } : item));
+  };
+
+  // --- МЕХАНИКА SWIPE TO DELETE (ИЗОЛИРОВАННАЯ) ---
+  const handleRowTouchStart = (e: React.TouchEvent, id: string) => {
+    rowTouchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    setActiveSwipeId(id);
+    setIsTyping?.(true); // Замораживаем свайпы главного трека модалки
+  };
+
+  const handleRowTouchMove = (e: React.TouchEvent) => {
+    const currentX = e.touches[0].clientX;
+    const deltaX = currentX - rowTouchStart.current.x;
+    const deltaY = e.touches[0].clientY - rowTouchStart.current.y;
+    
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      // Это горизонтальный свайп - рубим всплытие к родительскому треку!
+      e.stopPropagation();
+      if (deltaX > 0) {
+        setSwipeX(deltaX);
+      }
+    }
+  };
+
+  const handleRowTouchEnd = (id: string) => {
+    setIsTyping?.(false);
+    if (swipeX > 90) {
+      triggerHaptic("medium");
+      handleDeleteItem(id);
+    }
+    setActiveSwipeId(null);
+    setSwipeX(0);
   };
 
   // --- МЕХАНИКА DRAG & DROP ---
   const handleDragStart = (index: number) => {
     dragItemIndex.current = index;
-    setIsTyping?.(true); // Блокируем свайпы модалки при перетаскивании
+    setIsTyping?.(true);
   };
 
   const handleDragEnter = (index: number) => {
     if (dragItemIndex.current === null || dragItemIndex.current === index) return;
     
-    // Пересчитываем порядок в массиве
     const newItems = [...items];
     const draggedItem = newItems[dragItemIndex.current];
     
@@ -70,7 +109,7 @@ export default function TierView({ animationData, setIsTyping }: TierViewProps) 
 
   const handleDragEnd = () => {
     dragItemIndex.current = null;
-    setIsTyping?.(false); // Возвращаем управление свайпами модалки
+    setIsTyping?.(false);
     triggerHaptic("light");
   };
 
@@ -84,7 +123,7 @@ export default function TierView({ animationData, setIsTyping }: TierViewProps) 
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative">
       
-      {/* ОСНОВНОЙ КОНТЕНТ (НЕ СКРОЛЛИТСЯ, скролл убран внутрь блока) */}
+      {/* ОСНОВНОЙ КОНТЕНТ */}
       <div className="flex-1 px-5 pb-4 flex flex-col space-y-5 overflow-hidden">
         
         {/* Шапка таба с Lottie-анимацией */}
@@ -101,7 +140,7 @@ export default function TierView({ animationData, setIsTyping }: TierViewProps) 
             )}
           </div>
           <p className="text-xs font-medium text-neutral-400 dark:text-neutral-500 leading-relaxed">
-            Собери свой личный топ! Добавляй позиции, распределяй места и двигай их как хочешь. Главное — аргументируй, почему топ-1 именно он 🫪
+            Собери свой личный топ! Добавляй позиции, распределяй места и двигай их как хочешь. Главное - аргументируй, почему топ-1 именно он 🫪
           </p>
         </div>
 
@@ -111,49 +150,66 @@ export default function TierView({ animationData, setIsTyping }: TierViewProps) 
             Позиции в рейтинге
           </label>
           
-          {/* ЕДИНЫЙ БЛОК ДЛЯ ВСЕХ СТРОК (С изолированным внутренним невидимым скроллом) */}
-          <div className="w-full flex flex-col bg-neutral-50/50 dark:bg-neutral-950/20 rounded-[24px] overflow-y-auto scrollbar-none border border-transparent focus-within:border-neutral-600/30 transition-colors duration-200">
-            {items.map((item, index) => (
-              <div 
-                key={item.id}
-                draggable
-                onDragStart={() => handleDragStart(index)}
-                onDragEnter={() => handleDragEnter(index)}
-                onDragEnd={handleDragEnd}
-                onDragOver={(e) => e.preventDefault()}
-                className={`w-full h-[54px] flex items-center justify-between px-4 transition-all duration-200 bg-transparent relative ${
-                  index !== items.length - 1 ? "border-b border-neutral-200/50 dark:border-neutral-800/40" : ""
-                }`}
-              >
-                {/* Левая часть: Номер + Заглушка под картинку */}
-                <div className="flex items-center space-x-3 flex-1 mr-3">
-                  <span className="text-xs font-bold text-neutral-400 dark:text-neutral-600 min-w-[16px] text-center select-none">
-                    {index + 1}
-                  </span>
-                  <div className="w-8 h-8 bg-neutral-200 dark:bg-neutral-800/60 rounded-xl flex-shrink-0 select-none animate-pulse" />
-                  
-                  {/* Строка ввода */}
-                  <input
-                    type="text"
-                    placeholder={index === 0 ? "Введи первую оценку..." : "Название позиции..."}
-                    value={item.text}
-                    onChange={(e) => handleInputChange(item.id, e.target.value)}
-                    onFocus={() => setIsTyping?.(true)}
-                    onBlur={() => setIsTyping?.(false)}
-                    className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text placeholder-neutral-300 dark:placeholder-neutral-600"
-                  />
-                </div>
-
-                {/* Правая часть: Иконка перетаскивания */}
-                <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 cursor-grab active:cursor-grabbing select-none">
-                  <img 
-                    src="/icons/drag.png" 
-                    alt="Перетащить" 
-                    className="w-4 h-4 object-contain opacity-35 dark:opacity-20 block dark:brightness-0 dark:invert"
-                  />
-                </div>
+          {/* МОНОЛИТНЫЙ ЖЕСТКИЙ БЛОК (Не деформируется, цвет в цвет как подсказка) */}
+          <div className="w-full h-[270px] flex flex-col bg-neutral-600 dark:bg-neutral-800 rounded-[24px] overflow-y-auto scrollbar-none relative">
+            {items.length === 0 ? (
+              <div className="flex-1 flex items-center justify-center select-none">
+                <p className="text-xs font-medium text-white/30 dark:text-neutral-500">Список пуст</p>
               </div>
-            ))}
+            ) : (
+              items.map((item, index) => {
+                const isSwipingThis = activeSwipeId === item.id;
+                return (
+                  <div 
+                    key={item.id}
+                    draggable
+                    onDragStart={() => handleDragStart(index)}
+                    onDragEnter={() => handleDragEnter(index)}
+                    onDragEnd={handleDragEnd}
+                    onDragOver={(e) => e.preventDefault()}
+                    onTouchStart={(e) => handleRowTouchStart(e, item.id)}
+                    onTouchMove={handleRowTouchMove}
+                    onTouchEnd={() => handleRowTouchEnd(item.id)}
+                    style={{
+                      transform: isSwipingThis ? `translateX(${swipeX}px)` : "none",
+                      opacity: isSwipingThis ? Math.max(0.2, 1 - swipeX / 160) : 1,
+                      transition: isSwipingThis ? "none" : "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease",
+                    }}
+                    className={`w-full h-[54px] flex items-center justify-between px-4 bg-transparent flex-shrink-0 relative ${
+                      index !== items.length - 1 ? "border-b border-white/10 dark:border-neutral-700/50" : ""
+                    }`}
+                  >
+                    {/* Левая часть: Номер + Заглушка под картинку */}
+                    <div className="flex items-center space-x-3 flex-1 mr-3">
+                      <span className="text-xs font-bold text-white/40 dark:text-neutral-400/50 min-w-[16px] text-center select-none">
+                        {index + 1}
+                      </span>
+                      <div className="w-8 h-8 bg-white/10 dark:bg-neutral-700/50 rounded-xl flex-shrink-0 select-none" />
+                      
+                      {/* Строка ввода */}
+                      <input
+                        type="text"
+                        placeholder={index === 0 ? "Введи первую оценку..." : "Название позиции..."}
+                        value={item.text}
+                        onChange={(e) => handleInputChange(item.id, e.target.value)}
+                        onFocus={() => setIsTyping?.(true)}
+                        onBlur={() => setIsTyping?.(false)}
+                        className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-white placeholder-white/30"
+                      />
+                    </div>
+
+                    {/* Правая часть: Иконка перетаскивания */}
+                    <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 cursor-grab active:cursor-grabbing select-none">
+                      <img 
+                        src="/icons/drag.png" 
+                        alt="Перетащить" 
+                        className="w-4 h-4 object-contain brightness-0 invert opacity-40 block"
+                      />
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
 
@@ -182,6 +238,7 @@ export default function TierView({ animationData, setIsTyping }: TierViewProps) 
       <div className="px-5 pb-8 pt-9 flex flex-col items-center relative z-40 bg-white dark:bg-neutral-900 flex-shrink-0 select-none">
         <div className="w-full relative flex flex-col items-center">
           
+          {/* Плашка */}
           <div className="absolute -top-7 left-0 right-0 bg-neutral-600 dark:bg-neutral-800 rounded-t-[20px] pt-2 pb-10 text-center pointer-events-none z-10">
             <p className="text-[11px] font-normal text-white dark:text-neutral-200 tracking-wide px-4">
               Твой тир-лист отправится прямо в общую ленту трендов
