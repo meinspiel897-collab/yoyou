@@ -387,6 +387,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
                 description={rateDescription}
                 setDescription={setRateDescription}
                 animationData={activeSubTab === "rate" ? animationData : null}
+                setIsTyping={setIsTyping} // Блокировка свайпов для Оценки
               />
             </div>
 
@@ -398,7 +399,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
                 description={takeDescription}
                 setDescription={setTakeDescription}
                 animationData={activeSubTab === "take" ? animationData : null}
-                setIsTyping={setIsTyping} // Передаём функцию трекинга
+                setIsTyping={setIsTyping} // Блокировка свайпов для Тейка
               />
             </div>
 
