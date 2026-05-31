@@ -48,7 +48,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
     over: null,
   });
 
-  // Премиальные рефы для трекинга свайпа «как в MainView»
+  // Премиальные рефы для трекинга свайпа
   const touchStart = useRef({ x: 0, y: 0, time: 0 });
   const isSwiping = useRef(false);
   const currentTranslate = useRef(0);
@@ -77,7 +77,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
     }
   }, []);
 
-  // Настоящий попиксельный трекинг пальца (Swipeable views)
+  // Попиксельный трекинг пальца (Swipeable views)
   const handleTouchStart = (e: React.TouchEvent) => {
     // Защита от зоны правого скроллбара
     if (e.touches[0].clientX > window.innerWidth - 30) return;
@@ -334,7 +334,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
         {/* Шапка модалки */}
         <div className="relative w-full h-16 flex items-center justify-center px-4 flex-shrink-0 select-none">
           <h2 className="text-base font-bold text-appleLight-text dark:text-appleDark-text tracking-tight">
-            What's new
+            Что-то новенькое
           </h2>
 
           <button 
@@ -398,7 +398,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
               />
             </div>
 
-            {/* Секция: Тейк */}
+            {/* Секция: Тейк (лимит теперь передаётся внутри компонента или берётся оттуда) */}
             <div className="w-[25%] h-full flex flex-col overflow-hidden">
               <TakeView 
                 title={takeTitle}
