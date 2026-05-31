@@ -40,7 +40,7 @@ export default function TakeView({
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative">
       
-      {/* СКРОЛЛ-ЗОНА КОНТЕНТА (Единственная зона, которая скроллится при нехватке места) */}
+      {/* СКРОЛЛ-ЗОНА КОНТЕНТА */}
       <div className="flex-1 overflow-y-auto px-5 pb-4 flex flex-col space-y-5 scrollbar-none">
         
         {/* Шапка таба с Lottie-анимацией */}
@@ -57,26 +57,26 @@ export default function TakeView({
             )}
           </div>
           <p className="text-xs font-medium text-neutral-400 dark:text-neutral-500 leading-relaxed">
-            Выдай свой самый лучший тейк! Напиши базу или кринж - пускай толпа решает, гений ты или «очередной зумер»
+            Выдай свой самый лучший тейк! Напиши базу или кринж — пускай толпа решает, гений ты или «очередной зумер»
           </p>
         </div>
 
-        {/* Поле: Текст Тейка (250 символов) */}
+        {/* Поле: Текст Тейка (750 символов для полноценного поста) */}
         <div className="flex flex-col space-y-1.5">
           <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
             Твой тейк
           </label>
-          <div className="w-full min-h-[128px] bg-transparent border border-neutral-600 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-[24px] flex items-start p-4 transition-colors duration-200 relative">
+          <div className="w-full min-h-[188px] bg-transparent border border-neutral-600 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-[24px] flex items-start p-4 transition-colors duration-200 relative">
             <textarea
               placeholder="Пиши всё, что думаешь..."
               value={title}
-              onChange={(e) => setTitle(e.target.value.slice(0, 250))}
-              maxLength={250}
-              rows={4}
-              className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text placeholder-neutral-300 dark:placeholder-neutral-600 resize-none overflow-y-auto h-[80px] pr-2 leading-snug scrollbar-none"
+              onChange={(e) => setTitle(e.target.value.slice(0, 750))}
+              maxLength={750}
+              rows={6}
+              className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text placeholder-neutral-300 dark:placeholder-neutral-600 resize-none overflow-y-auto h-[140px] pr-2 leading-snug scrollbar-none"
             />
             <span className="absolute right-4 bottom-3.5 text-[11px] font-bold text-neutral-400 dark:text-neutral-600 select-none tracking-wide">
-              {title.length}/250
+              {title.length}/750
             </span>
           </div>
         </div>
@@ -103,12 +103,12 @@ export default function TakeView({
 
       </div>
 
-      {/* ФИКСИРОВАННЫЙ ПОДВАЛ (Жестко заперт на своем месте) */}
+      {/* ФИКСИРОВАННЫЙ ПОДВАЛ */}
       <div className="px-5 pb-8 pt-9 flex flex-col items-center relative z-40 bg-white dark:bg-neutral-900 flex-shrink-0 select-none">
         
         <div className="w-full relative flex flex-col items-center">
           
-          {/* Плашка: цвет контура строк, в ширину кнопки, идеальная симметрия отступов, текст НЕ жирный */}
+          {/* Плашка */}
           <div className="absolute -top-7 left-0 right-0 bg-neutral-600 dark:bg-neutral-800 rounded-t-[20px] pt-2 pb-10 text-center pointer-events-none z-10">
             <p className="text-[11px] font-normal text-white dark:text-neutral-200 tracking-wide px-4">
               Твой тейк отправится прямо в общую ленту трендов
