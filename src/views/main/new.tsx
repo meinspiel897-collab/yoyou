@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 
-// Импортируем именно lottie-light-react с отключенным SSR
+// Импортируем облегченную lottie-light-react без SSR
 const Lottie = dynamic(() => import("lottie-light-react"), { ssr: false });
 
 interface NewModalProps {
@@ -51,11 +51,14 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
   const currentTab = tabs.find((t) => t.id === activeSubTab) || tabs[0];
   const activeIndex = tabs.findIndex((t) => t.id === activeSubTab);
 
+  // Подгружаем анимации с учетом фикса опечатки в названии файла
   useEffect(() => {
     if (!isOpen) return;
     
     setAnimationData(null);
-    fetch(`/icons/${activeSubTab}.json`)
+    const targetJson = activeSubTab === "tier" ? "tear" : activeSubTab;
+
+    fetch(`/icons/${targetJson}.json`)
       .then((res) => res.json())
       .then((data) => setAnimationData(data))
       .catch((err) => console.error("Ошибка загрузки Lottie:", err));
@@ -67,6 +70,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
         isOpen ? "pointer-events-auto" : "pointer-events-none"
       }`}
     >
+      {/* Задний фон */}
       <div 
         className={`absolute inset-0 bg-black/15 dark:bg-black/30 transition-all duration-300 ${
           isOpen ? "opacity-100 backdrop-blur-[3px]" : "opacity-0 backdrop-blur-0"
@@ -74,6 +78,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
         onClick={onClose} 
       />
 
+      {/* Окно модалки */}
       <div 
         className={`relative w-full h-[90%] bg-white dark:bg-neutral-900 rounded-t-[32px] shadow-2xl flex flex-col transition-transform duration-300 cubic-bezier(0.15, 1, 0.2, 1) will-change-transform ${
           isOpen ? "translate-y-0" : "translate-y-full"
@@ -128,7 +133,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
             })}
           </div>
 
-          {/* Описание с Lottie-light */}
+          {/* Описание с Lottie */}
           <div className="flex items-start space-x-3.5 px-1 mb-6 min-h-[52px] select-none">
             <div className="w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">
               {animationData ? (
@@ -150,17 +155,24 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
           {activeSubTab === "rate" ? (
             <div className="flex flex-col space-y-4 animate-fadeIn">
               
-              {/* Поле: Название */}
-              <div className="flex flex-col space-y-1.5">
-                <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 pl-[56px] select-none">
-                  Имя тут
-                </label>
-                <div className="flex items-center space-x-3 w-full">
-                  <div className="w-11 h-11 border border-neutral-200 dark:border-neutral-800 rounded-xl flex items-center justify-center flex-shrink-0 select-none">
-                    <span className="text-xs text-neutral-300 dark:text-neutral-700">✦</span>
-                  </div>
+              {/* Ряд: Крупный квадрат + Вертикальный стек Названия */}
+              <div className="flex items-end space-x-3.5 w-full">
+                
+                {/* Большой пустой квадрат под будущую обложку ИИ */}
+                <div className="w-[110px] h-[110px] border border-neutral-200 dark:border-neutral-800 rounded-2xl flex items-center justify-center flex-shrink-0 select-none">
+                  <img 
+                    src="/icons/add.png" 
+                    alt="Добавить" 
+                    className="w-10 h-10 object-contain block dark:brightness-0 dark:invert opacity-30"
+                  />
+                </div>
 
-                  <div className="flex-1 h-11 bg-transparent border border-neutral-200 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-full flex items-center px-4 transition-colors duration-200">
+                {/* Поле ввода имени */}
+                <div className="flex-1 flex flex-col space-y-1.5">
+                  <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 pl-4 select-none">
+                    Имя тут
+                  </label>
+                  <div className="w-full h-11 bg-transparent border border-neutral-200 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-full flex items-center px-4 transition-colors duration-200">
                     <input
                       type="text"
                       placeholder="Что угодно"
@@ -174,11 +186,12 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
                     </span>
                   </div>
                 </div>
+
               </div>
 
-              {/* Поле: Описание (3 строки с кастомным скроллом) */}
+              {/* Поле: Описание (выровнено идеально по левому краю строки) */}
               <div className="flex flex-col space-y-1.5">
-                <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 pl-3 select-none">
+                <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 pl-4 select-none">
                   Описание здесь
                 </label>
                 <div className="w-full min-h-[78px] bg-transparent border border-neutral-200 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-[20px] flex items-start p-3.5 transition-colors duration-200 relative">
