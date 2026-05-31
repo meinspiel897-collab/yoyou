@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import dynamic from "next/dynamic";
 
 const Lottie = dynamic(() => import("lottie-light-react"), { ssr: false });
@@ -16,10 +16,12 @@ interface TierViewProps {
 }
 
 export default function TierView({ animationData, setIsTyping }: TierViewProps) {
-  // На старте сразу даём один пустой пункт
   const [items, setItems] = useState<TierItem[]>([
     { id: "item-1", text: "" }
   ]);
+  
+  // Реф для отслеживания индекса перетаскиваемого элемента
+  const dragItemIndex = useRef<number | null>(null);
 
   const triggerHaptic = (style: "light" | "medium" | "heavy") => {
     if (typeof window !== "undefined") {
@@ -36,34 +38,57 @@ export default function TierView({ animationData, setIsTyping }: TierViewProps) 
     if (items.length >= 10) return;
     triggerHaptic("light");
     
-    const newItem: TierItem = {
-      id: `item-${Date.now()}`,
-      text: ""
-    };
-    setItems([...items, newItem]);
+    setItems([
+      ...items,
+      { id: `item-${Date.now()}`, text: "" }
+    ]);
   };
 
   const handleInputChange = (id: string, value: string) => {
     setItems(items.map(item => item.id === id ? { ...item, text: value.slice(0, 40) } : item));
   };
 
+  // --- МЕХАНИКА DRAG & DROP ---
+  const handleDragStart = (index: number) => {
+    dragItemIndex.current = index;
+    setIsTyping?.(true); // Блокируем свайпы модалки при перетаскивании
+  };
+
+  const handleDragEnter = (index: number) => {
+    if (dragItemIndex.current === null || dragItemIndex.current === index) return;
+    
+    // Пересчитываем порядок в массиве
+    const newItems = [...items];
+    const draggedItem = newItems[dragItemIndex.current];
+    
+    newItems.splice(dragItemIndex.current, 1);
+    newItems.splice(index, 0, draggedItem);
+    
+    dragItemIndex.current = index;
+    setItems(newItems);
+  };
+
+  const handleDragEnd = () => {
+    dragItemIndex.current = null;
+    setIsTyping?.(false); // Возвращаем управление свайпами модалки
+    triggerHaptic("light");
+  };
+
   const handleMainButtonClick = () => {
-    // Проверяем, что хотя бы первый пункт заполнен
     if (items.length === 0 || !items[0].text.trim()) return;
     triggerHaptic("medium");
   };
 
-  // Валидация: кнопка активна, если введен текст хотя бы в самый первый пункт
   const isFormValid = items.length > 0 && items[0].text.trim().length > 0;
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative">
       
-      {/* СКРОЛЛ-ЗОНА КОНТЕНТА */}
-      <div className="flex-1 overflow-y-auto px-5 pb-4 flex flex-col space-y-5 scrollbar-none">
+      {/* ОСНОВНОЙ КОНТЕНТ (НЕ СКРОЛЛИТСЯ, скролл убран внутрь блока) */}
+      <div className="flex-1 px-5 pb-4 flex flex-col space-y-5 overflow-hidden">
         
-        {/* Шапка таба с Lottie-анимацией (tear.json) */}
-        <div className="flex items-start space-x-3.5 px-1 min-h-[52px] select-none pt-1">
+        {/* Шапка таба с Lottie-анимацией */}
+        <div className="flex items-start space-x-3.5 px-1 min-h-[52px] select-none pt-1 flex-shrink-0">
           <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
             {animationData ? (
               <Lottie 
@@ -80,17 +105,25 @@ export default function TierView({ animationData, setIsTyping }: TierViewProps) 
           </p>
         </div>
 
-        {/* Список пунктов Тир-листа */}
-        <div className="flex flex-col space-y-2">
-          <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none px-1">
+        {/* Заголовок блока */}
+        <div className="flex flex-col space-y-1.5 flex-1 overflow-hidden">
+          <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none px-1 flex-shrink-0">
             Позиции в рейтинге
           </label>
           
-          <div className="flex flex-col space-y-2.5 transition-all duration-300">
+          {/* ЕДИНЫЙ БЛОК ДЛЯ ВСЕХ СТРОК (С изолированным внутренним невидимым скроллом) */}
+          <div className="w-full flex flex-col bg-neutral-50/50 dark:bg-neutral-950/20 rounded-[24px] overflow-y-auto scrollbar-none border border-transparent focus-within:border-neutral-600/30 transition-colors duration-200">
             {items.map((item, index) => (
               <div 
                 key={item.id}
-                className="w-full h-[54px] bg-neutral-50/50 dark:bg-neutral-950/20 rounded-[18px] flex items-center justify-between px-3.5 transition-all duration-200 animate-[fadeIn_0.2s_ease-out]"
+                draggable
+                onDragStart={() => handleDragStart(index)}
+                onDragEnter={() => handleDragEnter(index)}
+                onDragEnd={handleDragEnd}
+                onDragOver={(e) => e.preventDefault()}
+                className={`w-full h-[54px] flex items-center justify-between px-4 transition-all duration-200 bg-transparent relative ${
+                  index !== items.length - 1 ? "border-b border-neutral-200/50 dark:border-neutral-800/40" : ""
+                }`}
               >
                 {/* Левая часть: Номер + Заглушка под картинку */}
                 <div className="flex items-center space-x-3 flex-1 mr-3">
@@ -111,7 +144,7 @@ export default function TierView({ animationData, setIsTyping }: TierViewProps) 
                   />
                 </div>
 
-                {/* Правая часть: Перетаскивалка */}
+                {/* Правая часть: Иконка перетаскивания */}
                 <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 cursor-grab active:cursor-grabbing select-none">
                   <img 
                     src="/icons/drag.png" 
@@ -124,9 +157,9 @@ export default function TierView({ animationData, setIsTyping }: TierViewProps) 
           </div>
         </div>
 
-        {/* Кнопка добавления нового пункта (Исчезает, если пунктов >= 10) */}
+        {/* Кнопка добавления нового пункта */}
         {items.length < 10 && (
-          <div className="px-1 transition-all duration-200">
+          <div className="px-1 flex-shrink-0">
             <button
               onClick={handleAddItem}
               className="w-full h-12 bg-neutral-50/50 dark:bg-neutral-950/20 hover:bg-neutral-100 dark:hover:bg-neutral-900 rounded-[18px] flex items-center justify-center space-x-2 transition-colors duration-200 outline-none active:scale-[0.99]"
