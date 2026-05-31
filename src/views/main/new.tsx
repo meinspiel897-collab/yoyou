@@ -3,15 +3,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import RateView from "./rate";
 import TakeView from "./take";
-import TierView from "./tier"; // Подключаем обновленный тир-лист
 
 interface NewModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-// Убрали over из типов
-type SubTabType = "rate" | "take" | "tier";
+type SubTabType = "rate" | "take";
 
 interface TabConfig {
   id: SubTabType;
@@ -31,14 +29,13 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
 
   const [animationData, setAnimationData] = useState<any>(null);
 
-  // Таббар теперь состоит только из 3-х элементов
+  // Только две базовые категории
   const tabs: TabConfig[] = [
     { id: "rate", label: "Оценка" },
     { id: "take", label: "Тейк" },
-    { id: "tier", label: "Тир лист" },
   ];
 
-  const subTabOrder: SubTabType[] = ["rate", "take", "tier"];
+  const subTabOrder: SubTabType[] = ["rate", "take"];
   const activeIndex = subTabOrder.indexOf(activeSubTab);
 
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -46,7 +43,6 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
   const tabsRefs = useRef<{ [key in SubTabType]: HTMLButtonElement | null }>({
     rate: null,
     take: null,
-    tier: null,
   });
 
   const touchStart = useRef({ x: 0, y: 0, time: 0 });
@@ -290,10 +286,8 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
   useEffect(() => {
     if (!isOpen) return;
     setAnimationData(null);
-    // Теперь загружаем строго по id активного таба
-    const targetJson = activeSubTab === "tier" ? "tear" : activeSubTab;
 
-    fetch(`/icons/${targetJson}.json`)
+    fetch(`/icons/${activeSubTab}.json`)
       .then((res) => res.json())
       .then((data) => setAnimationData(data))
       .catch((err) => console.error("Ошибка загрузки Lottie:", err));
@@ -309,8 +303,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
         className={`absolute inset-0 bg-black/15 dark:bg-black/30 transition-all duration-300 ${
           isOpen ? "opacity-100 backdrop-blur-[3px]" : "opacity-0 backdrop-blur-0"
         }`} 
-        onClick={onClose} 
-      />
+        onClick={onClose} />
 
       <div 
         className={`absolute left-0 right-0 bg-white dark:bg-neutral-900 rounded-t-[32px] shadow-2xl flex flex-col overflow-hidden transition-transform duration-300 cubic-bezier(0.15, 1, 0.2, 1) will-change-transform ${
@@ -339,7 +332,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
           </button>
         </div>
 
-        {/* Навигационный таббар (на 3 вкладки) */}
+        {/* Навигационный таббар (на 2 вкладки) */}
         <div className="px-5 flex-shrink-0">
           <div className="w-full h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center relative mb-5 select-none">
             <div 
@@ -367,18 +360,18 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
           </div>
         </div>
 
-        {/* Свайп-зона трека (теперь 300% ширина под 3 таба) */}
+        {/* Свайп-зона трека (200% под 2 таба) */}
         <div className="flex-1 w-full overflow-hidden relative">
           <div 
             ref={contentTrackRef}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            className="absolute inset-0 flex w-[300%] h-full will-change-transform"
+            className="absolute inset-0 flex w-[200%] h-full will-change-transform"
             style={{ transform: `translateX(0px)` }}
           >
             {/* Секция: Оценка */}
-            <div className="w-[33.333%] h-full flex flex-col overflow-hidden">
+            <div className="w-[50%] h-full flex flex-col overflow-hidden">
               <RateView 
                 title={rateTitle}
                 setTitle={setRateTitle}
@@ -390,21 +383,13 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
             </div>
 
             {/* Секция: Тейк */}
-            <div className="w-[33.333%] h-full flex flex-col overflow-hidden">
+            <div className="w-[50%] h-full flex flex-col overflow-hidden">
               <TakeView 
                 title={takeTitle}
                 setTitle={setTakeTitle}
                 description={takeDescription}
                 setDescription={setTakeDescription}
                 animationData={activeSubTab === "take" ? animationData : null}
-                setIsTyping={setIsTyping}
-              />
-            </div>
-
-            {/* Секция: Тир лист */}
-            <div className="w-[33.333%] h-full flex flex-col overflow-hidden">
-              <TierView 
-                animationData={activeSubTab === "tier" ? animationData : null}
                 setIsTyping={setIsTyping}
               />
             </div>
