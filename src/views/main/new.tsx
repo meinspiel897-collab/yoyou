@@ -74,7 +74,8 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
         className={`absolute inset-0 bg-black/15 dark:bg-black/30 transition-all duration-300 ${
           isOpen ? "opacity-100 backdrop-blur-[3px]" : "opacity-0 backdrop-blur-0"
         }`} 
-        onClick={onClose} />
+        onClick={onClose} 
+      />
 
       {/* Окно модалки */}
       <div 
@@ -85,7 +86,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
         {/* Шапка модалки */}
         <div className="relative w-full h-16 flex items-center justify-center px-4 flex-shrink-0">
           <h2 className="text-base font-bold text-appleLight-text dark:text-appleDark-text tracking-tight">
-            Что создаем?
+            What's new
           </h2>
 
           <button 
@@ -103,10 +104,10 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
         {/* Контент */}
         <div className="flex-1 overflow-y-auto px-5 pb-8 flex flex-col">
           
-          {/* Кастомный Таббар точь-в-точь как в хедере */}
+          {/* Родной Таббар один в один как в хедере */}
           <div className="w-full h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center relative mb-6 flex-shrink-0 select-none">
             <div 
-              className="absolute top-1 bottom-1 bg-white/95 dark:bg-neutral-700/90 rounded-full border border-transparent shadow-sm transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) z-10"
+              className="absolute top-1 bottom-1 bg-white/95 dark:bg-neutral-700/90 rounded-full border border-transparent shadow-sm transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform z-10"
               style={{ 
                 left: `calc(${activeIndex * 25}% + 4px)`,
                 width: "calc(25% - 8px)" 
@@ -119,7 +120,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
                 <button
                   key={tab.id}
                   onClick={() => setActiveSubTab(tab.id)}
-                  className={`flex-1 h-full rounded-full text-xs font-bold transition-colors duration-200 outline-none whitespace-nowrap flex items-center justify-center z-20 ${
+                  className={`flex-1 h-full rounded-full text-xs font-medium transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) outline-none whitespace-nowrap flex items-center justify-center z-20 ${
                     isActive 
                       ? "text-appleLight-text dark:text-appleDark-text" 
                       : "text-appleLight-text/45 dark:text-appleDark-text/45"
@@ -131,7 +132,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
             })}
           </div>
 
-          {/* Описание с подросшим Lottie-плеером */}
+          {/* Описание с увеличенным Lottie */}
           <div className="flex items-start space-x-3.5 px-1 mb-6 min-h-[52px] select-none">
             <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
               {animationData ? (
@@ -153,19 +154,19 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
           {activeSubTab === "rate" ? (
             <div className="flex flex-col space-y-4 animate-fadeIn">
               
-              {/* Поле: Название (на всю ширину) */}
+              {/* Поле: Название */}
               <div className="flex flex-col space-y-1.5">
                 <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
                   Имя тут
                 </label>
-                <div className="w-full h-11 bg-transparent border border-neutral-400 dark:border-neutral-600 focus-within:border-[#FC062D] rounded-full flex items-center px-4 transition-colors duration-200">
+                <div className="w-full h-11 bg-transparent border border-neutral-500 dark:border-neutral-700 focus-within:border-[#FC062D] rounded-full flex items-center px-4 transition-colors duration-200">
                   <input
                     type="text"
                     placeholder="Что угодно"
                     value={title}
                     onChange={(e) => setTitle(e.target.value.slice(0, 20))}
                     maxLength={20}
-                    className="flex-1 h-full bg-transparent border-none outline-none text-sm font-semibold text-appleLight-text dark:text-appleDark-text placeholder-neutral-300 dark:placeholder-neutral-600"
+                    className="flex-1 h-full bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text placeholder-neutral-300 dark:placeholder-neutral-600"
                   />
                   <span className="text-[11px] font-bold text-neutral-400 dark:text-neutral-600 ml-2 select-none tracking-wide">
                     {title.length}/20
@@ -178,14 +179,14 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
                 <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
                   Описание здесь
                 </label>
-                <div className="w-full min-h-[78px] bg-transparent border border-neutral-400 dark:border-neutral-600 focus-within:border-[#FC062D] rounded-[20px] flex items-start p-3.5 transition-colors duration-200 relative">
+                <div className="w-full min-h-[78px] bg-transparent border border-neutral-500 dark:border-neutral-700 focus-within:border-[#FC062D] rounded-[20px] flex items-start p-3.5 transition-colors duration-200 relative">
                   <textarea
                     placeholder="Что угодно"
                     value={description}
                     onChange={(e) => setDescription(e.target.value.slice(0, 130))}
                     maxLength={130}
                     rows={3}
-                    className="flex-1 bg-transparent border-none outline-none text-sm font-semibold text-appleLight-text dark:text-appleDark-text placeholder-neutral-300 dark:placeholder-neutral-600 resize-none overflow-y-auto h-[48px] pr-14 leading-tight scrollbar-none"
+                    className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text placeholder-neutral-300 dark:placeholder-neutral-600 resize-none overflow-y-auto h-[48px] pr-14 leading-tight scrollbar-none"
                   />
                   <span className="absolute right-4 bottom-3.5 text-[11px] font-bold text-neutral-400 dark:text-neutral-600 select-none tracking-wide">
                     {description.length}/130
@@ -193,12 +194,12 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
                 </div>
               </div>
 
-              {/* Ряд: Три вертикальные моковые карточки под описанием */}
+              {/* Ряд: Три вертикальные моковые карточки (заглушки как у Lottie) */}
               <div className="grid grid-cols-3 gap-3 w-full pt-1">
                 {[0, 1, 2].map((index) => (
                   <div 
                     key={index}
-                    className="aspect-[3/4] w-full border border-neutral-400 dark:border-neutral-600 rounded-2xl flex items-center justify-center bg-neutral-50/50 dark:bg-neutral-950/20 relative overflow-hidden select-none"
+                    className="aspect-[3/4] w-full border border-neutral-500 dark:border-neutral-700 rounded-2xl flex items-center justify-center bg-neutral-50/50 dark:bg-neutral-950/20 relative overflow-hidden select-none"
                   >
                     {index === 0 ? (
                       <img 
@@ -207,9 +208,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
                         className="w-9 h-9 object-contain block dark:brightness-0 dark:invert opacity-25"
                       />
                     ) : (
-                      <span className="text-[10px] font-bold text-neutral-400 dark:text-neutral-600 uppercase tracking-wider opacity-20">
-                        AI Mock
-                      </span>
+                      <div className="w-5 h-5 bg-neutral-200 dark:bg-neutral-800 rounded-full animate-pulse opacity-40" />
                     )}
                   </div>
                 ))}
