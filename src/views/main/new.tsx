@@ -18,9 +18,6 @@ interface TabConfig {
 
 export default function NewModal({ isOpen, onClose }: NewModalProps) {
   const [activeSubTab, setActiveSubTab] = useState<SubTabType>("rate");
-  const [useAnimation, setUseAnimation] = useState<boolean>(true);
-  
-  // Жестко фиксируем координаты от верха экрана, чтобы клавиатура ничего не двигала
   const [dimensions, setDimensions] = useState({ top: "10vh", height: "90vh" });
   
   // Раздельные стейты для сохранения контента
@@ -43,12 +40,19 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
   const activeIndex = subTabOrder.indexOf(activeSubTab);
 
   const sliderRef = useRef<HTMLDivElement>(null);
+  const contentTrackRef = useRef<HTMLDivElement>(null);
   const tabsRefs = useRef<{ [key in SubTabType]: HTMLButtonElement | null }>({
     rate: null,
     take: null,
     tier: null,
     over: null,
   });
+
+  // Премиальные рефы для трекинга свайпа «как в MainView»
+  const touchStart = useRef({ x: 0, y: 0, time: 0 });
+  const isSwiping = useRef(false);
+  const currentTranslate = useRef(0);
+  const isClickTransition = useRef(false);
 
   // Тактильный отклик Telegram
   const triggerHaptic = (style: "light" | "medium" | "heavy") => {
@@ -62,68 +66,127 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
     }
   };
 
-  // Вычисляем размеры один раз при монтировании
+  // Фиксируем размеры один раз при монтировании против прыжков клавиатуры
   useEffect(() => {
     if (typeof window !== "undefined") {
       const h = window.innerHeight;
       setDimensions({
         top: `${h * 0.1}px`,
         height: `${h * 0.9}px`
-          });
-        }
+      });
+    }
   }, []);
 
-  // Логика свайпов
-  const touchStartX = useRef<number>(0);
-  const touchStartY = useRef<number>(0);
-  const isHorizontalSwipe = useRef<boolean>(false);
-
+  // Настоящий попиксельный трекинг пальца (Swipeable views)
   const handleTouchStart = (e: React.TouchEvent) => {
-    // Защита от скроллбара: если касание в пределах 30px от правого края — это скролл, а не свайп табов
+    // Защита от зоны правого скроллбара
     if (e.touches[0].clientX > window.innerWidth - 30) return;
 
-    touchStartX.current = e.touches[0].clientX;
-    touchStartY.current = e.touches[0].clientY;
-    isHorizontalSwipe.current = false;
-    setUseAnimation(true); // Включаем анимацию обратно для жестов
+    const touch = e.touches[0];
+    touchStart.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+      time: Date.now()
+    };
+    isSwiping.current = false;
+    isClickTransition.current = false;
+    
+    if (contentTrackRef.current) {
+      contentTrackRef.current.style.transition = "none";
+    }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (touchStartX.current === 0) return;
+    if (!touchStart.current.time) return;
 
-    const deltaX = e.touches[0].clientX - touchStartX.current;
-    const deltaY = e.touches[0].clientY - touchStartY.current;
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - touchStart.current.x;
+    const deltaY = touch.clientY - touchStart.current.y;
 
-    if (!isHorizontalSwipe.current && Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
-      isHorizontalSwipe.current = true;
+    if (!isSwiping.current) {
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+        isSwiping.current = true;
+      } else if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 10) {
+        touchStart.current.time = 0;
+        return;
+      }
+    }
+
+    if (isSwiping.current && contentTrackRef.current) {
+      e.preventDefault();
+      
+      const width = window.innerWidth;
+      let translate = -activeIndex * width + deltaX;
+
+      // Эффект резиновой ленты на границах первого и последнего табов
+      if ((activeIndex === 0 && deltaX > 0) || (activeIndex === subTabOrder.length - 1 && deltaX < 0)) {
+        translate = -activeIndex * width + deltaX * 0.35; 
+      }
+
+      currentTranslate.current = translate;
+      contentTrackRef.current.style.transform = `translateX(${translate}px)`;
     }
   };
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!isHorizontalSwipe.current) {
-      touchStartX.current = 0;
-      return;
-    }
-    
-    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
-    const swipeThreshold = 60;
+  const handleTouchEnd = () => {
+    if (!isSwiping.current) return;
+    isSwiping.current = false;
 
-    if (deltaX < -swipeThreshold && activeIndex < subTabOrder.length - 1) {
-      triggerHaptic("light");
-      setActiveSubTab(subTabOrder[activeIndex + 1]);
-    } else if (deltaX > swipeThreshold && activeIndex > 0) {
-      triggerHaptic("light");
-      setActiveSubTab(subTabOrder[activeIndex - 1]);
+    const width = window.innerWidth;
+    const movedX = currentTranslate.current + (activeIndex * width);
+    const duration = Date.now() - touchStart.current.time;
+
+    let targetIdx = activeIndex;
+
+    // Проверка на сильный свайп или быстрое короткое движение (флик)
+    if (Math.abs(movedX) > width * 0.35 || (duration < 250 && Math.abs(movedX) > 40)) {
+      if (movedX > 0 && activeIndex > 0) {
+        targetIdx = activeIndex - 1;
+      } else if (movedX < 0 && activeIndex < subTabOrder.length - 1) {
+        targetIdx = activeIndex + 1;
+      }
     }
-    touchStartX.current = 0;
+
+    if (contentTrackRef.current) {
+      contentTrackRef.current.style.transition = "transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)";
+      contentTrackRef.current.style.transform = `translateX(${-targetIdx * width}px)`;
+    }
+
+    if (targetIdx !== activeIndex) {
+      triggerHaptic("light");
+      setActiveSubTab(subTabOrder[targetIdx]);
+    }
+    touchStart.current.time = 0;
   };
 
+  // Переключение через таббар (без плавной анимации контента, мгновенно)
   const handleTabClick = (id: SubTabType) => {
     if (id === activeSubTab) return;
     triggerHaptic("light");
-    setUseAnimation(false); // Выключаем анимацию перелистывания при клике на таббар
+    isClickTransition.current = true;
+    
+    if (contentTrackRef.current) {
+      contentTrackRef.current.style.transition = "none";
+      const targetIdx = subTabOrder.indexOf(id);
+      contentTrackRef.current.style.transform = `translateX(${-targetIdx * window.innerWidth}px)`;
+    }
     setActiveSubTab(id);
   };
+
+  // Синхронизация положения трека при обычных обновлениях
+  useEffect(() => {
+    if (contentTrackRef.current) {
+      const currentIdx = subTabOrder.indexOf(activeSubTab);
+      
+      if (isClickTransition.current) {
+        isClickTransition.current = false;
+        return;
+      }
+
+      contentTrackRef.current.style.transition = "transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)";
+      contentTrackRef.current.style.transform = `translateX(${-currentIdx * window.innerWidth}px)`;
+    }
+  }, [activeSubTab]);
 
   const activeSubTabRef = useRef<SubTabType>(activeSubTab);
   useEffect(() => {
@@ -138,7 +201,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
     isMoving: false,
   });
 
-  // Анимация капли таббара
+  // Пружинная физика капли-бегунка в таббаре
   useEffect(() => {
     if (!isOpen) return;
 
@@ -232,6 +295,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
     }
   }, [activeSubTab, isOpen]);
 
+  // Ленивая подгрузка Lottie
   useEffect(() => {
     if (!isOpen) return;
     setAnimationData(null);
@@ -257,7 +321,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
         onClick={onClose} 
       />
 
-      {/* Контейнер модального окна — заякорен сверху */}
+      {/* Контейнер модального окна */}
       <div 
         className={`absolute left-0 right-0 bg-white dark:bg-neutral-900 rounded-t-[32px] shadow-2xl flex flex-col overflow-hidden transition-transform duration-300 cubic-bezier(0.15, 1, 0.2, 1) will-change-transform ${
           isOpen ? "translate-y-0" : "translate-y-full"
@@ -270,7 +334,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
         {/* Шапка модалки */}
         <div className="relative w-full h-16 flex items-center justify-center px-4 flex-shrink-0 select-none">
           <h2 className="text-base font-bold text-appleLight-text dark:text-appleDark-text tracking-tight">
-            Что-то новенькое
+            What's new
           </h2>
 
           <button 
@@ -313,18 +377,15 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
           </div>
         </div>
 
-        {/* Свайп-контейнер контента */}
-        <div 
-          className="flex-1 w-full overflow-hidden"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
+        {/* Изолированная свайп-зона с абсолютным позиционированием трека */}
+        <div className="flex-1 w-full overflow-hidden relative">
           <div 
-            className={`flex w-[400%] h-full will-change-transform ${
-              useAnimation ? "transition-transform duration-300 cubic-bezier(0.16, 1, 0.3, 1)" : ""
-            }`}
-            style={{ transform: `translateX(-${activeIndex * 25}%)` }}
+            ref={contentTrackRef}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            className="absolute inset-0 flex w-[400%] h-full will-change-transform"
+            style={{ transform: `translateX(0px)` }}
           >
             {/* Секция: Оценка */}
             <div className="w-[25%] h-full flex flex-col overflow-hidden">
