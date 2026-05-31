@@ -22,7 +22,7 @@ export default function RateView({
 }: RateViewProps) {
   const [showTooltip, setShowTooltip] = useState(false);
 
-  // Тактильный отклик
+  // Нативный тактильный отклик Telegram
   const triggerHaptic = (style: "light" | "medium" | "heavy") => {
     if (typeof window !== "undefined") {
       const anyWindow = window as any;
@@ -35,7 +35,7 @@ export default function RateView({
   };
 
   const toggleTooltip = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Чтобы не срабатывал клик по кнопке
+    e.stopPropagation();
     triggerHaptic("light");
     setShowTooltip(!showTooltip);
   };
@@ -43,13 +43,12 @@ export default function RateView({
   const handleMainButtonClick = () => {
     if (!title) return;
     triggerHaptic("medium");
-    // Пока кнопка ничего не делает, ждем дальнейших указаний 🫡
   };
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative">
       
-      {/* Слой для закрытия подсказки при тапе в любое место мимо */}
+      {/* Невидимый оверлей: быстро и плавно закрывает подсказку при тапе мимо */}
       {showTooltip && (
         <div 
           className="fixed inset-0 z-30 bg-transparent" 
@@ -145,46 +144,53 @@ export default function RateView({
 
       </div>
 
-      {/* ФИКСИРОВАННЫЙ НИЖНИЙ БЛОК С КНОПКОЙ И ПОДСКАЗКОЙ */}
+      {/* ФИКСИРОВАННЫЙ НИЖНИЙ БЛОК ДЛЯ КНОПОК */}
       <div className="px-5 pb-8 pt-2 flex flex-col items-center relative z-40 bg-white dark:bg-neutral-900 flex-shrink-0">
         
-        {/* Пружинная подсказка (Вырастает ровно над иконкой вопроса) */}
+        {/* Прямоугольник подсказки — смещен для баланса границ экрана, хвостик бьет четко в цель */}
         <div 
-          className="absolute bottom-[84px] right-9 w-[260px] p-3.5 bg-[#FC062D]/85 backdrop-blur-md border border-[#FC062D] rounded-2xl text-white text-[11px] font-medium leading-normal shadow-lg transition-all duration-300 will-change-transform pointer-events-none z-50"
+          className="absolute bottom-[78px] right-[-14px] w-[260px] bg-[#FC062D]/85 backdrop-blur-md border border-[#FC062D] rounded-2xl text-white text-[11px] font-medium p-3.5 leading-normal shadow-xl transition-all duration-300 will-change-transform pointer-events-none z-50 flex flex-col"
           style={{
-            transform: showTooltip ? "scale(1) translateY(0)" : "scale(0.3) translateY(20px)",
+            transform: showTooltip ? "scale(1) translateY(0)" : "scale(0.3) translateY(24px)",
             opacity: showTooltip ? 1 : 0,
             transformOrigin: "bottom right",
-            // Кастомная физическая пружина для упругого вылета подсказаньки
             transitionTimingFunction: showTooltip ? "cubic-bezier(0.34, 1.56, 0.64, 1)" : "cubic-bezier(0.25, 1, 0.5, 1)"
           }}
         >
-          Твоя оценка попадет в ленту трендов, так что каждый сможет ее увидеть и добавить свою!
+          <span>Твоя оценка попадет в ленту трендов, так что каждый сможет ее увидеть и добавить свою!</span>
           
-          {/* Треугольный хвостик */}
-          <div className="absolute -bottom-[6px] right-4 w-3 h-3 bg-[#FC062D] border-r border-b border-[#FC062D] rotate-45" />
+          {/* Бесшовный треугольный хвостик */}
+          <div className="absolute -bottom-[6px] right-[44px] -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-top-[6px] border-top-[#FC062D]" />
+          
+          {/* Микро-маска для удаления контура под хвостиком, соединяющая фигуры в одну */}
+          <div className="absolute bottom-0 right-[44px] -translate-x-1/2 w-[10px] h-[1px] bg-[#FC062D]" />
         </div>
 
-        {/* Главная интерактивная кнопка */}
-        <button
-          onClick={handleMainButtonClick}
-          disabled={!title}
-          className={`w-full h-14 rounded-full font-bold text-sm transition-all duration-150 outline-none flex items-center justify-center relative select-none ${
-            title 
-              ? "bg-[#FC062D] text-white active:scale-[0.98]" 
-              : "bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg text-appleLight-text/30 dark:text-appleDark-text/30"
-          }`}
-        >
-          <span>Закинуть в тренды</span>
+        {/* Интерактивная зона */}
+        <div className="w-full h-14 relative">
           
-          {/* Круг с вопросиком внутри кнопки */}
-          <div 
+          {/* Главная кнопка "Закинуть в тренды" */}
+          <button
+            onClick={handleMainButtonClick}
+            disabled={!title}
+            className={`w-full h-full rounded-full font-bold text-sm transition-all duration-150 outline-none flex items-center justify-center select-none pr-12 ${
+              title 
+                ? "bg-[#FC062D] text-white active:scale-[0.98]" 
+                : "bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg text-appleLight-text/30 dark:text-appleDark-text/30"
+            }`}
+          >
+            Закинуть в тренды
+          </button>
+
+          {/* Независимый круг с вопросом — копия капли-слайдера, доступен ВСЕГДА */}
+          <button
             onClick={toggleTooltip}
-            className="w-[15px] h-[15px] rounded-full border border-current flex items-center justify-center text-[10px] font-bold ml-2 transition-transform active:scale-90 cursor-pointer"
+            className="absolute right-4 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold bg-white/95 dark:bg-neutral-700/90 border border-neutral-200/20 dark:border-neutral-600/30 shadow-sm text-[#FC062D] dark:text-white transition-all active:scale-90 outline-none z-20 cursor-pointer"
           >
             ?
-          </div>
-        </button>
+          </button>
+        </div>
+
       </div>
 
     </div>
