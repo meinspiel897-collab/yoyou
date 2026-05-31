@@ -21,8 +21,9 @@ export default function RateView({
   animationData,
 }: RateViewProps) {
   const [showTooltip, setShowTooltip] = useState(false);
+  const [isBtnPressed, setIsBtnPressed] = useState(false);
 
-  // Тактильный отклик Telegram
+  // Нативный тактильный отклик Telegram
   const triggerHaptic = (style: "light" | "medium" | "heavy") => {
     if (typeof window !== "undefined") {
       const anyWindow = window as any;
@@ -35,7 +36,7 @@ export default function RateView({
   };
 
   const toggleTooltip = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Изолируем от клика по основной кнопке
+    e.stopPropagation(); // Полностью блокируем всплытие клика к кнопке
     triggerHaptic("light");
     setShowTooltip(!showTooltip);
   };
@@ -43,13 +44,13 @@ export default function RateView({
   const handleMainButtonClick = () => {
     if (!title) return;
     triggerHaptic("medium");
-    // Логика отправки будет тут 🛠️
+    // Тут будет магия отправки в тренды 🚀
   };
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative">
       
-      {/* Невидимый слой для закрытия подсказки при тапе мимо */}
+      {/* Невидимый оверлей для мгновенного закрытия подсказки при тапе в любое место */}
       {showTooltip && (
         <div 
           className="fixed inset-0 z-30 bg-transparent" 
@@ -57,10 +58,10 @@ export default function RateView({
         />
       )}
 
-      {/* СКРОЛЛ-ЗОНА ФОРМЫ */}
+      {/* СКРОЛЛ-ЗОНА ДЛЯ ФОРМЫ */}
       <div className="flex-1 overflow-y-auto px-5 pb-4 flex flex-col space-y-4 scrollbar-none">
         
-        {/* Описание с Lottie */}
+        {/* Инфо-блок с Lottie */}
         <div className="flex items-start space-x-3.5 px-1 min-h-[52px] select-none pt-1">
           <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
             {animationData ? (
@@ -118,7 +119,7 @@ export default function RateView({
           </div>
         </div>
 
-        {/* Поле: Картинки */}
+        {/* Поле: Выбор картинок */}
         <div className="flex flex-col space-y-1.5">
           <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
             Картинка
@@ -145,47 +146,74 @@ export default function RateView({
 
       </div>
 
-      {/* ФИКСИРОВАННЫЙ ПОДВАЛ С УМНОЙ КНОПКОЙ */}
+      {/* ФИКСИРОВАННЫЙ ПОДВАЛ С ФУНКЦИОНАЛЬНЫМИ СЛОЯМИ */}
       <div className="px-5 pb-8 pt-2 flex flex-col items-center relative z-40 bg-white dark:bg-neutral-900 flex-shrink-0">
         
-        <div
-          onClick={handleMainButtonClick}
-          className={`w-full h-14 rounded-full font-bold text-sm transition-all duration-150 outline-none flex items-center justify-center relative select-none ${
-            title 
-              ? "bg-[#FC062D] text-white active:scale-[0.98] cursor-pointer" 
-              : "bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg text-appleLight-text/30 dark:text-appleDark-text/30 cursor-default"
-          }`}
-        >
-          <span>Закинуть в тренды</span>
+        {/* Контейнер-оболочка для выравнивания */}
+        <div className="w-full h-14 relative flex items-center justify-center select-none">
           
-          {/* Инкапсулированный узел знака вопроса и подсказки */}
-          <div className="relative flex items-center justify-center">
-            
+          {/* СЛОЙ 1: Настоящее тело кнопки (сжимается только оно) */}
+          <div
+            onTouchStart={() => title && setIsBtnPressed(true)}
+            onTouchEnd={() => setIsBtnPressed(false)}
+            onMouseDown={() => title && setIsBtnPressed(true)}
+            onMouseUp={() => setIsBtnPressed(false)}
+            onMouseLeave={() => setIsBtnPressed(false)}
+            onClick={handleMainButtonClick}
+            className={`absolute inset-0 rounded-full font-bold text-sm flex items-center justify-center transition-all duration-150 ${
+              title 
+                ? "bg-[#FC062D] text-white cursor-pointer" 
+                : "bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg text-appleLight-text/30 dark:text-appleDark-text/30 cursor-default"
+            }`}
+            style={{
+              transform: isBtnPressed ? "scale(0.97)" : "scale(1)"
+            }}
+          >
+            {/* Небольшой сдвиг влево компенсирует присутствие иконки справа, делая текст идеально центрированным */}
+            <span className={title ? "translate-x-3.5" : ""}>Закинуть в тренды</span>
+          </div>
+
+          {/* СЛОЙ 2: Изолированная интерактивная зона знака вопроса (не подвержена деформации кнопки) */}
+          <div 
+            className={`absolute right-6 z-50 flex items-center justify-center transition-colors duration-200 ${
+              title 
+                ? "text-white/80" 
+                : "text-appleLight-text/30 dark:text-appleDark-text/30"
+            }`}
+          >
+            {/* Круг вопроса — всегда кликабелен */}
             <div 
               onClick={toggleTooltip}
-              className="w-[15px] h-[15px] rounded-full border border-current flex items-center justify-center text-[10px] font-bold ml-2 transition-transform active:scale-90 cursor-pointer"
+              className="w-4 h-4 rounded-full border border-current flex items-center justify-center text-[10px] font-bold transition-transform active:scale-85 cursor-pointer relative"
             >
               ?
-            </div>
 
-            {/* Всплывающий монолитный поп-ап */}
-            <div 
-              className="absolute bottom-full mb-3.5 w-[230px] p-3.5 bg-white dark:bg-neutral-700 border border-neutral-200/60 dark:border-neutral-600/40 rounded-2xl text-neutral-600 dark:text-neutral-200 text-[11px] font-medium leading-normal shadow-[0_8px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-all duration-300 will-change-transform pointer-events-none z-50 text-center"
-              style={{
-                left: "calc(50% + 4px)", // Сдвиг центра под ширину иконки вопроса с отступом
-                transform: showTooltip ? "scale(1) translateY(0) translateX(-50%)" : "scale(0.3) translateY(15px) translateX(-50%)",
-                opacity: showTooltip ? 1 : 0,
-                transformOrigin: "bottom center",
-                transitionTimingFunction: showTooltip ? "cubic-bezier(0.34, 1.56, 0.64, 1)" : "cubic-bezier(0.25, 1, 0.5, 1)"
-              }}
-            >
-              Твоя оценка попадет в ленту трендов, так что каждый сможет ее увидеть и добавить свою!
-              
-              {/* Хвостик, идеально сливающийся с телом */}
-              <div className="absolute -bottom-[5px] left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-white dark:bg-neutral-700 border-r border-b border-neutral-200/60 dark:border-neutral-600/40 rotate-45" />
-            </div>
+              {/* Поп-ап подсказки: за замеры на мелких экранах можно не переживать, ширина и сдвиг откалиброваны */}
+              <div 
+                className="absolute bottom-full mb-3 w-[200px] pointer-events-none transition-all will-change-transform"
+                style={{
+                  left: "-92px", // Смещение влево для идеального центрирования тела относительно хвостика
+                  transform: showTooltip 
+                    ? "scale(1) translateY(0)" 
+                    : "scale(0.88) translateY(12px)",
+                  opacity: showTooltip ? 0.85 : 0,
+                  transitionDuration: "380ms",
+                  // Элитный кубик Безье для мягкого, глубокого затухания и открытия в стиле iOS
+                  transitionTimingFunction: "cubic-bezier(0.23, 1, 0.32, 1)"
+                }}
+              >
+                {/* Тело облачка — копия капли-слайдера */}
+                <div className="w-full p-3.5 bg-white/85 dark:bg-neutral-700/85 backdrop-blur-md border border-neutral-200 dark:border-neutral-600 rounded-2xl text-neutral-600 dark:text-neutral-200 text-[11px] font-medium leading-normal shadow-[0_8px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.25)] text-center relative">
+                  Твоя оценка попадет в ленту трендов, так что каждый сможет ее увидеть и добавить свою!
+                  
+                  {/* Хвостик — идеально влитой, без швов и пересечений */}
+                  <div className="absolute -bottom-[5px] left-[99px] w-2.5 h-2.5 bg-white/85 dark:bg-neutral-700/85 border-r border-b border-neutral-200 dark:border-neutral-600 rotate-45" />
+                </div>
+              </div>
 
+            </div>
           </div>
+
         </div>
 
       </div>
