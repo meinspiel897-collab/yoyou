@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
-import { motion } from "framer-motion";
 
+// Облегченный плеер Lottie без SSR
 const Lottie = dynamic(() => import("lottie-light-react"), { ssr: false });
 
 interface NewModalProps {
@@ -50,6 +50,127 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
 
   const currentTab = tabs.find((t) => t.id === activeSubTab) || tabs[0];
 
+  // Рефы для точной работы физического движка капли
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const tabsRefs = useRef<{ [key in SubTabType]: HTMLButtonElement | null }>({
+    rate: null,
+    take: null,
+    tier: null,
+    over: null,
+  });
+
+  const activeSubTabRef = useRef<SubTabType>(activeSubTab);
+  useEffect(() => {
+    activeSubTabRef.current = activeSubTab;
+  }, [activeSubTab]);
+
+  // Состояние векторов физики (копия из main.tsx)
+  const physicsState = useRef({
+    x: 0, tx: 0, vx: 0,
+    w: 0, tw: 0, vw: 0,
+    sx: 1, tsx: 1, vsx: 0,
+    sy: 1, tsy: 1, vsy: 0,
+    isMoving: false,
+  });
+
+  // Запуск цикла анимации пружины при открытии модалки
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const PHYSICS = {
+      pos: { k: 340, d: 28, m: 1 },    
+      scale: { k: 360, d: 24, m: 1 }   
+    };
+
+    function spring(current: number, target: number, velocity: number, config: { k: number, d: number, m: number }) {
+      const force = -config.k * (current - target);
+      const damping = -config.d * velocity;
+      const acceleration = (force + damping) / config.m;
+      velocity += acceleration * 0.016;
+      current += velocity * 0.016;
+      return [current, velocity];
+    }
+
+    let rafId: number;
+
+    const updatePhysics = () => {
+      const state = physicsState.current;
+      const slider = sliderRef.current;
+      if (!slider) return;
+
+      if (state.isMoving) {
+        const currentTabKey = activeSubTabRef.current;
+        const targetEl = tabsRefs.current[currentTabKey];
+        
+        if (targetEl) {
+          state.tx = targetEl.offsetLeft;
+          state.tw = targetEl.offsetWidth;
+        }
+      }
+
+      const dist = Math.abs(state.x - state.tx);
+      const vel = Math.abs(state.vx);
+
+      if (state.isMoving) {
+        if (dist > 15) { 
+          slider.style.backgroundColor = "transparent";
+          slider.style.borderColor = typeof window !== "undefined" && document.documentElement.classList.contains("dark") 
+            ? "rgba(255, 255, 255, 0.35)" 
+            : "rgba(0, 0, 0, 0.18)";
+          state.tsy = 1.15; 
+          state.tsx = 0.92; 
+        } else if (dist <= 15 && dist > 0.5) {
+          slider.style.backgroundColor = "";
+          slider.style.borderColor = "transparent";
+          state.tsy = 0.97; 
+          state.tsx = 1.03; 
+        } else {
+          state.tsx = 1;
+          state.tsy = 1;
+          if (vel < 0.2 && Math.abs(state.vsx) < 0.2) {
+            state.isMoving = false;
+            slider.style.backgroundColor = "";
+            slider.style.borderColor = "transparent";
+          }
+        }
+      }
+
+      [state.x, state.vx] = spring(state.x, state.tx, state.vx, PHYSICS.pos);
+      [state.w, state.vw] = spring(state.w, state.tw, state.vw, PHYSICS.pos);
+      [state.sx, state.vsx] = spring(state.sx, state.tsx, state.vsx, PHYSICS.scale);
+      [state.sy, state.vsy] = spring(state.sy, state.tsy, state.vsy, PHYSICS.scale);
+
+      slider.style.left = `${state.x}px`;
+      slider.style.width = `${state.w}px`;
+      slider.style.transform = `scale(${state.sx}, ${state.sy})`;
+
+      rafId = requestAnimationFrame(updatePhysics);
+    };
+
+    rafId = requestAnimationFrame(updatePhysics);
+    return () => cancelAnimationFrame(rafId);
+  }, [isOpen]);
+
+  // Триггер изменения вкладки для пружинного движка
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    const targetEl = tabsRefs.current[activeSubTab];
+    if (targetEl) {
+      const state = physicsState.current;
+      
+      if (state.w === 0) {
+        state.x = targetEl.offsetLeft;
+        state.w = targetEl.offsetWidth;
+      }
+      
+      state.tx = targetEl.offsetLeft;
+      state.tw = targetEl.offsetWidth;
+      state.isMoving = true;
+    }
+  }, [activeSubTab, isOpen]);
+
+  // Подгрузка Lottie
   useEffect(() => {
     if (!isOpen) return;
     
@@ -68,7 +189,6 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
         isOpen ? "pointer-events-auto" : "pointer-events-none"
       }`}
     >
-      {/* Задний фон */}
       <div 
         className={`absolute inset-0 bg-black/15 dark:bg-black/30 transition-all duration-300 ${
           isOpen ? "opacity-100 backdrop-blur-[3px]" : "opacity-0 backdrop-blur-0"
@@ -76,7 +196,6 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
         onClick={onClose} 
       />
 
-      {/* Окно модалки */}
       <div 
         className={`relative w-full h-[90%] bg-white dark:bg-neutral-900 rounded-t-[32px] shadow-2xl flex flex-col transition-transform duration-300 cubic-bezier(0.15, 1, 0.2, 1) will-change-transform ${
           isOpen ? "translate-y-0" : "translate-y-full"
@@ -100,37 +219,36 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
           </button>
         </div>
 
-        {/* Контент */}
+        {/* Контент модалки */}
         <div className="flex-1 overflow-y-auto px-5 pb-8 flex flex-col">
           
-          {/* Нативный Таббар с жидкой каплей */}
+          {/* Таббар с оригинальной физикой капли из main.tsx */}
           <div className="w-full h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center relative mb-6 flex-shrink-0 select-none">
+            <div 
+              ref={sliderRef}
+              className="absolute top-1 bottom-1 bg-white/95 dark:bg-neutral-700/90 rounded-full border border-transparent shadow-sm will-change-transform z-10"
+            />
+
             {tabs.map((tab) => {
               const isActive = activeSubTab === tab.id;
               return (
                 <button
                   key={tab.id}
+                  ref={(el) => { tabsRefs.current[tab.id] = el; }}
                   onClick={() => setActiveSubTab(tab.id)}
-                  className={`flex-1 h-full rounded-full text-xs font-medium outline-none whitespace-nowrap flex items-center justify-center relative z-20 transition-colors duration-300 ${
+                  className={`flex-1 h-full rounded-full text-xs font-medium outline-none whitespace-nowrap flex items-center justify-center z-20 transition-colors duration-300 ${
                     isActive 
                       ? "text-appleLight-text dark:text-appleDark-text" 
                       : "text-appleLight-text/45 dark:text-appleDark-text/45"
                   }`}
                 >
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeSubTabIndicator"
-                      className="absolute inset-0 bg-white/95 dark:bg-neutral-700/90 rounded-full border border-transparent shadow-sm z-10"
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                    />
-                  )}
-                  <span className="relative z-20">{tab.label}</span>
+                  {tab.label}
                 </button>
               );
             })}
           </div>
 
-          {/* Описание с Lottie */}
+          {/* Описание */}
           <div className="flex items-start space-x-3.5 px-1 mb-6 min-h-[52px] select-none">
             <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
               {animationData ? (
@@ -148,7 +266,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
             </p>
           </div>
 
-          {/* Форма для Оценки */}
+          {/* Форма создания (Идеально выверенные одинаковые расстояния) */}
           {activeSubTab === "rate" ? (
             <div className="flex flex-col space-y-4 animate-fadeIn">
               
@@ -192,8 +310,8 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
                 </div>
               </div>
 
-              {/* Сетка: Картинки */}
-              <div className="flex flex-col space-y-1.5 pt-1">
+              {/* Поле: Картинки */}
+              <div className="flex flex-col space-y-1.5">
                 <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
                   Картинка
                 </label>
