@@ -51,7 +51,6 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
   const currentTab = tabs.find((t) => t.id === activeSubTab) || tabs[0];
   const activeIndex = tabs.findIndex((t) => t.id === activeSubTab);
 
-  // Подгружаем анимации с учетом фикса опечатки в названии файла
   useEffect(() => {
     if (!isOpen) return;
     
@@ -155,11 +154,11 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
           {activeSubTab === "rate" ? (
             <div className="flex flex-col space-y-4 animate-fadeIn">
               
-              {/* Ряд: Крупный квадрат + Вертикальный стек Названия */}
-              <div className="flex items-end space-x-3.5 w-full">
+              {/* Ряд: Крупный квадрат + Вертикальный стек Названия (выровнен по верхней границе) */}
+              <div className="flex items-start space-x-3.5 w-full">
                 
                 {/* Большой пустой квадрат под будущую обложку ИИ */}
-                <div className="w-[110px] h-[110px] border border-neutral-200 dark:border-neutral-800 rounded-2xl flex items-center justify-center flex-shrink-0 select-none">
+                <div className="w-[110px] h-[110px] border border-neutral-400 dark:border-neutral-500 rounded-2xl flex items-center justify-center flex-shrink-0 select-none">
                   <img 
                     src="/icons/add.png" 
                     alt="Добавить" 
@@ -169,13 +168,13 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
 
                 {/* Поле ввода имени */}
                 <div className="flex-1 flex flex-col space-y-1.5">
-                  <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 pl-4 select-none">
+                  <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
                     Имя тут
                   </label>
-                  <div className="w-full h-11 bg-transparent border border-neutral-200 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-full flex items-center px-4 transition-colors duration-200">
+                  <div className="w-full h-11 bg-transparent border border-neutral-400 dark:border-neutral-500 focus-within:border-[#FC062D] rounded-full flex items-center px-4 transition-colors duration-200">
                     <input
                       type="text"
-                      placeholder="Что угодно"
+                      placeholder="What's new"
                       value={title}
                       onChange={(e) => setTitle(e.target.value.slice(0, 20))}
                       maxLength={20}
@@ -191,10 +190,10 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
 
               {/* Поле: Описание (выровнено идеально по левому краю строки) */}
               <div className="flex flex-col space-y-1.5">
-                <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 pl-4 select-none">
+                <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
                   Описание здесь
                 </label>
-                <div className="w-full min-h-[78px] bg-transparent border border-neutral-200 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-[20px] flex items-start p-3.5 transition-colors duration-200 relative">
+                <div className="w-full min-h-[78px] bg-transparent border border-neutral-400 dark:border-neutral-500 focus-within:border-[#FC062D] rounded-[20px] flex items-start p-3.5 transition-colors duration-200 relative">
                   <textarea
                     placeholder="Что угодно"
                     value={description}
