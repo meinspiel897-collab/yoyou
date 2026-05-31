@@ -3,13 +3,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import RateView from "./rate";
 import TakeView from "./take";
+import TierView from "./tier"; // Подключаем обновленный тир-лист
 
 interface NewModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-type SubTabType = "rate" | "take" | "tier" | "over";
+// Убрали over из типов
+type SubTabType = "rate" | "take" | "tier";
 
 interface TabConfig {
   id: SubTabType;
@@ -19,7 +21,7 @@ interface TabConfig {
 export default function NewModal({ isOpen, onClose }: NewModalProps) {
   const [activeSubTab, setActiveSubTab] = useState<SubTabType>("rate");
   const [dimensions, setDimensions] = useState({ top: "10vh", height: "90vh" });
-  const [isTyping, setIsTyping] = useState(false); // Стейт блокировки свайпов
+  const [isTyping, setIsTyping] = useState(false);
   
   const [rateTitle, setRateTitle] = useState("");
   const [rateDescription, setRateDescription] = useState("");
@@ -29,14 +31,14 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
 
   const [animationData, setAnimationData] = useState<any>(null);
 
+  // Таббар теперь состоит только из 3-х элементов
   const tabs: TabConfig[] = [
     { id: "rate", label: "Оценка" },
     { id: "take", label: "Тейк" },
     { id: "tier", label: "Тир лист" },
-    { id: "over", label: "Оверрейт" },
   ];
 
-  const subTabOrder: SubTabType[] = ["rate", "take", "tier", "over"];
+  const subTabOrder: SubTabType[] = ["rate", "take", "tier"];
   const activeIndex = subTabOrder.indexOf(activeSubTab);
 
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -45,7 +47,6 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
     rate: null,
     take: null,
     tier: null,
-    over: null,
   });
 
   const touchStart = useRef({ x: 0, y: 0, time: 0 });
@@ -74,12 +75,8 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
     }
   }, []);
 
-  // Попиксельный трекинг пальца
   const handleTouchStart = (e: React.TouchEvent) => {
-    // ОТКЛЮЧАЕМ СВАЙПЫ, ЕСЛИ ИДЁТ ВВОД В СТРОКУ
     if (isTyping) return;
-    
-    // Защита от зоны правого скроллбара
     if (e.touches[0].clientX > window.innerWidth - 30) return;
 
     const touch = e.touches[0];
@@ -293,6 +290,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
   useEffect(() => {
     if (!isOpen) return;
     setAnimationData(null);
+    // Теперь загружаем строго по id активного таба
     const targetJson = activeSubTab === "tier" ? "tear" : activeSubTab;
 
     fetch(`/icons/${targetJson}.json`)
@@ -341,7 +339,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
           </button>
         </div>
 
-        {/* Навигационный таббар */}
+        {/* Навигационный таббар (на 3 вкладки) */}
         <div className="px-5 flex-shrink-0">
           <div className="w-full h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center relative mb-5 select-none">
             <div 
@@ -369,54 +367,46 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
           </div>
         </div>
 
-        {/* Изолированная свайп-зона трека */}
+        {/* Свайп-зона трека (теперь 300% ширина под 3 таба) */}
         <div className="flex-1 w-full overflow-hidden relative">
           <div 
             ref={contentTrackRef}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            className="absolute inset-0 flex w-[400%] h-full will-change-transform"
+            className="absolute inset-0 flex w-[300%] h-full will-change-transform"
             style={{ transform: `translateX(0px)` }}
           >
             {/* Секция: Оценка */}
-            <div className="w-[25%] h-full flex flex-col overflow-hidden">
+            <div className="w-[33.333%] h-full flex flex-col overflow-hidden">
               <RateView 
                 title={rateTitle}
                 setTitle={setRateTitle}
                 description={rateDescription}
                 setDescription={setRateDescription}
                 animationData={activeSubTab === "rate" ? animationData : null}
-                setIsTyping={setIsTyping} // Блокировка свайпов для Оценки
+                setIsTyping={setIsTyping}
               />
             </div>
 
             {/* Секция: Тейк */}
-            <div className="w-[25%] h-full flex flex-col overflow-hidden">
+            <div className="w-[33.333%] h-full flex flex-col overflow-hidden">
               <TakeView 
                 title={takeTitle}
                 setTitle={setTakeTitle}
                 description={takeDescription}
                 setDescription={setTakeDescription}
                 animationData={activeSubTab === "take" ? animationData : null}
-                setIsTyping={setIsTyping} // Блокировка свайпов для Тейка
+                setIsTyping={setIsTyping}
               />
             </div>
 
             {/* Секция: Тир лист */}
-            <div className="w-[25%] h-full flex flex-col items-center justify-center text-center select-none">
-              <span className="text-xl mb-2">🛠️</span>
-              <p className="text-xs font-bold text-neutral-400 dark:text-neutral-600 uppercase tracking-widest">
-                В разработке
-              </p>
-            </div>
-
-            {/* Секция: Оверрейт */}
-            <div className="w-[25%] h-full flex flex-col items-center justify-center text-center select-none">
-              <span className="text-xl mb-2">🛠️</span>
-              <p className="text-xs font-bold text-neutral-400 dark:text-neutral-600 uppercase tracking-widest">
-                В разработке
-              </p>
+            <div className="w-[33.333%] h-full flex flex-col overflow-hidden">
+              <TierView 
+                animationData={activeSubTab === "tier" ? animationData : null}
+                setIsTyping={setIsTyping}
+              />
             </div>
           </div>
         </div>
