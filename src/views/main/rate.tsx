@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 
 const Lottie = dynamic(() => import("lottie-light-react"), { ssr: false });
 
-interface TakeViewProps {
+interface RateViewProps {
   title: string;
   setTitle: (val: string) => void;
   description: string;
@@ -13,13 +13,13 @@ interface TakeViewProps {
   animationData: any;
 }
 
-export default function TakeView({
+export default function RateView({
   title,
   setTitle,
   description,
   setDescription,
   animationData,
-}: TakeViewProps) {
+}: RateViewProps) {
   const [showTooltip, setShowTooltip] = useState(false);
 
   // Тактильный отклик Telegram
@@ -35,7 +35,7 @@ export default function TakeView({
   };
 
   const toggleTooltip = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Изолируем тап от нажатия на саму кнопку
+    e.stopPropagation(); // Изолируем от клика по основной кнопке
     triggerHaptic("light");
     setShowTooltip(!showTooltip);
   };
@@ -43,13 +43,13 @@ export default function TakeView({
   const handleMainButtonClick = () => {
     if (!title) return;
     triggerHaptic("medium");
-    // Сюда прикрутим отправку тейка в тренды 🚀
+    // Логика отправки будет тут 🛠️
   };
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative">
       
-      {/* Слой-невидимка для закрытия подсказки кликом в любое место экрана */}
+      {/* Невидимый слой для закрытия подсказки при тапе мимо */}
       {showTooltip && (
         <div 
           className="fixed inset-0 z-30 bg-transparent" 
@@ -57,10 +57,10 @@ export default function TakeView({
         />
       )}
 
-      {/* СКРОЛЛ-ЗОНА КОНТЕНТА */}
-      <div className="flex-1 overflow-y-auto px-5 pb-4 flex flex-col space-y-5 scrollbar-none">
+      {/* СКРОЛЛ-ЗОНА ФОРМЫ */}
+      <div className="flex-1 overflow-y-auto px-5 pb-4 flex flex-col space-y-4 scrollbar-none">
         
-        {/* Шапка таба с Lottie-анимацией */}
+        {/* Описание с Lottie */}
         <div className="flex items-start space-x-3.5 px-1 min-h-[52px] select-none pt-1">
           <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
             {animationData ? (
@@ -74,53 +74,78 @@ export default function TakeView({
             )}
           </div>
           <p className="text-xs font-medium text-neutral-400 dark:text-neutral-500 leading-relaxed">
-            Выдай свой самый лучший тейк! Напиши базу или кринж - пускай толпа решает, гений ты или «очередной зумер»
+            Йоу, оценивай все что душа пожелает! Введи название и описание, а наш ИИ сам подгонит классную картиночку. Не зашло - поменяешь в один тап
           </p>
         </div>
 
-        {/* Поле: Текст Тейка (Расширено до 250 символов) */}
+        {/* Поле: Название */}
         <div className="flex flex-col space-y-1.5">
           <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
-            Твой тейк
-          </label>
-          <div className="w-full min-h-[128px] bg-transparent border border-neutral-600 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-[24px] flex items-start p-4 transition-colors duration-200 relative">
-            <textarea
-              placeholder="Пиши всё, что думаешь..."
-              value={title}
-              onChange={(e) => setTitle(e.target.value.slice(0, 250))}
-              maxLength={250}
-              rows={4}
-              className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text placeholder-neutral-300 dark:placeholder-neutral-600 resize-none overflow-y-auto h-[80px] pr-2 leading-snug scrollbar-none"
-            />
-            <span className="absolute right-4 bottom-3.5 text-[11px] font-bold text-neutral-400 dark:text-neutral-600 select-none tracking-wide">
-              {title.length}/250
-            </span>
-          </div>
-        </div>
-
-        {/* Поле: Опциональный коммент или теги */}
-        <div className="flex flex-col space-y-1.5">
-          <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
-            Контекст (необязательно)
+            Имя тут
           </label>
           <div className="w-full h-11 bg-transparent border border-neutral-600 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-full flex items-center px-4 transition-colors duration-200">
             <input
               type="text"
-              placeholder="Добавь деталей, если нужно"
-              value={description}
-              onChange={(e) => setDescription(e.target.value.slice(0, 40))}
-              maxLength={40}
+              placeholder="Что угодно"
+              value={title}
+              onChange={(e) => setTitle(e.target.value.slice(0, 20))}
+              maxLength={20}
               className="flex-1 h-full bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text placeholder-neutral-300 dark:placeholder-neutral-600"
             />
             <span className="text-[11px] font-bold text-neutral-400 dark:text-neutral-600 ml-2 select-none tracking-wide">
-              {description.length}/40
+              {title.length}/20
             </span>
+          </div>
+        </div>
+
+        {/* Поле: Описание */}
+        <div className="flex flex-col space-y-1.5">
+          <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
+            Описание здесь
+          </label>
+          <div className="w-full min-h-[78px] bg-transparent border border-neutral-600 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-[20px] flex items-start p-3.5 transition-colors duration-200 relative">
+            <textarea
+              placeholder="Что угодно"
+              value={description}
+              onChange={(e) => setDescription(e.target.value.slice(0, 130))}
+              maxLength={130}
+              rows={3}
+              className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text placeholder-neutral-300 dark:placeholder-neutral-600 resize-none overflow-y-auto h-[48px] pr-14 leading-tight scrollbar-none"
+            />
+            <span className="absolute right-4 bottom-3.5 text-[11px] font-bold text-neutral-400 dark:text-neutral-600 select-none tracking-wide">
+              {description.length}/130
+            </span>
+          </div>
+        </div>
+
+        {/* Поле: Картинки */}
+        <div className="flex flex-col space-y-1.5">
+          <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
+            Картинка
+          </label>
+          <div className="grid grid-cols-3 gap-3 w-full">
+            {[0, 1, 2].map((index) => (
+              <div 
+                key={index}
+                className={`aspect-[3/4] w-full border border-neutral-600 dark:border-neutral-800 rounded-2xl flex items-center justify-center relative overflow-hidden select-none ${
+                  index !== 0 ? "bg-neutral-200 dark:bg-neutral-800 animate-pulse" : "bg-neutral-50/50 dark:bg-neutral-950/20"
+                }`}
+              >
+                {index === 0 && (
+                  <img 
+                    src="/icons/add.png" 
+                    alt="Добавить" 
+                    className="w-9 h-9 object-contain block dark:brightness-0 dark:invert opacity-25"
+                  />
+                )}
+              </div>
+            ))}
           </div>
         </div>
 
       </div>
 
-      {/* ФИКСИРОВАННЫЙ ПОДВАЛ С КНОПКОЙ И ПОДСКАЗКОЙ */}
+      {/* ФИКСИРОВАННЫЙ ПОДВАЛ С УМНОЙ КНОПКОЙ */}
       <div className="px-5 pb-8 pt-2 flex flex-col items-center relative z-40 bg-white dark:bg-neutral-900 flex-shrink-0">
         
         <div
@@ -133,33 +158,30 @@ export default function TakeView({
         >
           <span>Закинуть в тренды</span>
           
-          {/* Контейнер знака вопроса и вылетающей подсказки */}
-          <div className="relative flex items-center justify-center ml-1.5">
+          {/* Инкапсулированный узел знака вопроса и подсказки */}
+          <div className="relative flex items-center justify-center">
             
-            {/* Кликабельный хитбокс 36x36px */}
             <div 
               onClick={toggleTooltip}
-              className="w-9 h-9 flex items-center justify-center cursor-pointer transition-transform active:scale-90"
+              className="w-[15px] h-[15px] rounded-full border border-current flex items-center justify-center text-[10px] font-bold ml-2 transition-transform active:scale-90 cursor-pointer"
             >
-              <div className="w-[15px] h-[15px] rounded-full border border-current flex items-center justify-center text-[10px] font-bold">
-                ?
-              </div>
+              ?
             </div>
 
             {/* Всплывающий монолитный поп-ап */}
             <div 
-              className="absolute bottom-full mb-2 w-[230px] p-3.5 bg-white dark:bg-neutral-700 border border-neutral-200/60 dark:border-neutral-600/40 rounded-2xl text-neutral-600 dark:text-neutral-200 text-[11px] font-medium leading-normal shadow-[0_8px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-all duration-300 will-change-transform pointer-events-none z-50 text-center"
+              className="absolute bottom-full mb-3.5 w-[230px] p-3.5 bg-white dark:bg-neutral-700 border border-neutral-200/60 dark:border-neutral-600/40 rounded-2xl text-neutral-600 dark:text-neutral-200 text-[11px] font-medium leading-normal shadow-[0_8px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-all duration-300 will-change-transform pointer-events-none z-50 text-center"
               style={{
-                left: "50%", 
+                left: "calc(50% + 4px)", // Сдвиг центра под ширину иконки вопроса с отступом
                 transform: showTooltip ? "scale(1) translateY(0) translateX(-50%)" : "scale(0.3) translateY(15px) translateX(-50%)",
                 opacity: showTooltip ? 1 : 0,
                 transformOrigin: "bottom center",
                 transitionTimingFunction: showTooltip ? "cubic-bezier(0.34, 1.56, 0.64, 1)" : "cubic-bezier(0.25, 1, 0.5, 1)"
               }}
             >
-              Твой тейк улетит прямиком в общую ленту трендов, где каждый сможет его заценить, аппроувнуть или оспорить!
+              Твоя оценка попадет в ленту трендов, так что каждый сможет ее увидеть и добавить свою!
               
-              {/* Хвостик, переходящий ровно в знак вопроса */}
+              {/* Хвостик, идеально сливающийся с телом */}
               <div className="absolute -bottom-[5px] left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-white dark:bg-neutral-700 border-r border-b border-neutral-200/60 dark:border-neutral-600/40 rotate-45" />
             </div>
 
