@@ -40,7 +40,7 @@ export default function TakeView({
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative">
       
-      {/* СКРОЛЛ-ЗОНА КОНТЕНТА */}
+      {/* СКРОЛЛ-ЗОНА КОНТЕНТА (Единственная зона, которая скроллится при нехватке места) */}
       <div className="flex-1 overflow-y-auto px-5 pb-4 flex flex-col space-y-5 scrollbar-none">
         
         {/* Шапка таба с Lottie-анимацией */}
@@ -103,16 +103,16 @@ export default function TakeView({
 
       </div>
 
-      {/* ФИКСИРОВАННЫЙ ПОДВАЛ С ВЫЛЕЗАЮЩЕЙ ПЛАШКОЙ */}
+      {/* ФИКСИРОВАННЫЙ ПОДВАЛ (Жестко заперт на своем месте) */}
       <div className="px-5 pb-8 pt-9 flex flex-col items-center relative z-40 bg-white dark:bg-neutral-900 flex-shrink-0 select-none">
         
         <div className="w-full relative flex flex-col items-center">
           
-          {/* Плашка за кнопкой: цвет контура строк, не жирный текст, идеальная симметрия */}
-          <div className="absolute -top-9 left-0 right-0 bg-neutral-600 dark:bg-neutral-800 rounded-t-[20px] pt-3 pb-12 px-4 z-10 text-center pointer-events-none">
-            <span className="text-[11px] font-normal text-white/90 dark:text-neutral-300 block leading-none tracking-wide">
+          {/* Плашка: цвет контура строк, в ширину кнопки, идеальная симметрия отступов, текст НЕ жирный */}
+          <div className="absolute -top-7 left-0 right-0 bg-neutral-600 dark:bg-neutral-800 rounded-t-[20px] pt-2 pb-10 text-center pointer-events-none z-10">
+            <p className="text-[11px] font-normal text-white dark:text-neutral-200 tracking-wide px-4">
               Твой тейк отправится прямо в общую ленту трендов
-            </span>
+            </p>
           </div>
 
           {/* Главная кнопка */}
