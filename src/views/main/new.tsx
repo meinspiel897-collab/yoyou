@@ -74,8 +74,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
         className={`absolute inset-0 bg-black/15 dark:bg-black/30 transition-all duration-300 ${
           isOpen ? "opacity-100 backdrop-blur-[3px]" : "opacity-0 backdrop-blur-0"
         }`} 
-        onClick={onClose} 
-      />
+        onClick={onClose} />
 
       {/* Окно модалки */}
       <div 
@@ -104,10 +103,10 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
         {/* Контент */}
         <div className="flex-1 overflow-y-auto px-5 pb-8 flex flex-col">
           
-          {/* Полноценный темный Таббар */}
-          <div className="w-full h-11 bg-neutral-100 dark:bg-neutral-950 p-1 box-border rounded-full flex items-center relative mb-6 flex-shrink-0 select-none">
+          {/* Кастомный Таббар точь-в-точь как в хедере */}
+          <div className="w-full h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center relative mb-6 flex-shrink-0 select-none">
             <div 
-              className="absolute top-1 bottom-1 bg-white dark:bg-neutral-800 rounded-full shadow-sm transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) z-10"
+              className="absolute top-1 bottom-1 bg-white/95 dark:bg-neutral-700/90 rounded-full border border-transparent shadow-sm transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) z-10"
               style={{ 
                 left: `calc(${activeIndex * 25}% + 4px)`,
                 width: "calc(25% - 8px)" 
@@ -132,17 +131,17 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
             })}
           </div>
 
-          {/* Описание с Lottie */}
+          {/* Описание с подросшим Lottie-плеером */}
           <div className="flex items-start space-x-3.5 px-1 mb-6 min-h-[52px] select-none">
-            <div className="w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
               {animationData ? (
                 <Lottie 
                   animationData={animationData} 
                   loop={true} 
-                  style={{ width: 20, height: 20 }}
+                  style={{ width: 24, height: 24 }}
                 />
               ) : (
-                <div className="w-4 h-4 bg-neutral-200 dark:bg-neutral-800 rounded-full animate-pulse" />
+                <div className="w-5 h-5 bg-neutral-200 dark:bg-neutral-800 rounded-full animate-pulse" />
               )}
             </div>
             <p className="text-xs font-medium text-neutral-400 dark:text-neutral-500 leading-relaxed">
@@ -154,46 +153,32 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
           {activeSubTab === "rate" ? (
             <div className="flex flex-col space-y-4 animate-fadeIn">
               
-              {/* Ряд: Крупный квадрат + Вертикальный стек Названия (выровнен по верхней границе) */}
-              <div className="flex items-start space-x-3.5 w-full">
-                
-                {/* Большой пустой квадрат под будущую обложку ИИ */}
-                <div className="w-[110px] h-[110px] border border-neutral-400 dark:border-neutral-500 rounded-2xl flex items-center justify-center flex-shrink-0 select-none">
-                  <img 
-                    src="/icons/add.png" 
-                    alt="Добавить" 
-                    className="w-10 h-10 object-contain block dark:brightness-0 dark:invert opacity-30"
+              {/* Поле: Название (на всю ширину) */}
+              <div className="flex flex-col space-y-1.5">
+                <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
+                  Имя тут
+                </label>
+                <div className="w-full h-11 bg-transparent border border-neutral-400 dark:border-neutral-600 focus-within:border-[#FC062D] rounded-full flex items-center px-4 transition-colors duration-200">
+                  <input
+                    type="text"
+                    placeholder="Что угодно"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value.slice(0, 20))}
+                    maxLength={20}
+                    className="flex-1 h-full bg-transparent border-none outline-none text-sm font-semibold text-appleLight-text dark:text-appleDark-text placeholder-neutral-300 dark:placeholder-neutral-600"
                   />
+                  <span className="text-[11px] font-bold text-neutral-400 dark:text-neutral-600 ml-2 select-none tracking-wide">
+                    {title.length}/20
+                  </span>
                 </div>
-
-                {/* Поле ввода имени */}
-                <div className="flex-1 flex flex-col space-y-1.5">
-                  <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
-                    Имя тут
-                  </label>
-                  <div className="w-full h-11 bg-transparent border border-neutral-400 dark:border-neutral-500 focus-within:border-[#FC062D] rounded-full flex items-center px-4 transition-colors duration-200">
-                    <input
-                      type="text"
-                      placeholder="What's new"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value.slice(0, 20))}
-                      maxLength={20}
-                      className="flex-1 h-full bg-transparent border-none outline-none text-sm font-semibold text-appleLight-text dark:text-appleDark-text placeholder-neutral-300 dark:placeholder-neutral-600"
-                    />
-                    <span className="text-[11px] font-bold text-neutral-400 dark:text-neutral-600 ml-2 select-none tracking-wide">
-                      {title.length}/20
-                    </span>
-                  </div>
-                </div>
-
               </div>
 
-              {/* Поле: Описание (выровнено идеально по левому краю строки) */}
+              {/* Поле: Описание */}
               <div className="flex flex-col space-y-1.5">
                 <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
                   Описание здесь
                 </label>
-                <div className="w-full min-h-[78px] bg-transparent border border-neutral-400 dark:border-neutral-500 focus-within:border-[#FC062D] rounded-[20px] flex items-start p-3.5 transition-colors duration-200 relative">
+                <div className="w-full min-h-[78px] bg-transparent border border-neutral-400 dark:border-neutral-600 focus-within:border-[#FC062D] rounded-[20px] flex items-start p-3.5 transition-colors duration-200 relative">
                   <textarea
                     placeholder="Что угодно"
                     value={description}
@@ -206,6 +191,28 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
                     {description.length}/130
                   </span>
                 </div>
+              </div>
+
+              {/* Ряд: Три вертикальные моковые карточки под описанием */}
+              <div className="grid grid-cols-3 gap-3 w-full pt-1">
+                {[0, 1, 2].map((index) => (
+                  <div 
+                    key={index}
+                    className="aspect-[3/4] w-full border border-neutral-400 dark:border-neutral-600 rounded-2xl flex items-center justify-center bg-neutral-50/50 dark:bg-neutral-950/20 relative overflow-hidden select-none"
+                  >
+                    {index === 0 ? (
+                      <img 
+                        src="/icons/add.png" 
+                        alt="Добавить" 
+                        className="w-9 h-9 object-contain block dark:brightness-0 dark:invert opacity-25"
+                      />
+                    ) : (
+                      <span className="text-[10px] font-bold text-neutral-400 dark:text-neutral-600 uppercase tracking-wider opacity-20">
+                        AI Mock
+                      </span>
+                    )}
+                  </div>
+                ))}
               </div>
 
             </div>
