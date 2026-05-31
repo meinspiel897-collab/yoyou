@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import dynamic from "next/dynamic";
 
 const Lottie = dynamic(() => import("lottie-light-react"), { ssr: false });
@@ -20,9 +20,7 @@ export default function TakeView({
   setDescription,
   animationData,
 }: TakeViewProps) {
-  const [showTooltip, setShowTooltip] = useState(false);
 
-  // Тактильный отклик Telegram
   const triggerHaptic = (style: "light" | "medium" | "heavy") => {
     if (typeof window !== "undefined") {
       const anyWindow = window as any;
@@ -34,29 +32,14 @@ export default function TakeView({
     }
   };
 
-  const toggleTooltip = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Изолируем тап от нажатия на саму кнопку
-    triggerHaptic("light");
-    setShowTooltip(!showTooltip);
-  };
-
   const handleMainButtonClick = () => {
     if (!title) return;
     triggerHaptic("medium");
-    // Сюда прикрутим отправку тейка в тренды 🚀
   };
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative">
       
-      {/* Слой-невидимка для закрытия подсказки кликом в любое место экрана */}
-      {showTooltip && (
-        <div 
-          className="fixed inset-0 z-30 bg-transparent" 
-          onClick={() => setShowTooltip(false)}
-        />
-      )}
-
       {/* СКРОЛЛ-ЗОНА КОНТЕНТА */}
       <div className="flex-1 overflow-y-auto px-5 pb-4 flex flex-col space-y-5 scrollbar-none">
         
@@ -78,7 +61,7 @@ export default function TakeView({
           </p>
         </div>
 
-        {/* Поле: Текст Тейка (Расширено до 250 символов) */}
+        {/* Поле: Текст Тейка (250 символов) */}
         <div className="flex flex-col space-y-1.5">
           <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
             Твой тейк
@@ -98,7 +81,7 @@ export default function TakeView({
           </div>
         </div>
 
-        {/* Поле: Опциональный коммент или теги */}
+        {/* Поле: Контекст */}
         <div className="flex flex-col space-y-1.5">
           <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
             Контекст (необязательно)
@@ -120,50 +103,30 @@ export default function TakeView({
 
       </div>
 
-      {/* ФИКСИРОВАННЫЙ ПОДВАЛ С КНОПКОЙ И ПОДСКАЗКОЙ */}
-      <div className="px-5 pb-8 pt-2 flex flex-col items-center relative z-40 bg-white dark:bg-neutral-900 flex-shrink-0">
+      {/* ФИКСИРОВАННЫЙ ПОДВАЛ С ВЫЛЕЗАЮЩЕЙ ПЛАШКОЙ */}
+      <div className="px-5 pb-8 pt-7 flex flex-col items-center relative z-40 bg-white dark:bg-neutral-900 flex-shrink-0 select-none">
         
-        <div
-          onClick={handleMainButtonClick}
-          className={`w-full h-14 rounded-full font-bold text-sm transition-all duration-150 outline-none flex items-center justify-center relative select-none ${
-            title 
-              ? "bg-[#FC062D] text-white active:scale-[0.98] cursor-pointer" 
-              : "bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg text-appleLight-text/30 dark:text-appleDark-text/30 cursor-default"
-          }`}
-        >
-          <span>Закинуть в тренды</span>
+        <div className="w-full relative flex flex-col items-center">
           
-          {/* Контейнер знака вопроса и вылетающей подсказки */}
-          <div className="relative flex items-center justify-center ml-1.5">
-            
-            {/* Кликабельный хитбокс 36x36px */}
-            <div 
-              onClick={toggleTooltip}
-              className="w-9 h-9 flex items-center justify-center cursor-pointer transition-transform active:scale-90"
-            >
-              <div className="w-[15px] h-[15px] rounded-full border border-current flex items-center justify-center text-[10px] font-bold">
-                ?
-              </div>
-            </div>
-
-            {/* Всплывающий монолитный поп-ап */}
-            <div 
-              className="absolute bottom-full mb-2 w-[230px] p-3.5 bg-white dark:bg-neutral-700 border border-neutral-200/60 dark:border-neutral-600/40 rounded-2xl text-neutral-600 dark:text-neutral-200 text-[11px] font-medium leading-normal shadow-[0_8px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-all duration-300 will-change-transform pointer-events-none z-50 text-center"
-              style={{
-                left: "50%", 
-                transform: showTooltip ? "scale(1) translateY(0) translateX(-50%)" : "scale(0.3) translateY(15px) translateX(-50%)",
-                opacity: showTooltip ? 1 : 0,
-                transformOrigin: "bottom center",
-                transitionTimingFunction: showTooltip ? "cubic-bezier(0.34, 1.56, 0.64, 1)" : "cubic-bezier(0.25, 1, 0.5, 1)"
-              }}
-            >
-              Твой тейк улетит прямиком в общую ленту трендов, где каждый сможет его заценить, аппроувнуть или оспорить!
-              
-              {/* Хвостик, переходящий ровно в знак вопроса */}
-              <div className="absolute -bottom-[5px] left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-white dark:bg-neutral-700 border-r border-b border-neutral-200/60 dark:border-neutral-600/40 rotate-45" />
-            </div>
-
+          {/* Плашка, скрытая нижней частью за кнопкой */}
+          <div className="absolute bottom-6 left-3 right-3 h-14 bg-white dark:bg-neutral-700 rounded-t-[20px] flex items-start justify-center pt-2.5 px-4 z-10 shadow-[0_-4px_16px_rgba(0,0,0,0.03)] dark:shadow-none">
+            <p className="text-[10.5px] font-semibold text-neutral-400 dark:text-neutral-300/90 text-center leading-tight tracking-wide">
+              Твой тейк отправится прямо в общую ленту трендов
+            </p>
           </div>
+
+          {/* Главная кнопка */}
+          <div
+            onClick={handleMainButtonClick}
+            className={`w-full h-14 rounded-full font-bold text-sm transition-all duration-150 outline-none flex items-center justify-center relative z-20 ${
+              title 
+                ? "bg-[#FC062D] text-white active:scale-[0.98] cursor-pointer" 
+                : "bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg text-appleLight-text/30 dark:text-appleDark-text/30 cursor-default"
+            }`}
+          >
+            <span>Закинуть в тренды</span>
+          </div>
+
         </div>
 
       </div>
