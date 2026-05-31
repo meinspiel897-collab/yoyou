@@ -74,26 +74,26 @@ export default function TakeView({
             )}
           </div>
           <p className="text-xs font-medium text-neutral-400 dark:text-neutral-500 leading-relaxed">
-            Выдаgroup свой самый горячий тейк! Набрось базы или жесткого кринжа — пускай толпа решает, гений ты или выдать тебе забавный шок 🫪
+            Выдай свой самый лучший тейк! Напиши базу или кринж - пускай толпа решает, гений ты или «очередной зумер»
           </p>
         </div>
 
-        {/* Поле: Текст Тейка */}
+        {/* Поле: Текст Тейка (Расширено до 250 символов) */}
         <div className="flex flex-col space-y-1.5">
           <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
             Твой тейк
           </label>
-          <div className="w-full min-h-[110px] bg-transparent border border-neutral-600 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-[24px] flex items-start p-4 transition-colors duration-200 relative">
+          <div className="w-full min-h-[128px] bg-transparent border border-neutral-600 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-[24px] flex items-start p-4 transition-colors duration-200 relative">
             <textarea
               placeholder="Пиши всё, что думаешь..."
               value={title}
-              onChange={(e) => setTitle(e.target.value.slice(0, 100))}
-              maxLength={100}
+              onChange={(e) => setTitle(e.target.value.slice(0, 250))}
+              maxLength={250}
               rows={4}
-              className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text placeholder-neutral-300 dark:placeholder-neutral-600 resize-none overflow-y-auto h-[64px] pr-2 leading-snug scrollbar-none"
+              className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text placeholder-neutral-300 dark:placeholder-neutral-600 resize-none overflow-y-auto h-[80px] pr-2 leading-snug scrollbar-none"
             />
             <span className="absolute right-4 bottom-3.5 text-[11px] font-bold text-neutral-400 dark:text-neutral-600 select-none tracking-wide">
-              {title.length}/100
+              {title.length}/250
             </span>
           </div>
         </div>
@@ -134,20 +134,23 @@ export default function TakeView({
           <span>Закинуть в тренды</span>
           
           {/* Контейнер знака вопроса и вылетающей подсказки */}
-          <div className="relative flex items-center justify-center">
+          <div className="relative flex items-center justify-center ml-1.5">
             
+            {/* Кликабельный хитбокс 36x36px */}
             <div 
               onClick={toggleTooltip}
-              className="w-[15px] h-[15px] rounded-full border border-current flex items-center justify-center text-[10px] font-bold ml-2 transition-transform active:scale-90 cursor-pointer"
+              className="w-9 h-9 flex items-center justify-center cursor-pointer transition-transform active:scale-90"
             >
-              ?
+              <div className="w-[15px] h-[15px] rounded-full border border-current flex items-center justify-center text-[10px] font-bold">
+                ?
+              </div>
             </div>
 
-            {/* Всплывающий монолитный поп-ап (стилизован под каплю из таббара) */}
+            {/* Всплывающий монолитный поп-ап */}
             <div 
-              className="absolute bottom-full mb-3.5 w-[230px] p-3.5 bg-white dark:bg-neutral-700 border border-neutral-200/60 dark:border-neutral-600/40 rounded-2xl text-neutral-600 dark:text-neutral-200 text-[11px] font-medium leading-normal shadow-[0_8px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-all duration-300 will-change-transform pointer-events-none z-50 text-center"
+              className="absolute bottom-full mb-2 w-[230px] p-3.5 bg-white dark:bg-neutral-700 border border-neutral-200/60 dark:border-neutral-600/40 rounded-2xl text-neutral-600 dark:text-neutral-200 text-[11px] font-medium leading-normal shadow-[0_8px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-all duration-300 will-change-transform pointer-events-none z-50 text-center"
               style={{
-                left: "calc(50% + 4px)", 
+                left: "50%", 
                 transform: showTooltip ? "scale(1) translateY(0) translateX(-50%)" : "scale(0.3) translateY(15px) translateX(-50%)",
                 opacity: showTooltip ? 1 : 0,
                 transformOrigin: "bottom center",
