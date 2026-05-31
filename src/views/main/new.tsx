@@ -49,7 +49,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
     isMoving: false,
   });
 
-  // Цикл анимации пружины
+  // Цикл анимации пружины капли
   useEffect(() => {
     if (!isOpen) return;
 
@@ -143,7 +143,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
     }
   }, [activeSubTab, isOpen]);
 
-  // Загрузка JSON анимаций
+  // Загрузка Lottie файлов
   useEffect(() => {
     if (!isOpen) return;
     
@@ -174,7 +174,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
           isOpen ? "translate-y-0" : "translate-y-full"
         }`}
       >
-        {/* Шапка */}
+        {/* Шапка модалки */}
         <div className="relative w-full h-16 flex items-center justify-center px-4 flex-shrink-0">
           <h2 className="text-base font-bold text-appleLight-text dark:text-appleDark-text tracking-tight">
             Что-то новенькое
@@ -192,11 +192,9 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
           </button>
         </div>
 
-        {/* Скролл-контент */}
-        <div className="flex-1 overflow-y-auto px-5 pb-8 flex flex-col">
-          
-          {/* Таббар */}
-          <div className="w-full h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center relative mb-6 flex-shrink-0 select-none">
+        {/* Навигационный таббар */}
+        <div className="px-5 flex-shrink-0">
+          <div className="w-full h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center relative mb-6 select-none">
             <div 
               ref={sliderRef}
               className="absolute top-1 bottom-1 bg-white/95 dark:bg-neutral-700/90 rounded-full border border-transparent shadow-sm will-change-transform z-10"
@@ -220,8 +218,10 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
               );
             })}
           </div>
+        </div>
 
-          {/* Контент вкладок */}
+        {/* Контентная область с изоляцией скролла */}
+        <div className="flex-1 flex flex-col overflow-hidden">
           {activeSubTab === "rate" ? (
             <RateView 
               title={title}
@@ -238,8 +238,8 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
               </p>
             </div>
           )}
-
         </div>
+
       </div>
     </div>
   );
