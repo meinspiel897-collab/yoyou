@@ -18,10 +18,12 @@ interface TabConfig {
 
 export default function NewModal({ isOpen, onClose }: NewModalProps) {
   const [activeSubTab, setActiveSubTab] = useState<SubTabType>("rate");
-  const [modalHeight, setModalHeight] = useState<string>("90%");
   const [useAnimation, setUseAnimation] = useState<boolean>(true);
   
-  // Раздельные стейты для сохранения контента при свайпах
+  // Жестко фиксируем координаты от верха экрана, чтобы клавиатура ничего не двигала
+  const [dimensions, setDimensions] = useState({ top: "10vh", height: "90vh" });
+  
+  // Раздельные стейты для сохранения контента
   const [rateTitle, setRateTitle] = useState("");
   const [rateDescription, setRateDescription] = useState("");
   
@@ -60,25 +62,30 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
     }
   };
 
-  // Фиксируем высоту при монтировании, чтобы клавиатура не поднимала кнопку
+  // Вычисляем размеры один раз при монтировании
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setModalHeight(`${window.innerHeight * 0.9}px`);
-    }
+      const h = window.innerHeight;
+      setDimensions({
+        top: `${h * 0.1}px`,
+        height: `${h * 0.9}px`
+          });
+        }
   }, []);
 
-  // Логика свайпов (Touch tracking)
+  // Логика свайпов
   const touchStartX = useRef<number>(0);
   const touchStartY = useRef<number>(0);
   const isHorizontalSwipe = useRef<boolean>(false);
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    // Защита от скроллбара: если тапают у правого края экрана — игнорируем свайп табов
-    if (e.touches[0].clientX > window.innerWidth - 20) return;
+    // Защита от скроллбара: если касание в пределах 30px от правого края — это скролл, а не свайп табов
+    if (e.touches[0].clientX > window.innerWidth - 30) return;
 
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
     isHorizontalSwipe.current = false;
+    setUseAnimation(true); // Включаем анимацию обратно для жестов
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -103,19 +110,18 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
 
     if (deltaX < -swipeThreshold && activeIndex < subTabOrder.length - 1) {
       triggerHaptic("light");
-      setUseAnimation(true); // Включаем анимацию для жеста свайпа
       setActiveSubTab(subTabOrder[activeIndex + 1]);
     } else if (deltaX > swipeThreshold && activeIndex > 0) {
       triggerHaptic("light");
-      setUseAnimation(true); // Включаем анимацию для жеста свайпа
       setActiveSubTab(subTabOrder[activeIndex - 1]);
     }
     touchStartX.current = 0;
   };
 
   const handleTabClick = (id: SubTabType) => {
+    if (id === activeSubTab) return;
     triggerHaptic("light");
-    setUseAnimation(false); // Выключаем анимацию при клике по таббару
+    setUseAnimation(false); // Выключаем анимацию перелистывания при клике на таббар
     setActiveSubTab(id);
   };
 
@@ -132,7 +138,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
     isMoving: false,
   });
 
-  // Цикл анимации пружины для капли-бегунка
+  // Анимация капли таббара
   useEffect(() => {
     if (!isOpen) return;
 
@@ -226,10 +232,8 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
     }
   }, [activeSubTab, isOpen]);
 
-  // Загрузка анимаций Lottie
   useEffect(() => {
     if (!isOpen) return;
-    
     setAnimationData(null);
     const targetJson = activeSubTab === "tier" ? "tear" : activeSubTab;
 
@@ -241,7 +245,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
 
   return (
     <div 
-      className={`fixed inset-0 z-50 flex flex-col justify-end transition-all duration-300 ${
+      className={`fixed inset-0 z-50 transition-all duration-300 ${
         isOpen ? "pointer-events-auto" : "pointer-events-none"
       }`}
     >
@@ -253,12 +257,15 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
         onClick={onClose} 
       />
 
-      {/* Контейнер модального окна */}
+      {/* Контейнер модального окна — заякорен сверху */}
       <div 
-        className={`relative w-full bg-white dark:bg-neutral-900 rounded-t-[32px] shadow-2xl flex flex-col overflow-hidden transition-transform duration-300 cubic-bezier(0.15, 1, 0.2, 1) will-change-transform ${
+        className={`absolute left-0 right-0 bg-white dark:bg-neutral-900 rounded-t-[32px] shadow-2xl flex flex-col overflow-hidden transition-transform duration-300 cubic-bezier(0.15, 1, 0.2, 1) will-change-transform ${
           isOpen ? "translate-y-0" : "translate-y-full"
         }`}
-        style={{ height: modalHeight }}
+        style={{ 
+          top: dimensions.top, 
+          height: dimensions.height
+        }}
       >
         {/* Шапка модалки */}
         <div className="relative w-full h-16 flex items-center justify-center px-4 flex-shrink-0 select-none">
