@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import dynamic from "next/dynamic";
 
 const Lottie = dynamic(() => import("lottie-light-react"), { ssr: false });
@@ -20,9 +20,7 @@ export default function RateView({
   setDescription,
   animationData,
 }: RateViewProps) {
-  const [showTooltip, setShowTooltip] = useState(false);
 
-  // Тактильный отклик Telegram
   const triggerHaptic = (style: "light" | "medium" | "heavy") => {
     if (typeof window !== "undefined") {
       const anyWindow = window as any;
@@ -34,29 +32,14 @@ export default function RateView({
     }
   };
 
-  const toggleTooltip = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Изолируем от клика по основной кнопке
-    triggerHaptic("light");
-    setShowTooltip(!showTooltip);
-  };
-
   const handleMainButtonClick = () => {
     if (!title) return;
     triggerHaptic("medium");
-    // Логика отправки будет тут 🛠️
   };
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative">
       
-      {/* Невидимый слой для закрытия подсказки при тапе мимо */}
-      {showTooltip && (
-        <div 
-          className="fixed inset-0 z-30 bg-transparent" 
-          onClick={() => setShowTooltip(false)}
-        />
-      )}
-
       {/* СКРОЛЛ-ЗОНА ФОРМЫ */}
       <div className="flex-1 overflow-y-auto px-5 pb-4 flex flex-col space-y-4 scrollbar-none">
         
@@ -145,47 +128,30 @@ export default function RateView({
 
       </div>
 
-      {/* ФИКСИРОВАННЫЙ ПОДВАЛ С УМНОЙ КНОПКОЙ */}
-      <div className="px-5 pb-8 pt-2 flex flex-col items-center relative z-40 bg-white dark:bg-neutral-900 flex-shrink-0">
+      {/* ФИКСИРОВАННЫЙ ПОДВАЛ С ВЫЛЕЗАЮЩЕЙ ПЛАШКОЙ */}
+      <div className="px-5 pb-8 pt-7 flex flex-col items-center relative z-40 bg-white dark:bg-neutral-900 flex-shrink-0 select-none">
         
-        <div
-          onClick={handleMainButtonClick}
-          className={`w-full h-14 rounded-full font-bold text-sm transition-all duration-150 outline-none flex items-center justify-center relative select-none ${
-            title 
-              ? "bg-[#FC062D] text-white active:scale-[0.98] cursor-pointer" 
-              : "bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg text-appleLight-text/30 dark:text-appleDark-text/30 cursor-default"
-          }`}
-        >
-          <span>Закинуть в тренды</span>
+        <div className="w-full relative flex flex-col items-center">
           
-          {/* Инкапсулированный узел знака вопроса и подсказки */}
-          <div className="relative flex items-center justify-center">
-            
-            <div 
-              onClick={toggleTooltip}
-              className="w-[15px] h-[15px] rounded-full border border-current flex items-center justify-center text-[10px] font-bold ml-2 transition-transform active:scale-90 cursor-pointer"
-            >
-              ?
-            </div>
-
-            {/* Всплывающий монолитный поп-ап */}
-            <div 
-              className="absolute bottom-full mb-3.5 w-[230px] p-3.5 bg-white dark:bg-neutral-700 border border-neutral-200/60 dark:border-neutral-600/40 rounded-2xl text-neutral-600 dark:text-neutral-200 text-[11px] font-medium leading-normal shadow-[0_8px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-all duration-300 will-change-transform pointer-events-none z-50 text-center"
-              style={{
-                left: "calc(50% + 4px)", // Сдвиг центра под ширину иконки вопроса с отступом
-                transform: showTooltip ? "scale(1) translateY(0) translateX(-50%)" : "scale(0.3) translateY(15px) translateX(-50%)",
-                opacity: showTooltip ? 1 : 0,
-                transformOrigin: "bottom center",
-                transitionTimingFunction: showTooltip ? "cubic-bezier(0.34, 1.56, 0.64, 1)" : "cubic-bezier(0.25, 1, 0.5, 1)"
-              }}
-            >
-              Твоя оценка попадет в ленту трендов, так что каждый сможет ее увидеть и добавить свою!
-              
-              {/* Хвостик, идеально сливающийся с телом */}
-              <div className="absolute -bottom-[5px] left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-white dark:bg-neutral-700 border-r border-b border-neutral-200/60 dark:border-neutral-600/40 rotate-45" />
-            </div>
-
+          {/* Плашка, скрытая нижней частью за кнопкой */}
+          <div className="absolute bottom-6 left-3 right-3 h-14 bg-white dark:bg-neutral-700 rounded-t-[20px] flex items-start justify-center pt-2.5 px-4 z-10 shadow-[0_-4px_16px_rgba(0,0,0,0.03)] dark:shadow-none">
+            <p className="text-[10.5px] font-semibold text-neutral-400 dark:text-neutral-300/90 text-center leading-tight tracking-wide">
+              Твоя оценка улетит прямиком в общую ленту трендов
+            </p>
           </div>
+
+          {/* Главная кнопка */}
+          <div
+            onClick={handleMainButtonClick}
+            className={`w-full h-14 rounded-full font-bold text-sm transition-all duration-150 outline-none flex items-center justify-center relative z-20 ${
+              title 
+                ? "bg-[#FC062D] text-white active:scale-[0.98] cursor-pointer" 
+                : "bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg text-appleLight-text/30 dark:text-appleDark-text/30 cursor-default"
+            }`}
+          >
+            <span>Закинуть в тренды</span>
+          </div>
+
         </div>
 
       </div>
