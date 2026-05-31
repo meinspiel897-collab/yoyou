@@ -11,6 +11,7 @@ interface TakeViewProps {
   description: string;
   setDescription: (val: string) => void;
   animationData: any;
+  setIsTyping?: (typing: boolean) => void; // Проп для блокировки свайпов
 }
 
 export default function TakeView({
@@ -19,6 +20,7 @@ export default function TakeView({
   description,
   setDescription,
   animationData,
+  setIsTyping,
 }: TakeViewProps) {
 
   const triggerHaptic = (style: "light" | "medium" | "heavy") => {
@@ -37,13 +39,12 @@ export default function TakeView({
     triggerHaptic("medium");
   };
 
-  // Кнопка активна только при заполнении обоих полей
   const isFormValid = title.trim().length > 0 && description.trim().length > 0;
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative">
       
-      {/* СКРОЛЛ-ЗОНА КОНТЕНТА */}
+      {/* СКРОЛЛ-ЗОНА КОНТЕНТА (активирует скроллбар при нехватке места от клавиатуры) */}
       <div className="flex-1 overflow-y-auto px-5 pb-4 flex flex-col space-y-5 scrollbar-none">
         
         {/* Шапка таба с Lottie-анимацией */}
@@ -64,7 +65,7 @@ export default function TakeView({
           </p>
         </div>
 
-        {/* Поле: Тема тейка (Обязательное, идёт первым) */}
+        {/* Поле: Тема тейка */}
         <div className="flex flex-col space-y-1.5">
           <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
             Тема тейка
@@ -72,10 +73,12 @@ export default function TakeView({
           <div className="w-full h-11 bg-transparent border border-neutral-600 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-full flex items-center px-4 transition-colors duration-200">
             <input
               type="text"
-              placeholder="Добавь деталей, если нужно"
+              placeholder="Добавь тейку заголовок"
               value={description}
               onChange={(e) => setDescription(e.target.value.slice(0, 40))}
               maxLength={40}
+              onFocus={() => setIsTyping?.(true)}
+              onBlur={() => setIsTyping?.(false)}
               className="flex-1 h-full bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text placeholder-neutral-300 dark:placeholder-neutral-600"
             />
             <span className="text-[11px] font-bold text-neutral-400 dark:text-neutral-600 ml-2 select-none tracking-wide">
@@ -84,7 +87,7 @@ export default function TakeView({
           </div>
         </div>
 
-        {/* Поле: Текст Тейка (5 строк, высота уменьшена) */}
+        {/* Поле: Текст Тейка */}
         <div className="flex flex-col space-y-1.5">
           <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
             Твой тейк
@@ -96,6 +99,8 @@ export default function TakeView({
               onChange={(e) => setTitle(e.target.value.slice(0, 750))}
               maxLength={750}
               rows={5}
+              onFocus={() => setIsTyping?.(true)}
+              onBlur={() => setIsTyping?.(false)}
               className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text placeholder-neutral-300 dark:placeholder-neutral-600 resize-none overflow-y-auto h-[116px] pr-2 leading-snug scrollbar-none"
             />
             <span className="absolute right-4 bottom-3.5 text-[11px] font-bold text-neutral-400 dark:text-neutral-600 select-none tracking-wide">
@@ -108,17 +113,13 @@ export default function TakeView({
 
       {/* ФИКСИРОВАННЫЙ ПОДВАЛ */}
       <div className="px-5 pb-8 pt-9 flex flex-col items-center relative z-40 bg-white dark:bg-neutral-900 flex-shrink-0 select-none">
-        
         <div className="w-full relative flex flex-col items-center">
-          
-          {/* Плашка */}
           <div className="absolute -top-7 left-0 right-0 bg-neutral-600 dark:bg-neutral-800 rounded-t-[20px] pt-2 pb-10 text-center pointer-events-none z-10">
             <p className="text-[11px] font-normal text-white dark:text-neutral-200 tracking-wide px-4">
               Твой тейк отправится прямо в общую ленту трендов
             </p>
           </div>
 
-          {/* Главная кнопка */}
           <div
             onClick={handleMainButtonClick}
             className={`w-full h-14 rounded-full font-bold text-sm transition-all duration-150 outline-none flex items-center justify-center relative z-20 ${
@@ -129,9 +130,7 @@ export default function TakeView({
           >
             <span>Закинуть в тренды</span>
           </div>
-
         </div>
-
       </div>
 
     </div>
