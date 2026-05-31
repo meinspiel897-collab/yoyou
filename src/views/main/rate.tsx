@@ -22,7 +22,7 @@ export default function RateView({
 }: RateViewProps) {
   const [showTooltip, setShowTooltip] = useState(false);
 
-  // Нативный тактильный отклик Telegram
+  // Тактильный отклик Telegram
   const triggerHaptic = (style: "light" | "medium" | "heavy") => {
     if (typeof window !== "undefined") {
       const anyWindow = window as any;
@@ -35,7 +35,7 @@ export default function RateView({
   };
 
   const toggleTooltip = (e: React.MouseEvent) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Изолируем от клика по основной кнопке
     triggerHaptic("light");
     setShowTooltip(!showTooltip);
   };
@@ -43,12 +43,13 @@ export default function RateView({
   const handleMainButtonClick = () => {
     if (!title) return;
     triggerHaptic("medium");
+    // Логика отправки будет тут 🛠️
   };
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative">
       
-      {/* Невидимый оверлей: быстро и плавно закрывает подсказку при тапе мимо */}
+      {/* Невидимый слой для закрытия подсказки при тапе мимо */}
       {showTooltip && (
         <div 
           className="fixed inset-0 z-30 bg-transparent" 
@@ -56,7 +57,7 @@ export default function RateView({
         />
       )}
 
-      {/* СКРОЛЛ-ЗОНА ДЛЯ ФОРМЫ */}
+      {/* СКРОЛЛ-ЗОНА ФОРМЫ */}
       <div className="flex-1 overflow-y-auto px-5 pb-4 flex flex-col space-y-4 scrollbar-none">
         
         {/* Описание с Lottie */}
@@ -144,51 +145,47 @@ export default function RateView({
 
       </div>
 
-      {/* ФИКСИРОВАННЫЙ НИЖНИЙ БЛОК ДЛЯ КНОПОК */}
+      {/* ФИКСИРОВАННЫЙ ПОДВАЛ С УМНОЙ КНОПКОЙ */}
       <div className="px-5 pb-8 pt-2 flex flex-col items-center relative z-40 bg-white dark:bg-neutral-900 flex-shrink-0">
         
-        {/* Прямоугольник подсказки — смещен для баланса границ экрана, хвостик бьет четко в цель */}
-        <div 
-          className="absolute bottom-[78px] right-[-14px] w-[260px] bg-[#FC062D]/85 backdrop-blur-md border border-[#FC062D] rounded-2xl text-white text-[11px] font-medium p-3.5 leading-normal shadow-xl transition-all duration-300 will-change-transform pointer-events-none z-50 flex flex-col"
-          style={{
-            transform: showTooltip ? "scale(1) translateY(0)" : "scale(0.3) translateY(24px)",
-            opacity: showTooltip ? 1 : 0,
-            transformOrigin: "bottom right",
-            transitionTimingFunction: showTooltip ? "cubic-bezier(0.34, 1.56, 0.64, 1)" : "cubic-bezier(0.25, 1, 0.5, 1)"
-          }}
+        <div
+          onClick={handleMainButtonClick}
+          className={`w-full h-14 rounded-full font-bold text-sm transition-all duration-150 outline-none flex items-center justify-center relative select-none ${
+            title 
+              ? "bg-[#FC062D] text-white active:scale-[0.98] cursor-pointer" 
+              : "bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg text-appleLight-text/30 dark:text-appleDark-text/30 cursor-default"
+          }`}
         >
-          <span>Твоя оценка попадет в ленту трендов, так что каждый сможет ее увидеть и добавить свою!</span>
+          <span>Закинуть в тренды</span>
           
-          {/* Бесшовный треугольный хвостик */}
-          <div className="absolute -bottom-[6px] right-[44px] -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-top-[6px] border-top-[#FC062D]" />
-          
-          {/* Микро-маска для удаления контура под хвостиком, соединяющая фигуры в одну */}
-          <div className="absolute bottom-0 right-[44px] -translate-x-1/2 w-[10px] h-[1px] bg-[#FC062D]" />
-        </div>
+          {/* Инкапсулированный узел знака вопроса и подсказки */}
+          <div className="relative flex items-center justify-center">
+            
+            <div 
+              onClick={toggleTooltip}
+              className="w-[15px] h-[15px] rounded-full border border-current flex items-center justify-center text-[10px] font-bold ml-2 transition-transform active:scale-90 cursor-pointer"
+            >
+              ?
+            </div>
 
-        {/* Интерактивная зона */}
-        <div className="w-full h-14 relative">
-          
-          {/* Главная кнопка "Закинуть в тренды" */}
-          <button
-            onClick={handleMainButtonClick}
-            disabled={!title}
-            className={`w-full h-full rounded-full font-bold text-sm transition-all duration-150 outline-none flex items-center justify-center select-none pr-12 ${
-              title 
-                ? "bg-[#FC062D] text-white active:scale-[0.98]" 
-                : "bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg text-appleLight-text/30 dark:text-appleDark-text/30"
-            }`}
-          >
-            Закинуть в тренды
-          </button>
+            {/* Всплывающий монолитный поп-ап */}
+            <div 
+              className="absolute bottom-full mb-3.5 w-[230px] p-3.5 bg-white dark:bg-neutral-700 border border-neutral-200/60 dark:border-neutral-600/40 rounded-2xl text-neutral-600 dark:text-neutral-200 text-[11px] font-medium leading-normal shadow-[0_8px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-all duration-300 will-change-transform pointer-events-none z-50 text-center"
+              style={{
+                left: "calc(50% + 4px)", // Сдвиг центра под ширину иконки вопроса с отступом
+                transform: showTooltip ? "scale(1) translateY(0) translateX(-50%)" : "scale(0.3) translateY(15px) translateX(-50%)",
+                opacity: showTooltip ? 1 : 0,
+                transformOrigin: "bottom center",
+                transitionTimingFunction: showTooltip ? "cubic-bezier(0.34, 1.56, 0.64, 1)" : "cubic-bezier(0.25, 1, 0.5, 1)"
+              }}
+            >
+              Твоя оценка попадет в ленту трендов, так что каждый сможет ее увидеть и добавить свою!
+              
+              {/* Хвостик, идеально сливающийся с телом */}
+              <div className="absolute -bottom-[5px] left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-white dark:bg-neutral-700 border-r border-b border-neutral-200/60 dark:border-neutral-600/40 rotate-45" />
+            </div>
 
-          {/* Независимый круг с вопросом — копия капли-слайдера, доступен ВСЕГДА */}
-          <button
-            onClick={toggleTooltip}
-            className="absolute right-4 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold bg-white/95 dark:bg-neutral-700/90 border border-neutral-200/20 dark:border-neutral-600/30 shadow-sm text-[#FC062D] dark:text-white transition-all active:scale-90 outline-none z-20 cursor-pointer"
-          >
-            ?
-          </button>
+          </div>
         </div>
 
       </div>
