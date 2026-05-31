@@ -1,10 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import dynamic from "next/dynamic";
-
-// Облегченный плеер Lottie без SSR
-const Lottie = dynamic(() => import("lottie-light-react"), { ssr: false });
+import RateView from "./rate";
 
 interface NewModalProps {
   isOpen: boolean;
@@ -16,7 +13,6 @@ type SubTabType = "rate" | "take" | "tier" | "over";
 interface TabConfig {
   id: SubTabType;
   label: string;
-  desc: string;
 }
 
 export default function NewModal({ isOpen, onClose }: NewModalProps) {
@@ -26,31 +22,12 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
   const [animationData, setAnimationData] = useState<any>(null);
 
   const tabs: TabConfig[] = [
-    {
-      id: "rate",
-      label: "Оценка",
-      desc: "Оценивай всё, что душа пожелает! Введи название и описание, а наш ИИ сам подгонит сочную обложку. Не зашло — поменяешь в один тап",
-    },
-    {
-      id: "take",
-      label: "Тейк",
-      desc: "Вбрось свое самое горячее и непопулярное мнение. Посмотрим, что выберет комьюнити — чистую Базу или лютый Кринж",
-    },
-    {
-      id: "tier",
-      label: "Тир лист",
-      desc: "Создай ультимативный топ вещей. Разложи любимые предметы по местам и покажи всем, как выглядит идеальный рейтинг",
-    },
-    {
-      id: "over",
-      label: "Оверрейт",
-      desc: "Накипело от хайпа? Закинь сюда вещь, которая лезет из каждого утюга, и выстави ей честный градус переоцененности",
-    },
+    { id: "rate", label: "Оценка" },
+    { id: "take", label: "Тейк" },
+    { id: "tier", label: "Тир лист" },
+    { id: "over", label: "Оверрейт" },
   ];
 
-  const currentTab = tabs.find((t) => t.id === activeSubTab) || tabs[0];
-
-  // Рефы для точной работы физического движка капли
   const sliderRef = useRef<HTMLDivElement>(null);
   const tabsRefs = useRef<{ [key in SubTabType]: HTMLButtonElement | null }>({
     rate: null,
@@ -64,7 +41,6 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
     activeSubTabRef.current = activeSubTab;
   }, [activeSubTab]);
 
-  // Состояние векторов физики (копия из main.tsx)
   const physicsState = useRef({
     x: 0, tx: 0, vx: 0,
     w: 0, tw: 0, vw: 0,
@@ -73,7 +49,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
     isMoving: false,
   });
 
-  // Запуск цикла анимации пружины при открытии модалки
+  // Цикл анимации пружины
   useEffect(() => {
     if (!isOpen) return;
 
@@ -151,26 +127,23 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
     return () => cancelAnimationFrame(rafId);
   }, [isOpen]);
 
-  // Триггер изменения вкладки для пружинного движка
   useEffect(() => {
     if (!isOpen) return;
     
     const targetEl = tabsRefs.current[activeSubTab];
     if (targetEl) {
       const state = physicsState.current;
-      
       if (state.w === 0) {
         state.x = targetEl.offsetLeft;
         state.w = targetEl.offsetWidth;
       }
-      
       state.tx = targetEl.offsetLeft;
       state.tw = targetEl.offsetWidth;
       state.isMoving = true;
     }
   }, [activeSubTab, isOpen]);
 
-  // Подгрузка Lottie
+  // Загрузка JSON анимаций
   useEffect(() => {
     if (!isOpen) return;
     
@@ -201,7 +174,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
           isOpen ? "translate-y-0" : "translate-y-full"
         }`}
       >
-        {/* Шапка модалки */}
+        {/* Шапка */}
         <div className="relative w-full h-16 flex items-center justify-center px-4 flex-shrink-0">
           <h2 className="text-base font-bold text-appleLight-text dark:text-appleDark-text tracking-tight">
             Что-то новенькое
@@ -219,10 +192,10 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
           </button>
         </div>
 
-        {/* Контент модалки */}
+        {/* Скролл-контент */}
         <div className="flex-1 overflow-y-auto px-5 pb-8 flex flex-col">
           
-          {/* Таббар с оригинальной физикой капли из main.tsx */}
+          {/* Таббар */}
           <div className="w-full h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center relative mb-6 flex-shrink-0 select-none">
             <div 
               ref={sliderRef}
@@ -248,94 +221,15 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
             })}
           </div>
 
-          {/* Описание */}
-          <div className="flex items-start space-x-3.5 px-1 mb-6 min-h-[52px] select-none">
-            <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
-              {animationData ? (
-                <Lottie 
-                  animationData={animationData} 
-                  loop={true} 
-                  style={{ width: 24, height: 24 }}
-                />
-              ) : (
-                <div className="w-5 h-5 bg-neutral-200 dark:bg-neutral-800 rounded-full animate-pulse" />
-              )}
-            </div>
-            <p className="text-xs font-medium text-neutral-400 dark:text-neutral-500 leading-relaxed">
-              {currentTab.desc}
-            </p>
-          </div>
-
-          {/* Форма создания (Идеально выверенные одинаковые расстояния) */}
+          {/* Контент вкладок */}
           {activeSubTab === "rate" ? (
-            <div className="flex flex-col space-y-4 animate-fadeIn">
-              
-              {/* Поле: Название */}
-              <div className="flex flex-col space-y-1.5">
-                <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
-                  Имя тут
-                </label>
-                <div className="w-full h-11 bg-transparent border border-neutral-600 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-full flex items-center px-4 transition-colors duration-200">
-                  <input
-                    type="text"
-                    placeholder="Что угодно"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value.slice(0, 20))}
-                    maxLength={20}
-                    className="flex-1 h-full bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text placeholder-neutral-300 dark:placeholder-neutral-600"
-                  />
-                  <span className="text-[11px] font-bold text-neutral-400 dark:text-neutral-600 ml-2 select-none tracking-wide">
-                    {title.length}/20
-                  </span>
-                </div>
-              </div>
-
-              {/* Поле: Описание */}
-              <div className="flex flex-col space-y-1.5">
-                <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
-                  Описание здесь
-                </label>
-                <div className="w-full min-h-[78px] bg-transparent border border-neutral-600 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-[20px] flex items-start p-3.5 transition-colors duration-200 relative">
-                  <textarea
-                    placeholder="Что угодно"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value.slice(0, 130))}
-                    maxLength={130}
-                    rows={3}
-                    className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text placeholder-neutral-300 dark:placeholder-neutral-600 resize-none overflow-y-auto h-[48px] pr-14 leading-tight scrollbar-none"
-                  />
-                  <span className="absolute right-4 bottom-3.5 text-[11px] font-bold text-neutral-400 dark:text-neutral-600 select-none tracking-wide">
-                    {description.length}/130
-                  </span>
-                </div>
-              </div>
-
-              {/* Поле: Картинки */}
-              <div className="flex flex-col space-y-1.5">
-                <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
-                  Картинка
-                </label>
-                <div className="grid grid-cols-3 gap-3 w-full">
-                  {[0, 1, 2].map((index) => (
-                    <div 
-                      key={index}
-                      className={`aspect-[3/4] w-full border border-neutral-600 dark:border-neutral-800 rounded-2xl flex items-center justify-center relative overflow-hidden select-none ${
-                        index !== 0 ? "bg-neutral-200 dark:bg-neutral-800 animate-pulse" : "bg-neutral-50/50 dark:bg-neutral-950/20"
-                      }`}
-                    >
-                      {index === 0 && (
-                        <img 
-                          src="/icons/add.png" 
-                          alt="Добавить" 
-                          className="w-9 h-9 object-contain block dark:brightness-0 dark:invert opacity-25"
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-            </div>
+            <RateView 
+              title={title}
+              setTitle={setTitle}
+              description={description}
+              setDescription={setDescription}
+              animationData={animationData}
+            />
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center py-12 text-center select-none animate-fadeIn">
               <span className="text-xl mb-2">🛠️</span>
