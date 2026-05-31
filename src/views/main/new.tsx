@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import RateView from "./rate";
+import TakeView from "./take";
 
 interface NewModalProps {
   isOpen: boolean;
@@ -37,8 +38,12 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
   });
 
   const activeSubTabRef = useRef<SubTabType>(activeSubTab);
+  
   useEffect(() => {
     activeSubTabRef.current = activeSubTab;
+    // Сбрасываем текст при переключении экранов, чтобы контент не накладывался
+    setTitle("");
+    setDescription("");
   }, [activeSubTab]);
 
   const physicsState = useRef({
@@ -49,7 +54,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
     isMoving: false,
   });
 
-  // Цикл анимации пружины капли
+  // Цикл анимации пружины для капли-бегунка
   useEffect(() => {
     if (!isOpen) return;
 
@@ -143,7 +148,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
     }
   }, [activeSubTab, isOpen]);
 
-  // Загрузка Lottie файлов
+  // Динамический фетч Lottie анимаций под текущий подтаб
   useEffect(() => {
     if (!isOpen) return;
     
@@ -162,6 +167,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
         isOpen ? "pointer-events-auto" : "pointer-events-none"
       }`}
     >
+      {/* Задний блюр-оверлей */}
       <div 
         className={`absolute inset-0 bg-black/15 dark:bg-black/30 transition-all duration-300 ${
           isOpen ? "opacity-100 backdrop-blur-[3px]" : "opacity-0 backdrop-blur-0"
@@ -169,15 +175,16 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
         onClick={onClose} 
       />
 
+      {/* Контейнер модального окна */}
       <div 
         className={`relative w-full h-[90%] bg-white dark:bg-neutral-900 rounded-t-[32px] shadow-2xl flex flex-col transition-transform duration-300 cubic-bezier(0.15, 1, 0.2, 1) will-change-transform ${
           isOpen ? "translate-y-0" : "translate-y-full"
         }`}
       >
-        {/* Шапка модалки */}
+        {/* Шапка */}
         <div className="relative w-full h-16 flex items-center justify-center px-4 flex-shrink-0">
           <h2 className="text-base font-bold text-appleLight-text dark:text-appleDark-text tracking-tight">
-            Что-то новенькое
+            What's new?
           </h2>
 
           <button 
@@ -192,7 +199,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
           </button>
         </div>
 
-        {/* Навигационный таббар */}
+        {/* Навигационный таббар с каплей */}
         <div className="px-5 flex-shrink-0">
           <div className="w-full h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center relative mb-6 select-none">
             <div 
@@ -220,7 +227,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
           </div>
         </div>
 
-        {/* Контентная область с изоляцией скролла */}
+        {/* Динамическая область контента под каждый таб */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {activeSubTab === "rate" ? (
             <RateView 
@@ -230,7 +237,16 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
               setDescription={setDescription}
               animationData={animationData}
             />
+          ) : activeSubTab === "take" ? (
+            <TakeView 
+              title={title}
+              setTitle={setTitle}
+              description={description}
+              setDescription={setDescription}
+              animationData={animationData}
+            />
           ) : (
+            /* Тир-лист и Оверрейт пока отдыхают в разработке */
             <div className="flex-1 flex flex-col items-center justify-center py-12 text-center select-none animate-fadeIn">
               <span className="text-xl mb-2">🛠️</span>
               <p className="text-xs font-bold text-neutral-400 dark:text-neutral-600 uppercase tracking-widest">
