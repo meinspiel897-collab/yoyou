@@ -98,10 +98,10 @@ export default function TrendsGrid({ isLoading = false }: TrendsGridProps) {
             {/* Карточка Тейка (Вайб Threads) */}
             {isTake ? (
               <>
-                {/* Вотермарка логотипа на фоне */}
+                {/* Изящная маленькая вотермарка в углу */}
                 <img 
                   src="/icons/logo.png" 
-                  className="absolute right-4 bottom-11 w-14 h-14 opacity-[0.04] dark:opacity-[0.03] pointer-events-none object-contain select-none" 
+                  className="absolute right-4 bottom-4 w-7 h-7 opacity-[0.05] dark:opacity-[0.03] pointer-events-none object-contain select-none z-0" 
                   alt="" 
                 />
 
@@ -116,7 +116,7 @@ export default function TrendsGrid({ isLoading = false }: TrendsGridProps) {
 
                 {/* Подвал тейка со счетчиками */}
                 <div 
-                  className="flex items-center space-x-4 mt-4 pt-1 text-[10px] text-neutral-400 dark:text-neutral-500 font-bold select-none" 
+                  className="flex items-center space-x-4 mt-4 pt-1 text-[10px] text-neutral-400 dark:text-neutral-500 font-bold select-none relative z-10" 
                   style={counterStyle}
                 >
                   <div className="flex items-center space-x-1.5">
