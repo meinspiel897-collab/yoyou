@@ -1,9 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import dynamic from "next/dynamic";
-import ShieldSelectionModal, { Shield } from "./modal-sh";
-import { shields } from "../main/shields"; // Путь к твоим шилдам. Поправь, если папки лежат иначе
 
 const Lottie = dynamic(() => import("lottie-light-react"), { ssr: false });
 
@@ -13,7 +11,8 @@ interface TakeViewProps {
   description: string;
   setDescription: (val: string) => void;
   animationData: any;
-  setIsTyping?: (typing: boolean) => void; // Проп для блокировки свайпов
+  setIsTyping?: (typing: boolean) => void; 
+  onAddShieldClick?: () => void; // Проп для открытия шилдов
 }
 
 export default function TakeView({
@@ -23,10 +22,8 @@ export default function TakeView({
   setDescription,
   animationData,
   setIsTyping,
+  onAddShieldClick,
 }: TakeViewProps) {
-  // Внутренний стейт для управления шилдами
-  const [isShieldModalOpen, setIsShieldModalOpen] = useState(false);
-  const [selectedShield, setSelectedShield] = useState<Shield | null>(null);
 
   const triggerHaptic = (style: "light" | "medium" | "heavy") => {
     if (typeof window !== "undefined") {
@@ -42,7 +39,6 @@ export default function TakeView({
   const handleMainButtonClick = () => {
     if (!title || !description) return;
     triggerHaptic("medium");
-    // Тут при отправке можно прокидывать selectedShield в общую ленту
   };
 
   const isFormValid = title.trim().length > 0 && description.trim().length > 0;
@@ -93,34 +89,13 @@ export default function TakeView({
           </div>
         </div>
 
-        {/* НОВОЕ ПОЛЕ: Выбор шилда */}
-        <div className="flex flex-col space-y-1.5">
-          <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
-            Шилд публикации
-          </label>
-          <button
-            type="button"
-            onClick={() => {
-              triggerHaptic("light");
-              setIsShieldModalOpen(true);
-            }}
-            className="w-full h-11 bg-transparent border border-neutral-600 dark:border-neutral-800 rounded-full flex items-center justify-between px-4 transition-colors duration-200 active:bg-neutral-50 dark:active:bg-neutral-800/40 outline-none group text-left"
-          >
-            <span className={`text-sm font-medium ${selectedShield ? "text-appleLight-text dark:text-appleDark-text" : "text-neutral-400 dark:text-neutral-600"}`}>
-              {selectedShield ? `${selectedShield.icon}  ${selectedShield.name}` : "Выбери шилд публикации"}
-            </span>
-            <span className="text-xs font-bold text-neutral-400 dark:text-neutral-600 transition-transform group-active:translate-x-0.5">
-              ➔
-            </span>
-          </button>
-        </div>
-
         {/* Поле: Текст Тейка */}
         <div className="flex flex-col space-y-1.5">
           <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
             Твой тейк
           </label>
-          <div className="w-full min-h-[164px] bg-transparent border border-neutral-600 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-[24px] flex items-start p-4 transition-colors duration-200 relative">
+          {/* Добавлен pb-12, чтобы текст не залезал под кнопку и счетчик */}
+          <div className="w-full min-h-[164px] bg-transparent border border-neutral-600 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-[24px] flex items-start p-4 pb-12 transition-colors duration-200 relative">
             <textarea
               placeholder="Пиши всё, что думаешь..."
               value={title}
@@ -129,8 +104,25 @@ export default function TakeView({
               rows={5}
               onFocus={() => setIsTyping?.(true)}
               onBlur={() => setIsTyping?.(false)}
-              className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text placeholder-neutral-300 dark:placeholder-neutral-600 resize-none overflow-y-auto h-[116px] pr-2 leading-snug scrollbar-none"
+              className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text placeholder-neutral-300 dark:placeholder-neutral-600 resize-none overflow-y-auto h-[106px] pr-2 leading-snug scrollbar-none"
             />
+            
+            {/* Кнопка добавления шилда (круг с плюсом) */}
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic("light");
+                onAddShieldClick?.();
+              }}
+              className="absolute left-4 bottom-3 w-8 h-8 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 active:scale-90 rounded-full flex items-center justify-center transition-all outline-none z-10"
+            >
+              <img 
+                src="/icons/add.png" 
+                alt="Добавить шилд" 
+                className="w-4 h-4 object-contain block dark:brightness-0 dark:invert"
+              />
+            </button>
+
             <span className="absolute right-4 bottom-3.5 text-[11px] font-bold text-neutral-400 dark:text-neutral-600 select-none tracking-wide">
               {title.length}/750
             </span>
@@ -160,15 +152,6 @@ export default function TakeView({
           </div>
         </div>
       </div>
-
-      {/* ПОДКЛЮЧЕНИЕ МОДАЛКИ ВЫБОРА ШИЛДОВ */}
-      <ShieldSelectionModal 
-        isOpen={isShieldModalOpen}
-        onClose={() => setIsShieldModalOpen(false)}
-        onSelect={(shield) => setSelectedShield(shield)}
-        currentShield={selectedShield}
-        shields={shields}
-      />
 
     </div>
   );
