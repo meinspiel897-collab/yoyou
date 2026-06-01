@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { getShieldHtml, ShieldType } from "./shields";
+import { validateInput } from "@/utils/validation";
 
 const Lottie = dynamic(() => import("lottie-light-react"), { ssr: false });
 
@@ -13,8 +13,6 @@ interface TakeViewProps {
   setDescription: (val: string) => void;
   animationData: any;
   setIsTyping?: (typing: boolean) => void;
-  onAddShieldClick?: () => void;
-  controlRef?: React.MutableRefObject<{ insertShield: (type: ShieldType) => void } | null>;
 }
 
 export default function TakeView({
@@ -24,13 +22,9 @@ export default function TakeView({
   setDescription,
   animationData,
   setIsTyping,
-  onAddShieldClick,
-  controlRef,
 }: TakeViewProps) {
   
-  const editorRef = useRef<HTMLDivElement>(null);
-  const savedRangeRef = useRef<Range | null>(null);
-  const [pureCharCount, setPureCharCount] = useState(0);
+  const [charCount, setCharCount] = useState(0);
 
   const triggerHaptic = (style: "light" | "medium" | "heavy") => {
     if (typeof window !== "undefined") {
@@ -41,146 +35,19 @@ export default function TakeView({
     }
   };
 
-  const updateCharacterCount = (htmlContent: string) => {
-    if (typeof document === "undefined") return;
-    const tempDiv = document.createElement("div");
-    tempDiv.innerHTML = htmlContent;
-    tempDiv.querySelectorAll("[data-shield-type]").forEach(shield => shield.remove());
-    const cleanText = tempDiv.innerText.replace(/\n/g, "");
-    setPureCharCount(cleanText.length);
-  };
-
   useEffect(() => {
-    updateCharacterCount(title);
+    setCharCount(title.length);
   }, [title]);
 
-  const saveCaretPosition = () => {
-    if (typeof window === "undefined") return;
-    const sel = window.getSelection();
-    if (sel && sel.rangeCount > 0) {
-      savedRangeRef.current = sel.getRangeAt(0).cloneRange();
-    }
-  };
-
-  // Метод вставки шилда со встроенным фиксом прыгающей каретки клавиатуры
-  const insertShield = (type: ShieldType) => {
-    const editor = editorRef.current;
-    if (!editor) return;
-
-    editor.focus();
-    const sel = window.getSelection();
-    if (!sel) return;
-
-    if (savedRangeRef.current) {
-      sel.removeAllRanges();
-      sel.addRange(savedRangeRef.current);
-    }
-
-    const range = sel.getRangeAt(0);
-    range.deleteContents();
-
-    // Создаем контейнер для парсинга разметки
-    const tempDiv = document.createElement("div");
-    tempDiv.innerHTML = getShieldHtml(type);
-    const shieldNode = tempDiv.firstElementChild;
-
-    if (shieldNode) {
-      // ФИКС КАРЕТКИ: Создаем текстовые ноды с невидимым символом нулевой ширины (\u200B)
-      // Это не дает браузеру ломать вертикальный курсор и склеивать теги вместе.
-      const spaceBefore = document.createTextNode("\u200B");
-      const spaceAfter = document.createTextNode("\u200B");
-
-      range.insertNode(spaceAfter);
-      range.insertNode(shieldNode);
-      range.insertNode(spaceBefore);
-
-      // Корректно сдвигаем каретку сразу после вставленного шилда
-      range.setStartAfter(spaceAfter);
-      range.setEndAfter(spaceAfter);
-      sel.removeAllRanges();
-      sel.addRange(range);
-    }
-
-    setTitle(editor.innerHTML);
-    savedRangeRef.current = range.cloneRange();
-  };
-
-  useEffect(() => {
-    if (controlRef) controlRef.current = { insertShield };
-    return () => {
-      if (controlRef) controlRef.current = null;
-    };
-  }, [controlRef, title]);
-
-  const handleEditorClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLElement;
-    const shieldContainer = target.closest("[data-shield-type]");
-    if (!shieldContainer) return;
-
-    const type = shieldContainer.getAttribute("data-shield-type") as ShieldType;
-
-    // Счётчик: логика инкремента/декремента кнопок-кругляшей
-    if (type === "counter") {
-      const action = target.getAttribute("data-shield-action");
-      if (action) {
-        e.preventDefault();
-        e.stopPropagation();
-        triggerHaptic("light");
-        const valNode = shieldContainer.querySelector('[data-shield-value="count"]') as HTMLElement;
-        if (valNode) {
-          let current = parseInt(valNode.innerText) || 0;
-          if (action === "inc") current++;
-          if (action === "dec") current--;
-          valNode.innerText = current.toString();
-        }
-      }
-    }
-
-    // Звезды
-    const starIdx = target.getAttribute("data-star-idx");
-    if (type === "stars" && starIdx) {
-      e.preventDefault();
-      triggerHaptic("light");
-      const idx = parseInt(starIdx);
-      const buttons = shieldContainer.querySelectorAll("[data-star-idx]");
-      buttons.forEach((btn) => {
-        const bHtml = btn as HTMLElement;
-        const bIdx = parseInt(bHtml.getAttribute("data-star-idx") || "0");
-        if (bIdx <= idx) {
-          bHtml.className = "text-xs transition-all mx-[2px] opacity-100 outline-none";
-        } else {
-          bHtml.className = "text-xs transition-all mx-[2px] opacity-25 grayscale outline-none";
-        }
-      });
-    }
-
-    if (editorRef.current) {
-      setTitle(editorRef.current.innerHTML);
-    }
-  };
-
-  // Предотвращаем случайное попадание каретки внутрь защищенных неизменяемых структур
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    // Если нажат Enter, предотвращаем вставку лишних div/br внутри строки
-    if (e.key === "Enter") {
-      e.preventDefault();
-    }
-  };
-
-  const isFormValid = description.trim().length > 0 && pureCharCount > 0;
+  // Основной тейк обязателен, тема — нет. Но если тема заполнена, она обязана пройти валидацию.
+  const isFormValid = validateInput(title, false) && validateInput(description, true);
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative">
-      <style dangerouslySetInnerHTML={{ __html: `
-        .editor-placeholder:empty::before { content: attr(data-placeholder); color: #a3a3a3; }
-        .dark .editor-placeholder:empty::before { content: attr(data-placeholder); color: #525252; }
-        /* Защита от слияния и наложения инлайн элементов */
-        [data-shield-type] { display: inline-flex !important; vertical-align: middle !important; white-space: nowrap !important; }
-        [contenteditable="true"] { -webkit-tap-highlight-color: transparent; }
-      `}} />
       
       <div className="flex-1 overflow-y-auto px-5 pb-4 flex flex-col space-y-5 scrollbar-none">
         
+        {/* Шапка с анимацией */}
         <div className="flex items-start space-x-3.5 px-1 min-h-[52px] select-none pt-1">
           <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
             {animationData ? (
@@ -190,76 +57,63 @@ export default function TakeView({
             )}
           </div>
           <p className="text-xs font-medium text-neutral-400 dark:text-neutral-500 leading-relaxed">
-            Выдай свой самый лучший тейк! Напиши базу или кринж — пускай толпа решает, гений ты или «очередной зумер»
+            Выдай свой самый лучший тейк! Напиши базу или кринж — пускай толпа решает, гений ты или нет. Без мусорных символов и пустых строк.
           </p>
         </div>
 
-        {/* Поле темы */}
+        {/* Поле темы (Заголовок) */}
         <div className="flex flex-col space-y-1.5">
-          <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
-            Тема тейка
-          </label>
+          <div className="flex justify-between items-center select-none">
+            <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500">
+              Тема тейка
+            </label>
+            <span className="text-[10px] text-neutral-400/60 dark:text-neutral-500/50 font-normal">
+              необязательно
+            </span>
+          </div>
           <div className="w-full h-11 bg-transparent border border-neutral-600 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-full flex items-center px-4 transition-colors duration-200">
             <input
               type="text"
-              placeholder="Добавь тейку заголовок"
+              placeholder="О чем твой пост?"
               value={description}
               onChange={(e) => setDescription(e.target.value.slice(0, 40))}
               maxLength={40}
               onFocus={() => setIsTyping?.(true)}
               onBlur={() => setIsTyping?.(false)}
               className="flex-1 h-full bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text placeholder-neutral-300 dark:placeholder-neutral-600"
+              style={{ fontFamily: "ui-rounded, 'SF Pro Rounded', system-ui, sans-serif" }}
             />
-            <span className="text-[11px] font-bold text-neutral-400 dark:text-neutral-600 ml-2 select-none tracking-wide">
+            <span className="text-[11px] font-bold text-neutral-400 dark:text-neutral-600 ml-2 select-none tracking-wide font-mono">
               {description.length}/40
             </span>
           </div>
         </div>
 
-        {/* Редактор */}
+        {/* Текстовое поле тейка */}
         <div className="flex flex-col space-y-1.5">
           <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
             Твой тейк
           </label>
-          <div className="w-full min-h-[164px] bg-transparent border border-neutral-600 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-[24px] flex flex-col p-4 pb-12 transition-colors duration-200 relative">
-            
-            <div
-              ref={editorRef}
-              contentEditable
-              suppressContentEditableWarning
-              data-placeholder="Пиши всё, что думаешь..."
+          <div className="w-full min-h-[164px] bg-transparent border border-neutral-600 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-[24px] flex flex-col p-4 pb-10 transition-colors duration-200 relative">
+            <textarea
+              placeholder="Пиши всё, что думаешь..."
+              value={title}
+              onChange={(e) => setTitle(e.target.value.slice(0, 750))}
+              maxLength={750}
               onFocus={() => setIsTyping?.(true)}
-              onBlur={() => {
-                setIsTyping?.(false);
-                saveCaretPosition();
-              }}
-              onInput={(e) => setTitle(e.currentTarget.innerHTML)}
-              onClick={handleEditorClick}
-              onKeyDown={handleKeyDown}
-              className="editor-placeholder flex-1 bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text resize-none overflow-y-auto min-h-[106px] pr-2 leading-relaxed scrollbar-none"
+              onBlur={() => setIsTyping?.(false)}
+              className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text placeholder-neutral-300 dark:placeholder-neutral-600 resize-none overflow-y-auto pr-2 leading-relaxed scrollbar-none"
+              style={{ fontFamily: "ui-rounded, 'SF Pro Rounded', system-ui, sans-serif" }}
             />
-            
-            <button
-              type="button"
-              onClick={() => {
-                triggerHaptic("light");
-                saveCaretPosition();
-                if (onAddShieldClick) onAddShieldClick();
-              }}
-              className="absolute left-4 bottom-3 w-8 h-8 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 active:scale-90 rounded-full flex items-center justify-center transition-all outline-none z-10"
-            >
-              <img src="/icons/add.png" alt="Add" className="w-4 h-4 object-contain block dark:brightness-0 dark:invert" />
-            </button>
-
-            <span className="absolute right-4 bottom-3.5 text-[11px] font-bold text-neutral-400 dark:text-neutral-600 select-none tracking-wide font-mono">
-              Символов: {pureCharCount}/750
+            <span className="absolute right-4 bottom-3 text-[11px] font-bold text-neutral-400 dark:text-neutral-600 select-none tracking-wide font-mono">
+              Символов: {charCount}/750
             </span>
           </div>
         </div>
 
       </div>
 
-      {/* Кнопка отправки */}
+      {/* Подвал */}
       <div className="px-5 pb-8 pt-9 flex flex-col items-center relative z-40 bg-white dark:bg-neutral-900 flex-shrink-0 select-none">
         <div className="w-full relative flex flex-col items-center">
           <div className="absolute -top-7 left-0 right-0 bg-neutral-600 dark:bg-neutral-800 rounded-t-[20px] pt-2 pb-10 text-center pointer-events-none z-10">
@@ -268,16 +122,19 @@ export default function TakeView({
             </p>
           </div>
 
-          <div
-            onClick={() => isFormValid && triggerHaptic("medium")}
+          <button
+            disabled={!isFormValid}
+            onClick={() => {
+              if (isFormValid) triggerHaptic("medium");
+            }}
             className={`w-full h-14 rounded-full font-bold text-sm transition-all duration-150 outline-none flex items-center justify-center relative z-20 ${
               isFormValid 
                 ? "bg-[#FC062D] text-white active:scale-[0.98] cursor-pointer" 
-                : "bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg text-appleLight-text/30 dark:text-appleDark-text/30 cursor-default"
+                : "bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg text-appleLight-text/30 dark:text-appleDark-text/30 cursor-not-allowed"
             }`}
           >
             <span>Закинуть в тренды</span>
-          </div>
+          </button>
         </div>
       </div>
 
