@@ -3,13 +3,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import RateView from "./rate";
 import TakeView from "./take";
+import ModalSh from "./modal-sh"; // Импорт нового модального окна
 
 interface NewModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-type SubTabType = "rate" | "take";
+type SubTabType = "rate" | "take" | "tier" | "over";
 
 interface TabConfig {
   id: SubTabType;
@@ -19,8 +20,12 @@ interface TabConfig {
 export default function NewModal({ isOpen, onClose }: NewModalProps) {
   const [activeSubTab, setActiveSubTab] = useState<SubTabType>("rate");
   const [dimensions, setDimensions] = useState({ top: "10vh", height: "90vh" });
-  const [isTyping, setIsTyping] = useState(false);
   
+  // Состояния блокировок свайпа
+  const [isTyping, setIsTyping] = useState(false);
+  const [isShieldOpen, setIsShieldOpen] = useState(false);
+  
+  // Раздельные стейты для сохранения контента
   const [rateTitle, setRateTitle] = useState("");
   const [rateDescription, setRateDescription] = useState("");
   
@@ -29,13 +34,14 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
 
   const [animationData, setAnimationData] = useState<any>(null);
 
-  // Только две базовые категории
   const tabs: TabConfig[] = [
     { id: "rate", label: "Оценка" },
     { id: "take", label: "Тейк" },
+    { id: "tier", label: "Тир лист" },
+    { id: "over", label: "Оверрейт" },
   ];
 
-  const subTabOrder: SubTabType[] = ["rate", "take"];
+  const subTabOrder: SubTabType[] = ["rate", "take", "tier", "over"];
   const activeIndex = subTabOrder.indexOf(activeSubTab);
 
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -43,6 +49,8 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
   const tabsRefs = useRef<{ [key in SubTabType]: HTMLButtonElement | null }>({
     rate: null,
     take: null,
+    tier: null,
+    over: null,
   });
 
   const touchStart = useRef({ x: 0, y: 0, time: 0 });
@@ -72,7 +80,8 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
   }, []);
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (isTyping) return;
+    // Блокировка свайпа при вводе текста или открытом шилде
+    if (isTyping || isShieldOpen) return;
     if (e.touches[0].clientX > window.innerWidth - 30) return;
 
     const touch = e.touches[0];
@@ -90,7 +99,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (isTyping || !touchStart.current.time) return;
+    if (isTyping || isShieldOpen || !touchStart.current.time) return;
 
     const touch = e.touches[0];
     const deltaX = touch.clientX - touchStart.current.x;
@@ -121,7 +130,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
   };
 
   const handleTouchEnd = () => {
-    if (isTyping || !isSwiping.current) return;
+    if (!isSwiping.current) return;
     isSwiping.current = false;
 
     const width = window.innerWidth;
@@ -286,8 +295,9 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
   useEffect(() => {
     if (!isOpen) return;
     setAnimationData(null);
+    const targetJson = activeSubTab === "tier" ? "tear" : activeSubTab;
 
-    fetch(`/icons/${activeSubTab}.json`)
+    fetch(`/icons/${targetJson}.json`)
       .then((res) => res.json())
       .then((data) => setAnimationData(data))
       .catch((err) => console.error("Ошибка загрузки Lottie:", err));
@@ -299,12 +309,15 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
         isOpen ? "pointer-events-auto" : "pointer-events-none"
       }`}
     >
+      {/* Задний блюр */}
       <div 
         className={`absolute inset-0 bg-black/15 dark:bg-black/30 transition-all duration-300 ${
           isOpen ? "opacity-100 backdrop-blur-[3px]" : "opacity-0 backdrop-blur-0"
         }`} 
-        onClick={onClose} />
+        onClick={onClose} 
+      />
 
+      {/* Контейнер модального окна */}
       <div 
         className={`absolute left-0 right-0 bg-white dark:bg-neutral-900 rounded-t-[32px] shadow-2xl flex flex-col overflow-hidden transition-transform duration-300 cubic-bezier(0.15, 1, 0.2, 1) will-change-transform ${
           isOpen ? "translate-y-0" : "translate-y-full"
@@ -317,7 +330,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
         {/* Шапка модалки */}
         <div className="relative w-full h-16 flex items-center justify-center px-4 flex-shrink-0 select-none">
           <h2 className="text-base font-bold text-appleLight-text dark:text-appleDark-text tracking-tight">
-            Что-то новенькое
+            What's new?
           </h2>
 
           <button 
@@ -332,7 +345,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
           </button>
         </div>
 
-        {/* Навигационный таббар (на 2 вкладки) */}
+        {/* Навигационный таббар */}
         <div className="px-5 flex-shrink-0">
           <div className="w-full h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center relative mb-5 select-none">
             <div 
@@ -360,30 +373,29 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
           </div>
         </div>
 
-        {/* Свайп-зона трека (200% под 2 таба) */}
+        {/* Свайп-зона трека */}
         <div className="flex-1 w-full overflow-hidden relative">
           <div 
             ref={contentTrackRef}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            className="absolute inset-0 flex w-[200%] h-full will-change-transform"
+            className="absolute inset-0 flex w-[400%] h-full will-change-transform"
             style={{ transform: `translateX(0px)` }}
           >
             {/* Секция: Оценка */}
-            <div className="w-[50%] h-full flex flex-col overflow-hidden">
+            <div className="w-[25%] h-full flex flex-col overflow-hidden">
               <RateView 
                 title={rateTitle}
                 setTitle={setRateTitle}
                 description={rateDescription}
                 setDescription={setRateDescription}
                 animationData={activeSubTab === "rate" ? animationData : null}
-                setIsTyping={setIsTyping}
               />
             </div>
 
             {/* Секция: Тейк */}
-            <div className="w-[50%] h-full flex flex-col overflow-hidden">
+            <div className="w-[25%] h-full flex flex-col overflow-hidden">
               <TakeView 
                 title={takeTitle}
                 setTitle={setTakeTitle}
@@ -391,12 +403,32 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
                 setDescription={setTakeDescription}
                 animationData={activeSubTab === "take" ? animationData : null}
                 setIsTyping={setIsTyping}
+                onAddShieldClick={() => setIsShieldOpen(true)} // Открытие модалки шилдов
               />
+            </div>
+
+            {/* Секция: Тир лист */}
+            <div className="w-[25%] h-full flex flex-col items-center justify-center text-center select-none">
+              <span className="text-xl mb-2">🛠️</span>
+              <p className="text-xs font-bold text-neutral-400 dark:text-neutral-600 uppercase tracking-widest">
+                В разработке
+              </p>
+            </div>
+
+            {/* Секция: Оверрейт */}
+            <div className="w-[25%] h-full flex flex-col items-center justify-center text-center select-none">
+              <span className="text-xl mb-2">🛠️</span>
+              <p className="text-xs font-bold text-neutral-400 dark:text-neutral-600 uppercase tracking-widest">
+                В разработке
+              </p>
             </div>
           </div>
         </div>
 
       </div>
+
+      {/* Вызов парящего окна выбора шилдов */}
+      <ModalSh isOpen={isShieldOpen} onClose={() => setIsShieldOpen(false)} />
     </div>
   );
 }
