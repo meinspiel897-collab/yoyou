@@ -30,8 +30,6 @@ export default function TakeView({
   
   const editorRef = useRef<HTMLDivElement>(null);
   const savedRangeRef = useRef<Range | null>(null);
-  
-  // Локальный стейт чистых символов (минус шилды)
   const [pureCharCount, setPureCharCount] = useState(0);
 
   const triggerHaptic = (style: "light" | "medium" | "heavy") => {
@@ -43,15 +41,11 @@ export default function TakeView({
     }
   };
 
-  // Метод фильтрации и подсчета символов текста, полностью игнорирующий разметку шилдов
   const updateCharacterCount = (htmlContent: string) => {
     if (typeof document === "undefined") return;
     const tempDiv = document.createElement("div");
     tempDiv.innerHTML = htmlContent;
-    
-    // Вырезаем все шилды из виртуальной копии перед подсчетом текста
     tempDiv.querySelectorAll("[data-shield-type]").forEach(shield => shield.remove());
-    
     const cleanText = tempDiv.innerText.replace(/\n/g, "");
     setPureCharCount(cleanText.length);
   };
@@ -68,6 +62,7 @@ export default function TakeView({
     }
   };
 
+  // Метод вставки шилда со встроенным фиксом прыгающей каретки клавиатуры
   const insertShield = (type: ShieldType) => {
     const editor = editorRef.current;
     if (!editor) return;
@@ -84,14 +79,24 @@ export default function TakeView({
     const range = sel.getRangeAt(0);
     range.deleteContents();
 
+    // Создаем контейнер для парсинга разметки
     const tempDiv = document.createElement("div");
     tempDiv.innerHTML = getShieldHtml(type);
     const shieldNode = tempDiv.firstElementChild;
 
     if (shieldNode) {
+      // ФИКС КАРЕТКИ: Создаем текстовые ноды с невидимым символом нулевой ширины (\u200B)
+      // Это не дает браузеру ломать вертикальный курсор и склеивать теги вместе.
+      const spaceBefore = document.createTextNode("\u200B");
+      const spaceAfter = document.createTextNode("\u200B");
+
+      range.insertNode(spaceAfter);
       range.insertNode(shieldNode);
-      range.setStartAfter(shieldNode);
-      range.setEndAfter(shieldNode);
+      range.insertNode(spaceBefore);
+
+      // Корректно сдвигаем каретку сразу после вставленного шилда
+      range.setStartAfter(spaceAfter);
+      range.setEndAfter(spaceAfter);
       sel.removeAllRanges();
       sel.addRange(range);
     }
@@ -107,7 +112,6 @@ export default function TakeView({
     };
   }, [controlRef, title]);
 
-  // Обработка внутренних кликов (кнопки счетчика и звезд). Инлайн-редактирование цифр работает нативно через contenteditable="true"
   const handleEditorClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
     const shieldContainer = target.closest("[data-shield-type]");
@@ -115,11 +119,12 @@ export default function TakeView({
 
     const type = shieldContainer.getAttribute("data-shield-type") as ShieldType;
 
-    // Специфичное поведение кнопок счетчика [- 5 +]
+    // Счётчик: логика инкремента/декремента кнопок-кругляшей
     if (type === "counter") {
       const action = target.getAttribute("data-shield-action");
       if (action) {
         e.preventDefault();
+        e.stopPropagation();
         triggerHaptic("light");
         const valNode = shieldContainer.querySelector('[data-shield-value="count"]') as HTMLElement;
         if (valNode) {
@@ -142,15 +147,23 @@ export default function TakeView({
         const bHtml = btn as HTMLElement;
         const bIdx = parseInt(bHtml.getAttribute("data-star-idx") || "0");
         if (bIdx <= idx) {
-          bHtml.className = "text-xs transition-all mx-[1px] opacity-100 outline-none";
+          bHtml.className = "text-xs transition-all mx-[2px] opacity-100 outline-none";
         } else {
-          bHtml.className = "text-xs transition-all mx-[1px] opacity-25 grayscale outline-none";
+          bHtml.className = "text-xs transition-all mx-[2px] opacity-25 grayscale outline-none";
         }
       });
     }
 
     if (editorRef.current) {
       setTitle(editorRef.current.innerHTML);
+    }
+  };
+
+  // Предотвращаем случайное попадание каретки внутрь защищенных неизменяемых структур
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    // Если нажат Enter, предотвращаем вставку лишних div/br внутри строки
+    if (e.key === "Enter") {
+      e.preventDefault();
     }
   };
 
@@ -161,6 +174,9 @@ export default function TakeView({
       <style dangerouslySetInnerHTML={{ __html: `
         .editor-placeholder:empty::before { content: attr(data-placeholder); color: #a3a3a3; }
         .dark .editor-placeholder:empty::before { content: attr(data-placeholder); color: #525252; }
+        /* Защита от слияния и наложения инлайн элементов */
+        [data-shield-type] { display: inline-flex !important; vertical-align: middle !important; white-space: nowrap !important; }
+        [contenteditable="true"] { -webkit-tap-highlight-color: transparent; }
       `}} />
       
       <div className="flex-1 overflow-y-auto px-5 pb-4 flex flex-col space-y-5 scrollbar-none">
@@ -200,7 +216,7 @@ export default function TakeView({
           </div>
         </div>
 
-        {/* Главный текстовый ContentEditable редактор */}
+        {/* Редактор */}
         <div className="flex flex-col space-y-1.5">
           <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
             Твой тейк
@@ -219,7 +235,8 @@ export default function TakeView({
               }}
               onInput={(e) => setTitle(e.currentTarget.innerHTML)}
               onClick={handleEditorClick}
-              className="editor-placeholder flex-1 bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text resize-none overflow-y-auto min-h-[106px] pr-2 leading-snug scrollbar-none"
+              onKeyDown={handleKeyDown}
+              className="editor-placeholder flex-1 bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text resize-none overflow-y-auto min-h-[106px] pr-2 leading-relaxed scrollbar-none"
             />
             
             <button
@@ -234,7 +251,6 @@ export default function TakeView({
               <img src="/icons/add.png" alt="Add" className="w-4 h-4 object-contain block dark:brightness-0 dark:invert" />
             </button>
 
-            {/* Счётчик считает строго чистый текст */}
             <span className="absolute right-4 bottom-3.5 text-[11px] font-bold text-neutral-400 dark:text-neutral-600 select-none tracking-wide font-mono">
               Символов: {pureCharCount}/750
             </span>
@@ -243,7 +259,7 @@ export default function TakeView({
 
       </div>
 
-      {/* Фиксированный футер */}
+      {/* Кнопка отправки */}
       <div className="px-5 pb-8 pt-9 flex flex-col items-center relative z-40 bg-white dark:bg-neutral-900 flex-shrink-0 select-none">
         <div className="w-full relative flex flex-col items-center">
           <div className="absolute -top-7 left-0 right-0 bg-neutral-600 dark:bg-neutral-800 rounded-t-[20px] pt-2 pb-10 text-center pointer-events-none z-10">
