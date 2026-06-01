@@ -3,8 +3,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import RateView from "./rate";
 import TakeView from "./take";
-import ModalSh from "./modal-sh";
-import { ShieldType } from "./shields";
 
 interface NewModalProps {
   isOpen: boolean;
@@ -23,7 +21,6 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
   const [dimensions, setDimensions] = useState({ top: "10vh", height: "90vh" });
   
   const [isTyping, setIsTyping] = useState(false);
-  const [isShieldOpen, setIsShieldOpen] = useState(false);
   
   const [rateTitle, setRateTitle] = useState("");
   const [rateDescription, setRateDescription] = useState("");
@@ -32,9 +29,6 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
   const [takeDescription, setTakeDescription] = useState("");
 
   const [animationData, setAnimationData] = useState<any>(null);
-
-  // Канал управления для вставки шилда внутрь contentEditable
-  const takeControlRef = useRef<{ insertShield: (type: ShieldType) => void } | null>(null);
 
   const tabs: TabConfig[] = [
     { id: "rate", label: "Оценка" },
@@ -73,7 +67,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
   }, []);
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (isTyping || isShieldOpen) return;
+    if (isTyping) return;
     if (e.touches[0].clientX > window.innerWidth - 30) return;
 
     const touch = e.touches[0];
@@ -85,7 +79,7 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (isTyping || isShieldOpen || !touchStart.current.time) return;
+    if (isTyping || !touchStart.current.time) return;
 
     const touch = e.touches[0];
     const deltaX = touch.clientX - touchStart.current.x;
@@ -313,10 +307,19 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
             className="absolute inset-0 flex w-[200%] h-full will-change-transform"
             style={{ transform: `translateX(0px)` }}
           >
+            {/* Слайд 1: Оценка */}
             <div className="w-[50%] h-full flex flex-col overflow-hidden">
-              <RateView title={rateTitle} setTitle={setRateTitle} description={rateDescription} setDescription={setRateDescription} animationData={activeSubTab === "rate" ? animationData : null} setIsTyping={setIsTyping} />
+              <RateView 
+                title={rateTitle} 
+                setTitle={setRateTitle} 
+                description={rateDescription} 
+                setDescription={setRateDescription} 
+                animationData={activeSubTab === "rate" ? animationData : null} 
+                setIsTyping={setIsTyping} 
+              />
             </div>
 
+            {/* Слайд 2: Тейк */}
             <div className="w-[50%] h-full flex flex-col overflow-hidden">
               <TakeView 
                 title={takeTitle}
@@ -325,21 +328,12 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
                 setDescription={setTakeDescription}
                 animationData={activeSubTab === "take" ? animationData : null}
                 setIsTyping={setIsTyping}
-                onAddShieldClick={() => setIsShieldOpen(true)}
-                controlRef={takeControlRef}
               />
             </div>
           </div>
         </div>
 
       </div>
-
-      {/* Передача экшена вставки шилда прямо через мост управления */}
-      <ModalSh 
-        isOpen={isShieldOpen} 
-        onClose={() => setIsShieldOpen(false)} 
-        onSelectShield={(type) => takeControlRef.current?.insertShield(type)}
-      />
     </div>
   );
 }
