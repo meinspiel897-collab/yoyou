@@ -41,7 +41,6 @@ export default function TakeView({
 
   const isFormValid = validateInput(title, false) && validateInput(description, true);
 
-  // Общий стиль для округлых премиальных счетчиков
   const counterStyle = { fontFamily: "ui-rounded, 'SF Pro Rounded', system-ui, sans-serif" };
 
   return (
@@ -59,7 +58,7 @@ export default function TakeView({
             )}
           </div>
           <p className="text-xs font-medium text-neutral-400 dark:text-neutral-500 leading-relaxed">
-            Выдай свой жесткий тейк-вердикт! Напиши честное мнение или оценку инфоповода, релиза или тренда — пускай толпа решает, база это или лютый кринж.
+            Выдай свой жесткий тейк-вердикт! Напиши честное мнение или оценку инфоповода, релиза или тренда - пускай толпа решает, база это или лютый кринж
           </p>
         </div>
 
@@ -73,7 +72,7 @@ export default function TakeView({
           <div className="w-full h-11 bg-transparent border border-neutral-600 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-full flex items-center px-4 transition-colors duration-200">
             <input
               type="text"
-              placeholder="О чем твой пост?"
+              placeholder="О чем твой post?"
               value={description}
               onChange={(e) => setDescription(e.target.value.slice(0, 40))}
               maxLength={40}
@@ -98,7 +97,7 @@ export default function TakeView({
           </label>
           <div className="w-full min-h-[164px] bg-transparent border border-neutral-600 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-[24px] flex flex-col p-4 pb-10 transition-colors duration-200 relative">
             <textarea
-              placeholder="Пиши всё, что думаешь..."
+              placeholder="Пиши всё что думаешь..."
               value={title}
               onChange={(e) => setTitle(e.target.value.slice(0, 750))}
               maxLength={750}
