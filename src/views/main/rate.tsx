@@ -11,7 +11,7 @@ interface RateViewProps {
   description: string;
   setDescription: (val: string) => void;
   animationData: any;
-  setIsTyping?: (typing: boolean) => void; // Проп для блокировки свайпов
+  setIsTyping?: (typing: boolean) => void;
 }
 
 export default function RateView({
@@ -42,10 +42,8 @@ export default function RateView({
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative">
       
-      {/* СКРОЛЛ-ЗОНА ФОРМЫ (Единственная зона, которая скроллится при нехватке места) */}
       <div className="flex-1 overflow-y-auto px-5 pb-4 flex flex-col space-y-4 scrollbar-none">
         
-        {/* Описание с Lottie */}
         <div className="flex items-start space-x-3.5 px-1 min-h-[52px] select-none pt-1">
           <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
             {animationData ? (
@@ -66,7 +64,7 @@ export default function RateView({
         {/* Поле: Название */}
         <div className="flex flex-col space-y-1.5">
           <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
-            Название тут
+            Имя тут
           </label>
           <div className="w-full h-11 bg-transparent border border-neutral-600 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-full flex items-center px-4 transition-colors duration-200">
             <input
@@ -92,7 +90,7 @@ export default function RateView({
           </label>
           <div className="w-full min-h-[78px] bg-transparent border border-neutral-600 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-[20px] flex items-start p-3.5 transition-colors duration-200 relative">
             <textarea
-              placeholder="Если хочешь, напиши классное описание"
+              placeholder="Что угодно"
               value={description}
               onChange={(e) => setDescription(e.target.value.slice(0, 130))}
               maxLength={130}
@@ -134,32 +132,25 @@ export default function RateView({
 
       </div>
 
-      {/* ФИКСИРОВАННЫЙ ПОДВАЛ (Жестко заперт на своем месте) */}
       <div className="px-5 pb-8 pt-9 flex flex-col items-center relative z-40 bg-white dark:bg-neutral-900 flex-shrink-0 select-none">
-        
         <div className="w-full relative flex flex-col items-center">
-          
-          {/* Плашка */}
           <div className="absolute -top-7 left-0 right-0 bg-neutral-600 dark:bg-neutral-800 rounded-t-[20px] pt-2 pb-10 text-center pointer-events-none z-10">
             <p className="text-[11px] font-normal text-white dark:text-neutral-200 tracking-wide px-4">
               Твоя оценка улетит прямиком в общую ленту трендов
             </p>
           </div>
 
-          {/* Главная кнопка */}
           <div
             onClick={handleMainButtonClick}
             className={`w-full h-14 rounded-full font-bold text-sm transition-all duration-150 outline-none flex items-center justify-center relative z-20 ${
-              title.trim().length > 0
+              title 
                 ? "bg-[#FC062D] text-white active:scale-[0.98] cursor-pointer" 
                 : "bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg text-appleLight-text/30 dark:text-appleDark-text/30 cursor-default"
             }`}
           >
             <span>Закинуть в тренды</span>
           </div>
-
         </div>
-
       </div>
 
     </div>
