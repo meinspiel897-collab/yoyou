@@ -14,7 +14,6 @@ export default function ModalSh({ isOpen, onClose }: ModalShProps) {
         isOpen ? "pointer-events-auto" : "pointer-events-none"
       }`}
     >
-      {/* Мягкий задний фон для акцента на парящем окне */}
       <div 
         className={`absolute inset-0 bg-black/10 dark:bg-black/25 transition-all duration-300 ${
           isOpen ? "opacity-100 backdrop-blur-[1px]" : "opacity-0 backdrop-blur-0"
@@ -22,14 +21,13 @@ export default function ModalSh({ isOpen, onClose }: ModalShProps) {
         onClick={onClose} 
       />
 
-      {/* Парящее модальное окно */}
       <div 
         className={`absolute left-[15px] right-[15px] bottom-[15px] h-[22vh] bg-white dark:bg-neutral-900 rounded-[28px] shadow-2xl flex flex-col overflow-hidden transition-transform duration-300 cubic-bezier(0.15, 1, 0.2, 1) will-change-transform ${
           isOpen ? "translate-y-0" : "translate-y-[calc(100%+30px)]"
         }`}
       >
-        {/* Шапка модалки */}
-        <div className="relative w-full h-14 flex items-center justify-center px-4 flex-shrink-0 select-none border-b border-neutral-100 dark:border-neutral-800/40">
+        {/* Шапка без нижней линии */}
+        <div className="relative w-full h-14 flex items-center justify-center px-4 flex-shrink-0 select-none">
           <h2 className="text-sm font-bold text-appleLight-text dark:text-appleDark-text tracking-tight">
             Выбери шилд
           </h2>
@@ -46,7 +44,6 @@ export default function ModalSh({ isOpen, onClose }: ModalShProps) {
           </button>
         </div>
 
-        {/* Зона контента (пока пустая) */}
         <div className="flex-1 overflow-y-auto p-4 flex items-center justify-center select-none">
           <span className="text-xs text-neutral-400 dark:text-neutral-600 italic">
             Тут будет выбор шилдов...
