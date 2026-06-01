@@ -1,345 +1,197 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import RateView from "./rate";
-import TakeView from "./take";
-import ModalSh from "./modal-sh";
-import { ShieldType } from "./shields";
+import React from "react";
 
-interface NewModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
+export type ShieldType = 
+  | "counter" 
+  | "weather" 
+  | "percentage" 
+  | "battery" 
+  | "usd" 
+  | "rub" 
+  | "cny" 
+  | "stars";
 
-type SubTabType = "rate" | "take";
-
-interface TabConfig {
-  id: SubTabType;
+export interface ShieldConfig {
+  id: ShieldType;
   label: string;
 }
 
-export default function NewModal({ isOpen, onClose }: NewModalProps) {
-  const [activeSubTab, setActiveSubTab] = useState<SubTabType>("rate");
-  const [dimensions, setDimensions] = useState({ top: "10vh", height: "90vh" });
-  
-  const [isTyping, setIsTyping] = useState(false);
-  const [isShieldOpen, setIsShieldOpen] = useState(false);
-  
-  const [rateTitle, setRateTitle] = useState("");
-  const [rateDescription, setRateDescription] = useState("");
-  
-  const [takeTitle, setTakeTitle] = useState("");
-  const [takeDescription, setTakeDescription] = useState("");
+// Названия чистые, без эмодзи (они отрендерятся в превью сами)
+export const AVAILABLE_SHIELDS: ShieldConfig[] = [
+  { id: "counter", label: "Счетчик" },
+  { id: "weather", label: "Погода" },
+  { id: "percentage", label: "Проценты" },
+  { id: "battery", label: "Батарея" },
+  { id: "usd", label: "Доллары" },
+  { id: "rub", label: "Рубли" },
+  { id: "cny", label: "Юани" },
+  { id: "stars", label: "Звезды" },
+];
 
-  const [animationData, setAnimationData] = useState<any>(null);
+// Кроссплатформенный закругленный шрифт-стек (iOS использует родной SF Pro Rounded, Android/остальные — качественные закругленные фолбеки)
+const ROUNDED_FONT = "font-family: ui-rounded, 'SF Pro Rounded', 'Nunito', 'Comfortaa', system-ui, -apple-system, sans-serif;";
 
-  // Канал управления для вставки шилда внутрь contentEditable
-  const takeControlRef = useRef<{ insertShield: (type: ShieldType) => void } | null>(null);
+export function getShieldHtml(type: ShieldType): string {
+  // Без контура, увеличенные отступы, крупнее текст, благородный сплошной наливной цвет
+  const baseClass = "inline-flex items-center inline-baseline bg-neutral-200/70 dark:bg-neutral-800 rounded-full px-3.5 py-1 mx-1.5 text-[13px] font-medium select-none text-appleLight-text dark:text-appleDark-text align-middle transition-all duration-150 transform scale-[0.98] select-none";
+  const rectClass = "inline-flex items-center inline-baseline bg-neutral-200/70 dark:bg-neutral-800 rounded-xl px-3 py-1 mx-1.5 text-[13px] font-medium text-appleLight-text dark:text-appleDark-text align-middle transition-all duration-150 select-none";
 
-  const tabs: TabConfig[] = [
-    { id: "rate", label: "Оценка" },
-    { id: "take", label: "Тейк" },
-  ];
+  switch (type) {
+    case "counter":
+      return `<span contenteditable="false" data-shield-type="counter" class="${baseClass}" style="${ROUNDED_FONT}">
+        <button data-shield-action="dec" class="w-5 h-5 flex items-center justify-center hover:bg-neutral-300 dark:hover:bg-neutral-700 rounded-full active:scale-75 outline-none font-mono text-xs mr-1">-</button>
+        <span contenteditable="true" inputmode="numeric" data-shield-value="count" class="mx-1 min-w-[14px] text-center font-bold font-mono text-[#FC062D] outline-none">5</span>
+        <button data-shield-action="inc" class="w-5 h-5 flex items-center justify-center hover:bg-neutral-300 dark:hover:bg-neutral-700 rounded-full active:scale-75 outline-none font-mono text-xs ml-1">+</button>
+      </span>`;
+      
+    case "weather":
+      return `<span contenteditable="false" data-shield-type="weather" class="${baseClass}" style="${ROUNDED_FONT}">
+        <span data-shield-value="icon" class="mr-1.5 text-xs">☀️</span>
+        <span contenteditable="true" data-shield-value="temp" class="font-bold outline-none focus:text-[#FC062D]">+22°C</span>
+      </span>`;
+      
+    case "percentage":
+      return `<span contenteditable="false" data-shield-type="percentage" class="${baseClass}" style="${ROUNDED_FONT}">
+        <span contenteditable="true" inputmode="numeric" data-shield-value="input" class="outline-none min-w-[16px] font-bold text-center focus:text-[#FC062D]">85</span>
+        <span class="text-neutral-400 dark:text-neutral-500 font-normal ml-0.5">%</span>
+      </span>`;
+      
+    case "battery":
+      return `<span contenteditable="false" data-shield-type="battery" class="${baseClass}" style="${ROUNDED_FONT}">
+        <div class="w-4 h-2.5 bg-neutral-300 dark:bg-neutral-700 rounded-[3px] p-[1px] mr-1.5 flex items-center relative flex-shrink-0">
+          <div data-shield-value="bar" class="h-full rounded-[1.5px] bg-emerald-500 transition-all duration-300" style="width: 100%;"></div>
+          <div class="absolute -right-[2px] top-1/2 -translate-y-1/2 w-[1px] h-0.5 bg-neutral-400 dark:bg-neutral-600 rounded-r-[0.5px]"></div>
+        </div>
+        <span contenteditable="true" inputmode="numeric" data-shield-value="text" class="font-bold text-[11px] outline-none focus:text-[#FC062D]">100%</span>
+      </span>`;
+      
+    case "usd":
+      return `<span contenteditable="false" data-shield-type="usd" class="${rectClass}" style="${ROUNDED_FONT}">
+        <span class="text-emerald-500 mr-1 font-semibold">$</span>
+        <span contenteditable="true" inputmode="numeric" data-shield-value="input" class="outline-none min-w-[12px] font-bold focus:text-[#FC062D]">100</span>
+      </span>`;
+      
+    case "rub":
+      return `<span contenteditable="false" data-shield-type="rub" class="${rectClass}" style="${ROUNDED_FONT}">
+        <span contenteditable="true" inputmode="numeric" data-shield-value="input" class="outline-none min-w-[12px] font-bold focus:text-[#FC062D]">500</span>
+        <span class="text-neutral-400 dark:text-neutral-500 font-normal ml-1">₽</span>
+      </span>`;
+      
+    case "cny":
+      return `<span contenteditable="false" data-shield-type="cny" class="${rectClass}" style="${ROUNDED_FONT}">
+        <span contenteditable="true" inputmode="numeric" data-shield-value="input" class="outline-none min-w-[12px] font-bold focus:text-[#FC062D]">50</span>
+        <span class="text-amber-600 dark:text-amber-500 font-normal ml-1">¥</span>
+      </span>`;
+      
+    case "stars":
+      return `<span contenteditable="false" data-shield-type="stars" class="inline-flex items-center bg-neutral-200/70 dark:bg-neutral-800 rounded-full px-3 py-1 mx-1.5 align-middle transform scale-[0.98]">
+        <button data-star-idx="1" class="text-xs transition-all mx-[1px] outline-none">⭐️</button>
+        <button data-star-idx="2" class="text-xs transition-all mx-[1px] outline-none">⭐️</button>
+        <button data-star-idx="3" class="text-xs transition-all mx-[1px] outline-none">⭐️</button>
+        <button data-star-idx="4" class="text-xs transition-all mx-[1px] outline-none">⭐️</button>
+        <button data-star-idx="5" class="text-xs transition-all mx-[1px] opacity-25 grayscale outline-none">⭐️</button>
+      </span>`;
+      
+    default:
+      return "";
+  }
+}
 
-  const subTabOrder: SubTabType[] = ["rate", "take"];
-  const activeIndex = subTabOrder.indexOf(activeSubTab);
+/* ==========================================
+   КОМПОНЕНТЫ ПРЕДПРОСМОТРА БЕЗ КАРТОЧЕК
+   ========================================== */
 
-  const sliderRef = useRef<HTMLDivElement>(null);
-  const contentTrackRef = useRef<HTMLDivElement>(null);
-  const tabsRefs = useRef<{ [key in SubTabType]: HTMLButtonElement | null }>({
-    rate: null,
-    take: null,
-  });
+const previewStyle = { fontFamily: "ui-rounded, 'SF Pro Rounded', 'Nunito', sans-serif" };
 
-  const touchStart = useRef({ x: 0, y: 0, time: 0 });
-  const isSwiping = useRef(false);
-  const currentTranslate = useRef(0);
-  const isClickTransition = useRef(false);
-
-  const triggerHaptic = (style: "light" | "medium" | "heavy") => {
-    if (typeof window !== "undefined") {
-      const anyWindow = window as any;
-      if (anyWindow.Telegram?.WebApp?.HapticFeedback) {
-        try { anyWindow.Telegram.WebApp.HapticFeedback.impactOccurred(style); } catch (e) {}
-      }
-    }
-  };
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const h = window.innerHeight;
-      setDimensions({ top: `${h * 0.1}px`, height: `${h * 0.9}px` });
-    }
-  }, []);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (isTyping || isShieldOpen) return;
-    if (e.touches[0].clientX > window.innerWidth - 30) return;
-
-    const touch = e.touches[0];
-    touchStart.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
-    isSwiping.current = false;
-    isClickTransition.current = false;
-    
-    if (contentTrackRef.current) contentTrackRef.current.style.transition = "none";
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (isTyping || isShieldOpen || !touchStart.current.time) return;
-
-    const touch = e.touches[0];
-    const deltaX = touch.clientX - touchStart.current.x;
-    const deltaY = touch.clientY - touchStart.current.y;
-
-    if (!isSwiping.current) {
-      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
-        isSwiping.current = true;
-      } else if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 10) {
-        touchStart.current.time = 0;
-        return;
-      }
-    }
-
-    if (isSwiping.current && contentTrackRef.current) {
-      e.preventDefault();
-      const width = window.innerWidth;
-      let translate = -activeIndex * width + deltaX;
-
-      if ((activeIndex === 0 && deltaX > 0) || (activeIndex === subTabOrder.length - 1 && deltaX < 0)) {
-        translate = -activeIndex * width + deltaX * 0.35; 
-      }
-
-      currentTranslate.current = translate;
-      contentTrackRef.current.style.transform = `translateX(${translate}px)`;
-    }
-  };
-
-  const handleTouchEnd = () => {
-    if (!isSwiping.current) return;
-    isSwiping.current = false;
-
-    const width = window.innerWidth;
-    const movedX = currentTranslate.current + (activeIndex * width);
-    const duration = Date.now() - touchStart.current.time;
-
-    let targetIdx = activeIndex;
-
-    if (Math.abs(movedX) > width * 0.35 || (duration < 250 && Math.abs(movedX) > 40)) {
-      if (movedX > 0 && activeIndex > 0) targetIdx = activeIndex - 1;
-      else if (movedX < 0 && activeIndex < subTabOrder.length - 1) targetIdx = activeIndex + 1;
-    }
-
-    if (contentTrackRef.current) {
-      contentTrackRef.current.style.transition = "transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)";
-      contentTrackRef.current.style.transform = `translateX(${-targetIdx * width}px)`;
-    }
-
-    if (targetIdx !== activeIndex) {
-      triggerHaptic("light");
-      setActiveSubTab(subTabOrder[targetIdx]);
-    }
-    touchStart.current.time = 0;
-  };
-
-  const handleTabClick = (id: SubTabType) => {
-    if (id === activeSubTab) return;
-    triggerHaptic("light");
-    isClickTransition.current = true;
-    
-    if (contentTrackRef.current) {
-      contentTrackRef.current.style.transition = "none";
-      const targetIdx = subTabOrder.indexOf(id);
-      contentTrackRef.current.style.transform = `translateX(${-targetIdx * window.innerWidth}px)`;
-    }
-    setActiveSubTab(id);
-  };
-
-  useEffect(() => {
-    if (contentTrackRef.current) {
-      const currentIdx = subTabOrder.indexOf(activeSubTab);
-      if (isClickTransition.current) {
-        isClickTransition.current = false;
-        return;
-      }
-      contentTrackRef.current.style.transition = "transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)";
-      contentTrackRef.current.style.transform = `translateX(${-currentIdx * window.innerWidth}px)`;
-    }
-  }, [activeSubTab]);
-
-  const activeSubTabRef = useRef<SubTabType>(activeSubTab);
-  useEffect(() => { activeSubTabRef.current = activeSubTab; }, [activeSubTab]);
-
-  const physicsState = useRef({
-    x: 0, tx: 0, vx: 0,
-    w: 0, tw: 0, vw: 0,
-    sx: 1, tsx: 1, vsx: 0,
-    sy: 1, tsy: 1, vsy: 0,
-    isMoving: false,
-  });
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const PHYSICS = { pos: { k: 340, d: 28, m: 1 }, scale: { k: 360, d: 24, m: 1 } };
-    function spring(current: number, target: number, velocity: number, config: { k: number, d: number, m: number }) {
-      const force = -config.k * (current - target);
-      const damping = -config.d * velocity;
-      const acceleration = (force + damping) / config.m;
-      velocity += acceleration * 0.016;
-      current += velocity * 0.016;
-      return [current, velocity];
-    }
-
-    let rafId: number;
-    const updatePhysics = () => {
-      const state = physicsState.current;
-      const slider = sliderRef.current;
-      if (!slider) return;
-
-      if (state.isMoving) {
-        const currentTabKey = activeSubTabRef.current;
-        const targetEl = tabsRefs.current[currentTabKey];
-        if (targetEl) {
-          state.tx = targetEl.offsetLeft;
-          state.tw = targetEl.offsetWidth;
-        }
-      }
-
-      const dist = Math.abs(state.x - state.tx);
-      const vel = Math.abs(state.vx);
-
-      if (state.isMoving) {
-        if (dist > 15) { 
-          slider.style.backgroundColor = "transparent";
-          slider.style.borderColor = typeof window !== "undefined" && document.documentElement.classList.contains("dark") 
-            ? "rgba(255, 255, 255, 0.35)" : "rgba(0, 0, 0, 0.18)";
-          state.tsy = 1.15; state.tsx = 0.92; 
-        } else if (dist <= 15 && dist > 0.5) {
-          slider.style.backgroundColor = ""; slider.style.borderColor = "transparent";
-          state.tsy = 0.97; state.tsx = 1.03; 
-        } else {
-          state.tsx = 1; state.tsy = 1;
-          if (vel < 0.2 && Math.abs(state.vsx) < 0.2) {
-            state.isMoving = false;
-            slider.style.backgroundColor = ""; slider.style.borderColor = "transparent";
-          }
-        }
-      }
-
-      [state.x, state.vx] = spring(state.x, state.tx, state.vx, PHYSICS.pos);
-      [state.w, state.vw] = spring(state.w, state.tw, state.vw, PHYSICS.pos);
-      [state.sx, state.vsx] = spring(state.sx, state.tsx, state.vsx, PHYSICS.scale);
-      [state.sy, state.vsy] = spring(state.sy, state.tsy, state.vsy, PHYSICS.scale);
-
-      slider.style.left = `${state.x}px`;
-      slider.style.width = `${state.w}px`;
-      slider.style.transform = `scale(${state.sx}, ${state.sy})`;
-
-      rafId = requestAnimationFrame(updatePhysics);
-    };
-
-    rafId = requestAnimationFrame(updatePhysics);
-    return () => cancelAnimationFrame(rafId);
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const targetEl = tabsRefs.current[activeSubTab];
-    if (targetEl) {
-      const state = physicsState.current;
-      if (state.w === 0) {
-        state.x = targetEl.offsetLeft;
-        state.w = targetEl.offsetWidth;
-      }
-      state.tx = targetEl.offsetLeft;
-      state.tw = targetEl.offsetWidth;
-      state.isMoving = true;
-    }
-  }, [activeSubTab, isOpen]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    setAnimationData(null);
-    fetch(`/icons/${activeSubTab}.json`)
-      .then((res) => res.json())
-      .then((data) => setAnimationData(data))
-      .catch((err) => console.error("Ошибка загрузки Lottie:", err));
-  }, [activeSubTab, isOpen]);
-
+export function CounterShield() {
   return (
-    <div className={`fixed inset-0 z-50 transition-all duration-300 ${isOpen ? "pointer-events-auto" : "pointer-events-none"}`}>
-      <div className={`absolute inset-0 bg-black/15 dark:bg-black/30 transition-all duration-300 ${isOpen ? "opacity-100 backdrop-blur-[3px]" : "opacity-0 backdrop-blur-0"}`} onClick={onClose} />
-
-      <div 
-        className={`absolute left-0 right-0 bg-white dark:bg-neutral-900 rounded-t-[32px] shadow-2xl flex flex-col overflow-hidden transition-transform duration-300 cubic-bezier(0.15, 1, 0.2, 1) will-change-transform ${isOpen ? "translate-y-0" : "translate-y-full"}`}
-        style={{ top: dimensions.top, height: dimensions.height }}
-      >
-        {/* Шапка */}
-        <div className="relative w-full h-16 flex items-center justify-center px-4 flex-shrink-0 select-none">
-          <h2 className="text-base font-bold text-appleLight-text dark:text-appleDark-text tracking-tight">
-            Что-то новенькое
-          </h2>
-          <button onClick={onClose} className="absolute right-4 top-1/2 -translate-y-1/2 w-9 h-9 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-full flex items-center justify-center transition-all outline-none active:scale-90 z-10 flex-shrink-0">
-            <img src="/icons/cross.png" alt="Закрыть" className="w-[14px] h-[14px] object-contain block dark:brightness-0 dark:invert" />
-          </button>
-        </div>
-
-        {/* Навигационный таббар */}
-        <div className="px-5 flex-shrink-0">
-          <div className="w-full h-11 bg-appleLight-secondaryBg dark:bg-appleDark-secondaryBg p-1 box-border rounded-full flex items-center relative mb-5 select-none">
-            <div ref={sliderRef} className="absolute top-1 bottom-1 bg-white/95 dark:bg-neutral-700/90 rounded-full border border-transparent shadow-sm will-change-transform z-10" />
-            {tabs.map((tab) => {
-              const isActive = activeSubTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  ref={(el) => { tabsRefs.current[tab.id] = el; }}
-                  onClick={() => handleTabClick(tab.id)}
-                  className={`flex-1 h-full rounded-full text-xs font-medium outline-none whitespace-nowrap flex items-center justify-center z-20 transition-colors duration-300 ${isActive ? "text-appleLight-text dark:text-appleDark-text" : "text-appleLight-text/45 dark:text-appleDark-text/45"}`}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Свайп-зона трека */}
-        <div className="flex-1 w-full overflow-hidden relative">
-          <div 
-            ref={contentTrackRef}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            className="absolute inset-0 flex w-[200%] h-full will-change-transform"
-            style={{ transform: `translateX(0px)` }}
-          >
-            <div className="w-[50%] h-full flex flex-col overflow-hidden">
-              <RateView title={rateTitle} setTitle={setRateTitle} description={rateDescription} setDescription={setRateDescription} animationData={activeSubTab === "rate" ? animationData : null} setIsTyping={setIsTyping} />
-            </div>
-
-            <div className="w-[50%] h-full flex flex-col overflow-hidden">
-              <TakeView 
-                title={takeTitle}
-                setTitle={setTakeTitle}
-                description={takeDescription}
-                setDescription={setTakeDescription}
-                animationData={activeSubTab === "take" ? animationData : null}
-                setIsTyping={setIsTyping}
-                onAddShieldClick={() => setIsShieldOpen(true)}
-                controlRef={takeControlRef}
-              />
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      {/* Передача экшена вставки шилда прямо через мост управления */}
-      <ModalSh 
-        isOpen={isShieldOpen} 
-        onClose={() => setIsShieldOpen(false)} 
-        onSelectShield={(type) => takeControlRef.current?.insertShield(type)}
-      />
-    </div>
+    <span style={previewStyle} className="inline-flex items-center bg-neutral-200/70 dark:bg-neutral-800 rounded-full px-3.5 py-1 text-[13px] font-medium text-appleLight-text dark:text-appleDark-text select-none">
+      <span className="w-5 h-5 flex items-center justify-center opacity-30 text-xs mr-1">-</span>
+      <span className="mx-1 font-bold text-[#FC062D]">5</span>
+      <span className="w-5 h-5 flex items-center justify-center opacity-30 text-xs ml-1">+</span>
+    </span>
   );
+}
+
+export function WeatherShield() {
+  return (
+    <span style={previewStyle} className="inline-flex items-center bg-neutral-200/70 dark:bg-neutral-800 rounded-full px-3.5 py-1 text-[13px] font-bold text-appleLight-text dark:text-appleDark-text select-none">
+      <span className="mr-1.5 text-xs">☀️</span>
+      <span>+22°C</span>
+    </span>
+  );
+}
+
+export function PercentageShield() {
+  return (
+    <span style={previewStyle} className="inline-flex items-center bg-neutral-200/70 dark:bg-neutral-800 rounded-full px-3.5 py-1 text-[13px] font-bold text-appleLight-text dark:text-appleDark-text select-none">
+      <span>85</span>
+      <span className="text-neutral-400 dark:text-neutral-500 font-normal ml-0.5">%</span>
+    </span>
+  );
+}
+
+export function BatteryShield() {
+  return (
+    <span style={previewStyle} className="inline-flex items-center bg-neutral-200/70 dark:bg-neutral-800 rounded-full px-3.5 py-1 text-[13px] font-bold text-appleLight-text dark:text-appleDark-text select-none">
+      <div className="w-4 h-2.5 bg-neutral-300 dark:bg-neutral-700 rounded-[3px] p-[1px] mr-1.5 flex items-center relative">
+        <div className="h-full rounded-[1.5px] bg-emerald-500 w-full" />
+      </div>
+      <span className="text-[11px]">100%</span>
+    </span>
+  );
+}
+
+export function UsdShield() {
+  return (
+    <span style={previewStyle} className="inline-flex items-center bg-neutral-200/70 dark:bg-neutral-800 rounded-xl px-3 py-1 text-[13px] font-bold text-appleLight-text dark:text-appleDark-text select-none">
+      <span className="text-emerald-500 mr-1 font-semibold">$</span>
+      <span>100</span>
+    </span>
+  );
+}
+
+export function RubShield() {
+  return (
+    <span style={previewStyle} className="inline-flex items-center bg-neutral-200/70 dark:bg-neutral-800 rounded-xl px-3 py-1 text-[13px] font-bold text-appleLight-text dark:text-appleDark-text select-none">
+      <span>500</span>
+      <span className="text-neutral-400 dark:text-neutral-500 font-normal ml-1">₽</span>
+    </span>
+  );
+}
+
+export function CnyShield() {
+  return (
+    <span style={previewStyle} className="inline-flex items-center bg-neutral-200/70 dark:bg-neutral-800 rounded-xl px-3 py-1 text-[13px] font-bold text-appleLight-text dark:text-appleDark-text select-none">
+      <span>50</span>
+      <span className="text-amber-600 dark:text-amber-500 font-normal ml-1">¥</span>
+    </span>
+  );
+}
+
+export function StarsShield() {
+  return (
+    <span className="inline-flex items-center bg-neutral-200/70 dark:bg-neutral-800 rounded-full px-3 py-1 text-xs select-none">
+      <span className="mx-[1px]">⭐️</span>
+      <span className="mx-[1px]">⭐️</span>
+      <span className="mx-[1px]">⭐️</span>
+      <span className="mx-[1px]">⭐️</span>
+      <span className="mx-[1px] opacity-25 grayscale">⭐️</span>
+    </span>
+  );
+}
+
+export function RenderShield({ type }: { type: ShieldType }) {
+  switch (type) {
+    case "counter": return <CounterShield />;
+    case "weather": return <WeatherShield />;
+    case "percentage": return <PercentageShield />;
+    case "battery": return <BatteryShield />;
+    case "usd": return <UsdShield />;
+    case "rub": return <RubShield />;
+    case "cny": return <CnyShield />;
+    case "stars": return <StarsShield />;
+    default: return null;
+  }
 }
