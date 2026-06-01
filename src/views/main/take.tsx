@@ -12,7 +12,7 @@ interface TakeViewProps {
   setDescription: (val: string) => void;
   animationData: any;
   setIsTyping?: (typing: boolean) => void; 
-  onAddShieldClick?: () => void; // Проп для открытия шилдов
+  onAddShieldClick?: () => void;
 }
 
 export default function TakeView({
@@ -46,10 +46,8 @@ export default function TakeView({
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative">
       
-      {/* СКРОЛЛ-ЗОНА КОНТЕНТА */}
       <div className="flex-1 overflow-y-auto px-5 pb-4 flex flex-col space-y-5 scrollbar-none">
         
-        {/* Шапка таба с Lottie-анимацией */}
         <div className="flex items-start space-x-3.5 px-1 min-h-[52px] select-none pt-1">
           <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
             {animationData ? (
@@ -94,7 +92,6 @@ export default function TakeView({
           <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
             Твой тейк
           </label>
-          {/* Добавлен pb-12, чтобы текст не залезал под кнопку и счетчик */}
           <div className="w-full min-h-[164px] bg-transparent border border-neutral-600 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-[24px] flex items-start p-4 pb-12 transition-colors duration-200 relative">
             <textarea
               placeholder="Пиши всё, что думаешь..."
@@ -107,7 +104,6 @@ export default function TakeView({
               className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text placeholder-neutral-300 dark:placeholder-neutral-600 resize-none overflow-y-auto h-[106px] pr-2 leading-snug scrollbar-none"
             />
             
-            {/* Кнопка добавления шилда (круг с плюсом) */}
             <button
               type="button"
               onClick={() => {
@@ -131,7 +127,6 @@ export default function TakeView({
 
       </div>
 
-      {/* ФИКСИРОВАННЫЙ ПОДВАЛ */}
       <div className="px-5 pb-8 pt-9 flex flex-col items-center relative z-40 bg-white dark:bg-neutral-900 flex-shrink-0 select-none">
         <div className="w-full relative flex flex-col items-center">
           <div className="absolute -top-7 left-0 right-0 bg-neutral-600 dark:bg-neutral-800 rounded-t-[20px] pt-2 pb-10 text-center pointer-events-none z-10">
