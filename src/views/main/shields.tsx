@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 
-// Типы поддерживаемых шилдов
 export type ShieldType = 
   | "counter" 
   | "weather" 
@@ -13,14 +12,12 @@ export type ShieldType =
   | "cny" 
   | "stars";
 
-// Интерфейс для списка выбора в ModalSh
 export interface ShieldConfig {
   id: ShieldType;
   label: string;
-  icon: string; // Можно использовать как эмодзи, так и путь к картинке
+  icon: string;
 }
 
-// Конфигурация для рендеринга в меню выбора
 export const AVAILABLE_SHIELDS: ShieldConfig[] = [
   { id: "counter", label: "Счетчик", icon: "🔢" },
   { id: "weather", label: "Погода", icon: "☀️" },
@@ -32,7 +29,6 @@ export const AVAILABLE_SHIELDS: ShieldConfig[] = [
   { id: "stars", label: "Звезды", icon: "⭐️" },
 ];
 
-// Вспомогательный хандлер вибрации для кнопок внутри шилдов
 const triggerHaptic = (style: "light" | "medium") => {
   if (typeof window !== "undefined") {
     const anyWindow = window as any;
@@ -42,183 +38,155 @@ const triggerHaptic = (style: "light" | "medium") => {
   }
 };
 
+// Функция генерации статического HTML для моментальной вставки в каретку курсора
+export function getShieldHtml(type: ShieldType): string {
+  const baseClass = "inline-flex items-center inline-baseline bg-neutral-100 dark:bg-neutral-800/90 border border-neutral-200/80 dark:border-neutral-700/50 rounded-full px-2 py-0.5 mx-1 text-xs font-bold select-none text-appleLight-text dark:text-appleDark-text align-middle transition-all duration-150 transform scale-[0.98] select-none";
+  const rectClass = "inline-flex items-center inline-baseline bg-neutral-100 dark:bg-neutral-800/90 border border-neutral-200/80 dark:border-neutral-700/50 rounded-md px-1.5 py-0.5 mx-1 text-xs font-bold text-appleLight-text dark:text-appleDark-text align-middle transition-all duration-150 select-none";
+
+  switch (type) {
+    case "counter":
+      return `<span contenteditable="false" data-shield-type="counter" class="${baseClass}">
+        <button data-shield-action="dec" class="w-4 h-4 flex items-center justify-center hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-full active:scale-75 outline-none font-mono">-</button>
+        <span data-shield-value="count" class="mx-1.5 min-w-[12px] text-center tracking-tighter font-mono text-[#FC062D]">5</span>
+        <button data-shield-action="inc" class="w-4 h-4 flex items-center justify-center hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-full active:scale-75 outline-none font-mono">+</button>
+      </span>`;
+      
+    case "weather":
+      return `<span contenteditable="false" data-shield-type="weather" class="${baseClass} cursor-pointer active:scale-95">
+        <span data-shield-value="icon" class="mr-1 text-[11px]">☀️</span>
+        <span data-shield-value="temp" class="font-mono font-bold text-[11px]">+22°C</span>
+      </span>`;
+      
+    case "percentage":
+      return `<span contenteditable="false" data-shield-type="percentage" class="${baseClass}">
+        <span contenteditable="true" data-shield-value="input" class="outline-none px-0.5 min-w-[14px] font-mono text-center focus:text-[#FC062D]">85</span>
+        <span class="text-neutral-400 dark:text-neutral-500 font-normal ml-0.5">%</span>
+      </span>`;
+      
+    case "battery":
+      return `<span contenteditable="false" data-shield-type="battery" class="${baseClass} cursor-pointer active:scale-95">
+        <div class="w-3.5 h-2 border border-neutral-400 dark:border-neutral-500 rounded-[2px] p-[0.5px] mr-1 flex items-center relative flex-shrink-0">
+          <div data-shield-value="bar" class="h-full rounded-[0.5px] bg-emerald-500 transition-all duration-300" style="width: 100%;"></div>
+          <div class="absolute -right-[2px] top-1/2 -translate-y-1/2 w-[1px] h-0.5 bg-neutral-400 dark:bg-neutral-500 rounded-r-[0.5px]"></div>
+        </div>
+        <span data-shield-value="text" class="font-mono font-bold text-[10px]">100%</span>
+      </span>`;
+      
+    case "usd":
+      return `<span contenteditable="false" data-shield-type="usd" class="${rectClass}">
+        <span class="text-emerald-500 mr-0.5 font-medium">$</span>
+        <span contenteditable="true" data-shield-value="input" class="outline-none min-w-[10px] font-mono focus:text-[#FC062D]">100</span>
+      </span>`;
+      
+    case "rub":
+      return `<span contenteditable="false" data-shield-type="rub" class="${rectClass}">
+        <span contenteditable="true" data-shield-value="input" class="outline-none min-w-[10px] font-mono focus:text-[#FC062D]">500</span>
+        <span class="text-neutral-400 dark:text-neutral-500 font-normal ml-0.5">₽</span>
+      </span>`;
+      
+    case "cny":
+      return `<span contenteditable="false" data-shield-type="cny" class="${rectClass}">
+        <span contenteditable="true" data-shield-value="input" class="outline-none min-w-[10px] font-mono focus:text-[#FC062D]">50</span>
+        <span class="text-amber-600 dark:text-amber-500 font-normal ml-0.5">¥</span>
+      </span>`;
+      
+    case "stars":
+      return `<span contenteditable="false" data-shield-type="stars" class="inline-flex items-center bg-neutral-100 dark:bg-neutral-800/90 border border-neutral-200/80 dark:border-neutral-700/50 rounded-full px-2 py-0.5 mx-1 text-xs select-none align-middle scale-[0.98]">
+        <button data-star-idx="1" class="text-[10px] transition-all mx-[0.5px] opacity-100 outline-none">⭐️</button>
+        <button data-star-idx="2" class="text-[10px] transition-all mx-[0.5px] opacity-100 outline-none">⭐️</button>
+        <button data-star-idx="3" class="text-[10px] transition-all mx-[0.5px] opacity-100 outline-none">⭐️</button>
+        <button data-star-idx="4" class="text-[10px] transition-all mx-[0.5px] opacity-100 outline-none">⭐️</button>
+        <button data-star-idx="5" class="text-[10px] transition-all mx-[0.5px] opacity-25 grayscale outline-none">⭐️</button>
+      </span>`;
+      
+    default:
+      return "";
+  }
+}
+
 /* ==========================================
-   КОМПОНЕНТЫ ШИЛДОВ (Каждый изолирован)
+   КОМПОНЕНТЫ ДЛЯ ПРЕДПРОСМОТРА В МОДАЛКЕ
    ========================================== */
 
-// 1. Счетчик [- 6 +]
 export function CounterShield() {
-  const [count, setCount] = useState(5);
   return (
-    <span 
-      contentEditable={false}
-      className="inline-flex items-center inline-baseline bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700/60 rounded-full px-2 py-0.5 mx-1 text-xs font-bold select-none text-appleLight-text dark:text-appleDark-text vertical-mid scale-[0.98]"
-    >
-      <button 
-        onClick={() => { triggerHaptic("light"); setCount(c => c - 1); }}
-        className="w-4 h-4 flex items-center justify-center hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-full transition-colors active:scale-90"
-      >
-        -
-      </button>
-      <span className="mx-2 min-w-[12px] text-center tracking-tighter font-mono text-[#FC062D]">
-        {count}
-      </span>
-      <button 
-        onClick={() => { triggerHaptic("light"); setCount(c => c + 1); }}
-        className="w-4 h-4 flex items-center justify-center hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-full transition-colors active:scale-90"
-      >
-        +
-      </button>
+    <span className="inline-flex items-center bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700/60 rounded-full px-2 py-0.5 text-xs font-bold text-appleLight-text dark:text-appleDark-text select-none">
+      <span className="w-4 h-4 flex items-center justify-center opacity-40">-</span>
+      <span className="mx-2 font-mono text-[#FC062D]">5</span>
+      <span className="w-4 h-4 flex items-center justify-center opacity-40">+</span>
     </span>
   );
 }
 
-// 2. Погода
 export function WeatherShield() {
-  const [temp, setTemp] = useState(22);
   return (
-    <span 
-      contentEditable={false}
-      className="inline-flex items-center bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700/60 rounded-full px-2.5 py-0.5 mx-1 text-xs font-medium select-none text-appleLight-text dark:text-appleDark-text"
-      onClick={() => {
-        triggerHaptic("light");
-        setTemp(t => t === 22 ? 15 : t === 15 ? -4 : 22); // Демонстрация интерактива по тапу
-      }}
-    >
-      <span className="mr-1">{temp > 0 ? "☀️" : "❄️"}</span>
-      <span className="font-mono font-bold">{temp > 0 ? `+${temp}` : temp}°C</span>
+    <span className="inline-flex items-center bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700/60 rounded-full px-2.5 py-0.5 text-xs font-medium text-appleLight-text dark:text-appleDark-text select-none">
+      <span className="mr-1">☀️</span>
+      <span className="font-mono font-bold">+22°C</span>
     </span>
   );
 }
 
-// 3. Проценты
 export function PercentageShield() {
   return (
-    <span 
-      contentEditable={false}
-      className="inline-flex items-center bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700/60 rounded-full px-2 py-0.5 mx-1 text-xs font-bold text-appleLight-text dark:text-appleDark-text"
-    >
-      <span 
-        contentEditable 
-        suppressContentEditableWarning
-        className="outline-none px-0.5 min-w-[15px] font-mono text-center focus:text-[#FC062D]"
-      >
-        85
-      </span>
+    <span className="inline-flex items-center bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700/60 rounded-full px-2 py-0.5 text-xs font-bold text-appleLight-text dark:text-appleDark-text select-none">
+      <span className="font-mono">85</span>
       <span className="text-neutral-400 dark:text-neutral-500 font-normal ml-0.5">%</span>
     </span>
   );
 }
 
-// 4. Батарея
 export function BatteryShield() {
-  const [level, setLevel] = useState(100);
   return (
-    <span 
-      contentEditable={false}
-      onClick={() => {
-        triggerHaptic("light");
-        setLevel(l => l === 100 ? 42 : l === 42 ? 12 : 100);
-      }}
-      className="inline-flex items-center bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700/60 rounded-full px-2.5 py-0.5 mx-1 text-xs font-medium select-none text-appleLight-text dark:text-appleDark-text"
-    >
-      <div className="w-4 h-2.5 border border-neutral-400 dark:border-neutral-500 rounded-[3px] p-[1px] mr-1.5 flex items-center relative">
-        <div 
-          className={`h-full rounded-[1px] transition-all duration-300 ${
-            level <= 20 ? "bg-red-500" : level <= 50 ? "bg-amber-500" : "bg-emerald-500"
-          }`}
-          style={{ width: `${level}%` }}
-        />
-        <div className="absolute -right-[2px] top-1/2 -translate-y-1/2 w-[1px] h-1 bg-neutral-400 dark:bg-neutral-500 rounded-r-[1px]" />
+    <span className="inline-flex items-center bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700/60 rounded-full px-2.5 py-0.5 text-xs font-medium text-appleLight-text dark:text-appleDark-text select-none">
+      <div className="w-3.5 h-2 border border-neutral-400 dark:border-neutral-500 rounded-[2px] p-[0.5px] mr-1 flex items-center relative">
+        <div className="h-full rounded-[0.5px] bg-emerald-500 w-full" />
+        <div className="absolute -right-[2px] top-1/2 -translate-y-1/2 w-[1px] h-0.5 bg-neutral-400 dark:bg-neutral-500 rounded-r-[0.5px]" />
       </div>
-      <span className="font-mono font-bold text-[11px]">{level}%</span>
+      <span className="font-mono font-bold text-[10px]">100%</span>
     </span>
   );
 }
 
-// 5. Валюта: Доллар
 export function UsdShield() {
   return (
-    <span 
-      contentEditable={false}
-      className="inline-flex items-center bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700/60 rounded-md px-1.5 py-0.5 mx-1 text-xs font-bold text-appleLight-text dark:text-appleDark-text"
-    >
+    <span className="inline-flex items-center bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700/60 rounded-md px-1.5 py-0.5 text-xs font-bold text-appleLight-text dark:text-appleDark-text select-none">
       <span className="text-emerald-500 mr-0.5">$</span>
-      <span 
-        contentEditable 
-        suppressContentEditableWarning
-        className="outline-none min-w-[10px] font-mono focus:text-[#FC062D]"
-      >
-        100
-      </span>
+      <span className="font-mono">100</span>
     </span>
   );
 }
 
-// 6. Валюта: Рубль
 export function RubShield() {
   return (
-    <span 
-      contentEditable={false}
-      className="inline-flex items-center bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700/60 rounded-md px-1.5 py-0.5 mx-1 text-xs font-bold text-appleLight-text dark:text-appleDark-text"
-    >
-      <span 
-        contentEditable 
-        suppressContentEditableWarning
-        className="outline-none min-w-[10px] font-mono focus:text-[#FC062D]"
-      >
-        500
-      </span>
+    <span className="inline-flex items-center bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700/60 rounded-md px-1.5 py-0.5 text-xs font-bold text-appleLight-text dark:text-appleDark-text select-none">
+      <span className="font-mono">500</span>
       <span className="text-neutral-400 dark:text-neutral-500 font-normal ml-0.5">₽</span>
     </span>
   );
 }
 
-// 7. Валюта: Юань
 export function CnyShield() {
   return (
-    <span 
-      contentEditable={false}
-      className="inline-flex items-center bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700/60 rounded-md px-1.5 py-0.5 mx-1 text-xs font-bold text-appleLight-text dark:text-appleDark-text"
-    >
-      <span 
-        contentEditable 
-        suppressContentEditableWarning
-        className="outline-none min-w-[10px] font-mono focus:text-[#FC062D]"
-      >
-        50
-      </span>
+    <span className="inline-flex items-center bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700/60 rounded-md px-1.5 py-0.5 text-xs font-bold text-appleLight-text dark:text-appleDark-text select-none">
+      <span className="font-mono">50</span>
       <span className="text-amber-600 dark:text-amber-500 font-normal ml-0.5">¥</span>
     </span>
   );
 }
 
-// 8. Звезды (Интерактивный рейтинг)
 export function StarsShield() {
-  const [rating, setRating] = useState(4);
   return (
-    <span 
-      contentEditable={false}
-      className="inline-flex items-center bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700/60 rounded-full px-2 py-0.5 mx-1 text-xs select-none"
-    >
-      {[1, 2, 3, 4, 5].map((star) => (
-        <button
-          key={star}
-          onClick={() => { triggerHaptic("light"); setRating(star); }}
-          className={`text-[11px] transition-transform active:scale-125 mx-[0.5px] ${
-            star <= rating ? "opacity-100" : "opacity-25 grayscale"
-          }`}
-        >
-          ⭐️
-        </button>
-      ))}
+    <span className="inline-flex items-center bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700/60 rounded-full px-2 py-0.5 text-xs select-none">
+      <span className="text-[10px] mx-[0.5px]">⭐️</span>
+      <span className="text-[10px] mx-[0.5px]">⭐️</span>
+      <span className="text-[10px] mx-[0.5px]">⭐️</span>
+      <span className="text-[10px] mx-[0.5px]">⭐️</span>
+      <span className="text-[10px] mx-[0.5px] opacity-25 grayscale">⭐️</span>
     </span>
   );
 }
 
-/* ==========================================
-   МАППЕР ДЛЯ ДИНАМИЧЕСКОГО РЕНДЕРА
-   ========================================== */
 interface RenderShieldProps {
   type: ShieldType;
 }
