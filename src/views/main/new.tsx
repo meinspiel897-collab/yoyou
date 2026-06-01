@@ -3,14 +3,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import RateView from "./rate";
 import TakeView from "./take";
-import ModalSh from "./modal-sh"; // Импорт нового модального окна
+import ModalSh from "./modal-sh";
 
 interface NewModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-type SubTabType = "rate" | "take" | "tier" | "over";
+type SubTabType = "rate" | "take";
 
 interface TabConfig {
   id: SubTabType;
@@ -21,11 +21,9 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
   const [activeSubTab, setActiveSubTab] = useState<SubTabType>("rate");
   const [dimensions, setDimensions] = useState({ top: "10vh", height: "90vh" });
   
-  // Состояния блокировок свайпа
   const [isTyping, setIsTyping] = useState(false);
   const [isShieldOpen, setIsShieldOpen] = useState(false);
   
-  // Раздельные стейты для сохранения контента
   const [rateTitle, setRateTitle] = useState("");
   const [rateDescription, setRateDescription] = useState("");
   
@@ -37,11 +35,9 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
   const tabs: TabConfig[] = [
     { id: "rate", label: "Оценка" },
     { id: "take", label: "Тейк" },
-    { id: "tier", label: "Тир лист" },
-    { id: "over", label: "Оверрейт" },
   ];
 
-  const subTabOrder: SubTabType[] = ["rate", "take", "tier", "over"];
+  const subTabOrder: SubTabType[] = ["rate", "take"];
   const activeIndex = subTabOrder.indexOf(activeSubTab);
 
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -49,8 +45,6 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
   const tabsRefs = useRef<{ [key in SubTabType]: HTMLButtonElement | null }>({
     rate: null,
     take: null,
-    tier: null,
-    over: null,
   });
 
   const touchStart = useRef({ x: 0, y: 0, time: 0 });
@@ -80,7 +74,6 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
   }, []);
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    // Блокировка свайпа при вводе текста или открытом шилде
     if (isTyping || isShieldOpen) return;
     if (e.touches[0].clientX > window.innerWidth - 30) return;
 
@@ -295,9 +288,8 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
   useEffect(() => {
     if (!isOpen) return;
     setAnimationData(null);
-    const targetJson = activeSubTab === "tier" ? "tear" : activeSubTab;
 
-    fetch(`/icons/${targetJson}.json`)
+    fetch(`/icons/${activeSubTab}.json`)
       .then((res) => res.json())
       .then((data) => setAnimationData(data))
       .catch((err) => console.error("Ошибка загрузки Lottie:", err));
@@ -309,7 +301,6 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
         isOpen ? "pointer-events-auto" : "pointer-events-none"
       }`}
     >
-      {/* Задний блюр */}
       <div 
         className={`absolute inset-0 bg-black/15 dark:bg-black/30 transition-all duration-300 ${
           isOpen ? "opacity-100 backdrop-blur-[3px]" : "opacity-0 backdrop-blur-0"
@@ -317,7 +308,6 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
         onClick={onClose} 
       />
 
-      {/* Контейнер модального окна */}
       <div 
         className={`absolute left-0 right-0 bg-white dark:bg-neutral-900 rounded-t-[32px] shadow-2xl flex flex-col overflow-hidden transition-transform duration-300 cubic-bezier(0.15, 1, 0.2, 1) will-change-transform ${
           isOpen ? "translate-y-0" : "translate-y-full"
@@ -327,10 +317,10 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
           height: dimensions.height
         }}
       >
-        {/* Шапка модалки */}
+        {/* Шапка */}
         <div className="relative w-full h-16 flex items-center justify-center px-4 flex-shrink-0 select-none">
           <h2 className="text-base font-bold text-appleLight-text dark:text-appleDark-text tracking-tight">
-            What's new?
+            Что-то новенькое
           </h2>
 
           <button 
@@ -373,29 +363,30 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
           </div>
         </div>
 
-        {/* Свайп-зона трека */}
+        {/* Свайп-зона трека (сужена до 200%, вкладки по 50%) */}
         <div className="flex-1 w-full overflow-hidden relative">
           <div 
             ref={contentTrackRef}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            className="absolute inset-0 flex w-[400%] h-full will-change-transform"
+            className="absolute inset-0 flex w-[200%] h-full will-change-transform"
             style={{ transform: `translateX(0px)` }}
           >
             {/* Секция: Оценка */}
-            <div className="w-[25%] h-full flex flex-col overflow-hidden">
+            <div className="w-[50%] h-full flex flex-col overflow-hidden">
               <RateView 
                 title={rateTitle}
                 setTitle={setRateTitle}
                 description={rateDescription}
                 setDescription={setRateDescription}
                 animationData={activeSubTab === "rate" ? animationData : null}
+                setIsTyping={setIsTyping}
               />
             </div>
 
             {/* Секция: Тейк */}
-            <div className="w-[25%] h-full flex flex-col overflow-hidden">
+            <div className="w-[50%] h-full flex flex-col overflow-hidden">
               <TakeView 
                 title={takeTitle}
                 setTitle={setTakeTitle}
@@ -403,31 +394,14 @@ export default function NewModal({ isOpen, onClose }: NewModalProps) {
                 setDescription={setTakeDescription}
                 animationData={activeSubTab === "take" ? animationData : null}
                 setIsTyping={setIsTyping}
-                onAddShieldClick={() => setIsShieldOpen(true)} // Открытие модалки шилдов
+                onAddShieldClick={() => setIsShieldOpen(true)}
               />
-            </div>
-
-            {/* Секция: Тир лист */}
-            <div className="w-[25%] h-full flex flex-col items-center justify-center text-center select-none">
-              <span className="text-xl mb-2">🛠️</span>
-              <p className="text-xs font-bold text-neutral-400 dark:text-neutral-600 uppercase tracking-widest">
-                В разработке
-              </p>
-            </div>
-
-            {/* Секция: Оверрейт */}
-            <div className="w-[25%] h-full flex flex-col items-center justify-center text-center select-none">
-              <span className="text-xl mb-2">🛠️</span>
-              <p className="text-xs font-bold text-neutral-400 dark:text-neutral-600 uppercase tracking-widest">
-                В разработке
-              </p>
             </div>
           </div>
         </div>
 
       </div>
 
-      {/* Вызов парящего окна выбора шилдов */}
       <ModalSh isOpen={isShieldOpen} onClose={() => setIsShieldOpen(false)} />
     </div>
   );
