@@ -363,8 +363,8 @@ export default function MainView({ isLoading = false }: MainViewProps) {
           borderRadius: isAddModalOpen ? "24px" : "0px",
         }}
       >
-        <main className="flex-1 w-full pt-[calc(var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))+44px)] flex flex-col overflow-hidden select-none">
-          
+        {/* НАСТОЯЩАЯ РАЗМЫТАЯ ШАПКА: абсолютное позиционирование с эффектом матового стекла */}
+        <div className="absolute top-0 left-0 right-0 z-30 backdrop-blur-xl bg-appleLight-bg/75 dark:bg-appleDark-bg/70 border-b border-neutral-200/10 dark:border-neutral-900/30">
           <Header
             isLoading={isLoading}
             activeTab={activeTab}
@@ -382,53 +382,56 @@ export default function MainView({ isLoading = false }: MainViewProps) {
             handleInputKeyDown={handleInputKeyDown}
             onAddClick={handleOpenAddModal}
           />
+        </div>
 
-          {/* mt-2.5 дает идеальное воздушное расстояние от шапки */}
-          <div className="flex-1 w-full overflow-hidden relative mt-2.5">
-            
-            {/* ВЕРХНЯЯ НЕВИДИМАЯ ЗОНА ПРОГРЕССИВНОГО БЛЮРА */}
-            {!isSearching && (
-              <div 
-                className="absolute top-0 left-0 right-0 h-4 backdrop-blur-[6px] pointer-events-none z-20"
-                style={{
-                  maskImage: "linear-gradient(to bottom, black 0%, transparent 100%)",
-                  WebkitMaskImage: "linear-gradient(to bottom, black 0%, transparent 100%)"
-                }}
-              />
-            )}
+        {/* Контент теперь занимает всю площадь, уходя под шапку */}
+        <main className="flex-1 w-full overflow-hidden relative select-none">
+          
+          {/* ВЕРХНЯЯ ЗОНА ПРОГРЕССИВНОГО БЛЮРА: шире по высоте (h-16), начинается прямо под срезом шапки */}
+          {!isSearching && (
+            <div 
+              className="absolute left-0 right-0 h-16 backdrop-blur-[8px] pointer-events-none z-20"
+              style={{
+                top: "calc(var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + 44px)",
+                maskImage: "linear-gradient(to bottom, black 0%, transparent 100%)",
+                WebkitMaskImage: "linear-gradient(to bottom, black 0%, transparent 100%)"
+              }}
+            />
+          )}
 
-            {isSearching ? (
+          {isSearching ? (
+            <div className="pt-[calc(var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))+56px)] h-full w-full">
               <SearchView searchQuery={searchQuery} />
-            ) : (
-              <div 
-                ref={contentTrackRef}
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-                className="absolute inset-0 flex w-[200%] h-full will-change-transform"
-                style={{ transform: `translateX(0px)` }}
-              >
-                <div className="w-screen h-full flex-shrink-0 overflow-y-auto scrollbar-none">
-                  <TrendsGrid isLoading={isLoading} />
-                </div>
-                <div className="w-screen h-full flex-shrink-0 overflow-y-auto scrollbar-none">
-                  <EmptyState isLoading={isLoading} activeTab="events" />
-                </div>
+            </div>
+          ) : (
+            <div 
+              ref={contentTrackRef}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              className="absolute inset-0 flex w-[200%] h-full will-change-transform"
+              style={{ transform: `translateX(0px)` }}
+            >
+              {/* pt компенсирует высоту шапки, давая карточкам красивый зазор на старте */}
+              <div className="w-screen h-full flex-shrink-0 overflow-y-auto scrollbar-none pt-[calc(var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))+56px)] pb-24">
+                <TrendsGrid isLoading={isLoading} />
               </div>
-            )}
+              <div className="w-screen h-full flex-shrink-0 overflow-y-auto scrollbar-none pt-[calc(var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px))+56px)] pb-24">
+                <EmptyState isLoading={isLoading} activeTab="events" />
+              </div>
+            </div>
+          )}
 
-            {/* НИЖНЯЯ НЕВИДИМАЯ ЗОНА ПРОГРЕССИВНОГО БЛЮРА */}
-            {!isSearching && (
-              <div 
-                className="absolute bottom-0 left-0 right-0 h-6 backdrop-blur-[6px] pointer-events-none z-20"
-                style={{
-                  maskImage: "linear-gradient(to top, black 0%, transparent 100%)",
-                  WebkitMaskImage: "linear-gradient(to top, black 0%, transparent 100%)"
-                }}
-              />
-            )}
-
-          </div>
+          {/* НИЖНЯЯ ЗОНА ПРОГРЕССИВНОГО БЛЮРА: увеличена до h-20 для максимально мягкого растворения */}
+          {!isSearching && (
+            <div 
+              className="absolute bottom-0 left-0 right-0 h-20 backdrop-blur-[8px] pointer-events-none z-20"
+              style={{
+                maskImage: "linear-gradient(to top, black 0%, transparent 100%)",
+                WebkitMaskImage: "linear-gradient(to top, black 0%, transparent 100%)"
+              }}
+            />
+          )}
 
         </main>
       </div>
