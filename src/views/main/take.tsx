@@ -1,15 +1,15 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { getShieldHtml, ShieldType } from "./shields";
 
 const Lottie = dynamic(() => import("lottie-light-react"), { ssr: false });
 
 interface TakeViewProps {
-  title: string; // В архитектуре new.tsx title отвечает за ТЕКСТ ТЕЙКА
+  title: string;
   setTitle: (val: string) => void;
-  description: string; // В архитектуре new.tsx description отвечает за ТЕМУ ТЕЙКА
+  description: string;
   setDescription: (val: string) => void;
   animationData: any;
   setIsTyping?: (typing: boolean) => void;
@@ -30,6 +30,9 @@ export default function TakeView({
   
   const editorRef = useRef<HTMLDivElement>(null);
   const savedRangeRef = useRef<Range | null>(null);
+  
+  // Локальный стейт чистых символов (минус шилды)
+  const [pureCharCount, setPureCharCount] = useState(0);
 
   const triggerHaptic = (style: "light" | "medium" | "heavy") => {
     if (typeof window !== "undefined") {
@@ -40,7 +43,23 @@ export default function TakeView({
     }
   };
 
-  // Метод сохранения позиции каретки курсора перед потерей фокуса (при открытии модалки)
+  // Метод фильтрации и подсчета символов текста, полностью игнорирующий разметку шилдов
+  const updateCharacterCount = (htmlContent: string) => {
+    if (typeof document === "undefined") return;
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = htmlContent;
+    
+    // Вырезаем все шилды из виртуальной копии перед подсчетом текста
+    tempDiv.querySelectorAll("[data-shield-type]").forEach(shield => shield.remove());
+    
+    const cleanText = tempDiv.innerText.replace(/\n/g, "");
+    setPureCharCount(cleanText.length);
+  };
+
+  useEffect(() => {
+    updateCharacterCount(title);
+  }, [title]);
+
   const saveCaretPosition = () => {
     if (typeof window === "undefined") return;
     const sel = window.getSelection();
@@ -49,7 +68,6 @@ export default function TakeView({
     }
   };
 
-  // Главная функция: вживление шилда прямо в позицию курсора
   const insertShield = (type: ShieldType) => {
     const editor = editorRef.current;
     if (!editor) return;
@@ -58,7 +76,6 @@ export default function TakeView({
     const sel = window.getSelection();
     if (!sel) return;
 
-    // Восстанавливаем сохраненный курсор, если он был
     if (savedRangeRef.current) {
       sel.removeAllRanges();
       sel.addRange(savedRangeRef.current);
@@ -67,37 +84,30 @@ export default function TakeView({
     const range = sel.getRangeAt(0);
     range.deleteContents();
 
-    // Создаем DOM-элемент из HTML-строки шилда
     const tempDiv = document.createElement("div");
     tempDiv.innerHTML = getShieldHtml(type);
     const shieldNode = tempDiv.firstElementChild;
 
     if (shieldNode) {
       range.insertNode(shieldNode);
-      
-      // Перемещаем курсор сразу ЗА добавленный шилд
       range.setStartAfter(shieldNode);
       range.setEndAfter(shieldNode);
       sel.removeAllRanges();
       sel.addRange(range);
     }
 
-    // Синхронизируем HTML-содержимое со стейтом
     setTitle(editor.innerHTML);
     savedRangeRef.current = range.cloneRange();
   };
 
-  // Прокидываем метод в родительский new.tsx через controlRef channel
   useEffect(() => {
-    if (controlRef) {
-      controlRef.current = { insertShield };
-    }
+    if (controlRef) controlRef.current = { insertShield };
     return () => {
       if (controlRef) controlRef.current = null;
     };
   }, [controlRef, title]);
 
-  // ДЕЛЕГИРОВАНИЕ СОБЫТИЙ: Обработка кликов внутри интерактивных шилдов
+  // Обработка внутренних кликов (кнопки счетчика и звезд). Инлайн-редактирование цифр работает нативно через contenteditable="true"
   const handleEditorClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
     const shieldContainer = target.closest("[data-shield-type]");
@@ -105,7 +115,7 @@ export default function TakeView({
 
     const type = shieldContainer.getAttribute("data-shield-type") as ShieldType;
 
-    // 1. Счетчик [- 5 +]
+    // Специфичное поведение кнопок счетчика [- 5 +]
     if (type === "counter") {
       const action = target.getAttribute("data-shield-action");
       if (action) {
@@ -121,43 +131,7 @@ export default function TakeView({
       }
     }
 
-    // 2. Погода
-    if (type === "weather") {
-      e.preventDefault();
-      triggerHaptic("light");
-      const tempNode = shieldContainer.querySelector('[data-shield-value="temp"]') as HTMLElement;
-      const iconNode = shieldContainer.querySelector('[data-shield-value="icon"]') as HTMLElement;
-      if (tempNode && iconNode) {
-        let curTemp = parseInt(tempNode.innerText) || 22;
-        let nextTemp = curTemp === 22 ? 15 : curTemp === 15 ? -4 : 22;
-        tempNode.innerText = nextTemp > 0 ? `+${nextTemp}°C` : `${nextTemp}°C`;
-        iconNode.innerText = nextTemp > 0 ? "☀️" : "❄️";
-      }
-    }
-
-    // 3. Батарея
-    if (type === "battery") {
-      e.preventDefault();
-      triggerHaptic("light");
-      const barNode = shieldContainer.querySelector('[data-shield-value="bar"]') as HTMLElement;
-      const textNode = shieldContainer.querySelector('[data-shield-value="text"]') as HTMLElement;
-      if (barNode && textNode) {
-        let curPct = parseInt(textNode.innerText) || 100;
-        let nextPct = curPct === 100 ? 42 : curPct === 42 ? 12 : 100;
-        textNode.innerText = `${nextPct}%`;
-        barNode.style.width = `${nextPct}%`;
-        
-        if (nextPct <= 20) {
-          barNode.className = "h-full rounded-[0.5px] bg-red-500 transition-all duration-300";
-        } else if (nextPct <= 50) {
-          barNode.className = "h-full rounded-[0.5px] bg-amber-500 transition-all duration-300";
-        } else {
-          barNode.className = "h-full rounded-[0.5px] bg-emerald-500 transition-all duration-300";
-        }
-      }
-    }
-
-    // 4. Звезды
+    // Звезды
     const starIdx = target.getAttribute("data-star-idx");
     if (type === "stars" && starIdx) {
       e.preventDefault();
@@ -168,36 +142,26 @@ export default function TakeView({
         const bHtml = btn as HTMLElement;
         const bIdx = parseInt(bHtml.getAttribute("data-star-idx") || "0");
         if (bIdx <= idx) {
-          bHtml.className = "text-[10px] transition-all mx-[0.5px] opacity-100 outline-none";
+          bHtml.className = "text-xs transition-all mx-[1px] opacity-100 outline-none";
         } else {
-          bHtml.className = "text-[10px] transition-all mx-[0.5px] opacity-25 grayscale outline-none";
+          bHtml.className = "text-xs transition-all mx-[1px] opacity-25 grayscale outline-none";
         }
       });
     }
 
-    // При любых интерактивных изменениях пушим финальный HTML обратно в стейт
     if (editorRef.current) {
       setTitle(editorRef.current.innerHTML);
     }
   };
 
-  const isFormValid = description.trim().length > 0 && title.trim().length > 0;
-
-  // Инлайн-хак для стилизации placeholder внутри contentEditable
-  const placeholderStyles = `
-    .editor-placeholder:empty::before {
-      content: attr(data-placeholder);
-      color: #a3a3a3;
-    }
-    .dark .editor-placeholder:empty::before {
-      content: attr(data-placeholder);
-      color: #525252;
-    }
-  `;
+  const isFormValid = description.trim().length > 0 && pureCharCount > 0;
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative">
-      <style dangerouslySetInnerHTML={{ __html: placeholderStyles }} />
+      <style dangerouslySetInnerHTML={{ __html: `
+        .editor-placeholder:empty::before { content: attr(data-placeholder); color: #a3a3a3; }
+        .dark .editor-placeholder:empty::before { content: attr(data-placeholder); color: #525252; }
+      `}} />
       
       <div className="flex-1 overflow-y-auto px-5 pb-4 flex flex-col space-y-5 scrollbar-none">
         
@@ -214,7 +178,7 @@ export default function TakeView({
           </p>
         </div>
 
-        {/* Поле: Тема тейка */}
+        {/* Поле темы */}
         <div className="flex flex-col space-y-1.5">
           <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
             Тема тейка
@@ -236,7 +200,7 @@ export default function TakeView({
           </div>
         </div>
 
-        {/* Поле: Текст Тейка (ContentEditable Движок) */}
+        {/* Главный текстовый ContentEditable редактор */}
         <div className="flex flex-col space-y-1.5">
           <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500 select-none">
             Твой тейк
@@ -251,7 +215,7 @@ export default function TakeView({
               onFocus={() => setIsTyping?.(true)}
               onBlur={() => {
                 setIsTyping?.(false);
-                saveCaretPosition(); // Запоминаем каретку при уходе фокуса на модалку
+                saveCaretPosition();
               }}
               onInput={(e) => setTitle(e.currentTarget.innerHTML)}
               onClick={handleEditorClick}
@@ -267,21 +231,19 @@ export default function TakeView({
               }}
               className="absolute left-4 bottom-3 w-8 h-8 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 active:scale-90 rounded-full flex items-center justify-center transition-all outline-none z-10"
             >
-              <img 
-                src="/icons/add.png" 
-                alt="Добавить шилд" 
-                className="w-4 h-4 object-contain block dark:brightness-0 dark:invert"
-              />
+              <img src="/icons/add.png" alt="Add" className="w-4 h-4 object-contain block dark:brightness-0 dark:invert" />
             </button>
 
-            <span className="absolute right-4 bottom-3.5 text-[11px] font-bold text-neutral-400 dark:text-neutral-600 select-none tracking-wide">
-              Символов: {editorRef.current?.innerText.length || 0}/750
+            {/* Счётчик считает строго чистый текст */}
+            <span className="absolute right-4 bottom-3.5 text-[11px] font-bold text-neutral-400 dark:text-neutral-600 select-none tracking-wide font-mono">
+              Символов: {pureCharCount}/750
             </span>
           </div>
         </div>
 
       </div>
 
+      {/* Фиксированный футер */}
       <div className="px-5 pb-8 pt-9 flex flex-col items-center relative z-40 bg-white dark:bg-neutral-900 flex-shrink-0 select-none">
         <div className="w-full relative flex flex-col items-center">
           <div className="absolute -top-7 left-0 right-0 bg-neutral-600 dark:bg-neutral-800 rounded-t-[20px] pt-2 pb-10 text-center pointer-events-none z-10">
