@@ -39,8 +39,10 @@ export default function RateView({
     setCharCount(description.length);
   }, [description]);
 
-  // Название объекта обязательно для заполнения, описание может отсутствовать вообще
   const isFormValid = validateInput(title, false) && validateInput(description, true);
+
+  // Общий стиль для округлых премиальных счетчиков
+  const counterStyle = { fontFamily: "ui-rounded, 'SF Pro Rounded', system-ui, sans-serif" };
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative">
@@ -58,7 +60,7 @@ export default function RateView({
             )}
           </div>
           <p className="text-xs font-medium text-neutral-400 dark:text-neutral-500 leading-relaxed">
-            Йоу, оценивай все что душа пожелает! Введи название и описание, а наш ИИ сам подгонит классную картиночку. Не зашло - поменяешь в один тап
+            Йоу, оценивай конкретные вещи, бренды или события, которые тебя зацепили! Введи название и описание, а наш ИИ подгонит сочный визуал. Не зашло — поменяешь в один тап.
           </p>
         </div>
 
@@ -77,23 +79,23 @@ export default function RateView({
               onFocus={() => setIsTyping?.(true)}
               onBlur={() => setIsTyping?.(false)}
               className="flex-1 h-full bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text placeholder-neutral-300 dark:placeholder-neutral-600"
-              style={{ fontFamily: "ui-rounded, 'SF Pro Rounded', system-ui, sans-serif" }}
+              style={counterStyle}
             />
-            <span className="text-[11px] font-bold text-neutral-400 dark:text-neutral-600 ml-2 select-none tracking-wide font-mono">
+            <span 
+              className="text-[11px] font-bold text-neutral-400 dark:text-neutral-600 ml-2 select-none tracking-wide" 
+              style={counterStyle}
+            >
               {title.length}/20
             </span>
           </div>
         </div>
 
-        {/* Поле: Описание (теперь с явным указанием опциональности) */}
+        {/* Поле: Описание */}
         <div className="flex flex-col space-y-1.5">
           <div className="flex justify-between items-center select-none">
             <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500">
               Описание здесь
             </label>
-            <span className="text-[10px] text-neutral-400/60 dark:text-neutral-500/50 font-normal">
-              необязательно
-            </span>
           </div>
           <div className="w-full min-h-[78px] bg-transparent border border-neutral-600 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-[20px] flex items-start p-3.5 transition-colors duration-200 relative">
             <textarea
@@ -105,9 +107,12 @@ export default function RateView({
               onFocus={() => setIsTyping?.(true)}
               onBlur={() => setIsTyping?.(false)}
               className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text placeholder-neutral-300 dark:placeholder-neutral-600 resize-none overflow-y-auto h-[48px] pr-14 leading-tight scrollbar-none"
-              style={{ fontFamily: "ui-rounded, 'SF Pro Rounded', system-ui, sans-serif" }}
+              style={counterStyle}
             />
-            <span className="absolute right-4 bottom-3.5 text-[11px] font-bold text-neutral-400 dark:text-neutral-600 select-none tracking-wide font-mono">
+            <span 
+              className="absolute right-4 bottom-3.5 text-[11px] font-bold text-neutral-400 dark:text-neutral-600 select-none tracking-wide" 
+              style={counterStyle}
+            >
               {charCount}/130
             </span>
           </div>
