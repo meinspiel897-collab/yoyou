@@ -39,8 +39,10 @@ export default function TakeView({
     setCharCount(title.length);
   }, [title]);
 
-  // Основной тейк обязателен, тема — нет. Но если тема заполнена, она обязана пройти валидацию.
   const isFormValid = validateInput(title, false) && validateInput(description, true);
+
+  // Общий стиль для округлых премиальных счетчиков
+  const counterStyle = { fontFamily: "ui-rounded, 'SF Pro Rounded', system-ui, sans-serif" };
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative">
@@ -57,7 +59,7 @@ export default function TakeView({
             )}
           </div>
           <p className="text-xs font-medium text-neutral-400 dark:text-neutral-500 leading-relaxed">
-            Выдай свой самый лучший тейк! Напиши базу или кринж — пускай толпа решает, гений ты или нет. Без мусорных символов и пустых строк.
+            Выдай свой жесткий тейк-вердикт! Напиши честное мнение или оценку инфоповода, релиза или тренда — пускай толпа решает, база это или лютый кринж.
           </p>
         </div>
 
@@ -67,9 +69,6 @@ export default function TakeView({
             <label className="text-xs font-normal text-neutral-400 dark:text-neutral-500">
               Тема тейка
             </label>
-            <span className="text-[10px] text-neutral-400/60 dark:text-neutral-500/50 font-normal">
-              необязательно
-            </span>
           </div>
           <div className="w-full h-11 bg-transparent border border-neutral-600 dark:border-neutral-800 focus-within:border-[#FC062D] rounded-full flex items-center px-4 transition-colors duration-200">
             <input
@@ -81,9 +80,12 @@ export default function TakeView({
               onFocus={() => setIsTyping?.(true)}
               onBlur={() => setIsTyping?.(false)}
               className="flex-1 h-full bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text placeholder-neutral-300 dark:placeholder-neutral-600"
-              style={{ fontFamily: "ui-rounded, 'SF Pro Rounded', system-ui, sans-serif" }}
+              style={counterStyle}
             />
-            <span className="text-[11px] font-bold text-neutral-400 dark:text-neutral-600 ml-2 select-none tracking-wide font-mono">
+            <span 
+              className="text-[11px] font-bold text-neutral-400 dark:text-neutral-600 ml-2 select-none tracking-wide" 
+              style={counterStyle}
+            >
               {description.length}/40
             </span>
           </div>
@@ -103,10 +105,13 @@ export default function TakeView({
               onFocus={() => setIsTyping?.(true)}
               onBlur={() => setIsTyping?.(false)}
               className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-appleLight-text dark:text-appleDark-text placeholder-neutral-300 dark:placeholder-neutral-600 resize-none overflow-y-auto pr-2 leading-relaxed scrollbar-none"
-              style={{ fontFamily: "ui-rounded, 'SF Pro Rounded', system-ui, sans-serif" }}
+              style={counterStyle}
             />
-            <span className="absolute right-4 bottom-3 text-[11px] font-bold text-neutral-400 dark:text-neutral-600 select-none tracking-wide font-mono">
-              Символов: {charCount}/750
+            <span 
+              className="absolute right-4 bottom-3 text-[11px] font-bold text-neutral-400 dark:text-neutral-600 select-none tracking-wide" 
+              style={counterStyle}
+            >
+              {charCount}/750
             </span>
           </div>
         </div>
