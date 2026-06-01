@@ -247,7 +247,6 @@ export default function MainView({ isLoading = false }: MainViewProps) {
 
     const currentIdx = tabsOrder.indexOf(activeTab);
 
-    // ЖЕСТКИЙ БЛОК: если листать некуда, полностью игнорим движение трека
     if (currentIdx === 0 && deltaX > 0) return;
     if (currentIdx === tabsOrder.length - 1 && deltaX < 0) return;
 
@@ -384,7 +383,20 @@ export default function MainView({ isLoading = false }: MainViewProps) {
             onAddClick={handleOpenAddModal}
           />
 
-          <div className="flex-1 w-full overflow-hidden relative mt-1">
+          {/* mt-2.5 дает идеальное воздушное расстояние от шапки */}
+          <div className="flex-1 w-full overflow-hidden relative mt-2.5">
+            
+            {/* ВЕРХНЯЯ НЕВИДИМАЯ ЗОНА ПРОГРЕССИВНОГО БЛЮРА */}
+            {!isSearching && (
+              <div 
+                className="absolute top-0 left-0 right-0 h-4 backdrop-blur-[6px] pointer-events-none z-20"
+                style={{
+                  maskImage: "linear-gradient(to bottom, black 0%, transparent 100%)",
+                  WebkitMaskImage: "linear-gradient(to bottom, black 0%, transparent 100%)"
+                }}
+              />
+            )}
+
             {isSearching ? (
               <SearchView searchQuery={searchQuery} />
             ) : (
@@ -404,6 +416,18 @@ export default function MainView({ isLoading = false }: MainViewProps) {
                 </div>
               </div>
             )}
+
+            {/* НИЖНЯЯ НЕВИДИМАЯ ЗОНА ПРОГРЕССИВНОГО БЛЮРА */}
+            {!isSearching && (
+              <div 
+                className="absolute bottom-0 left-0 right-0 h-6 backdrop-blur-[6px] pointer-events-none z-20"
+                style={{
+                  maskImage: "linear-gradient(to top, black 0%, transparent 100%)",
+                  WebkitMaskImage: "linear-gradient(to top, black 0%, transparent 100%)"
+                }}
+              />
+            )}
+
           </div>
 
         </main>
