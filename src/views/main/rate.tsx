@@ -41,7 +41,6 @@ export default function RateView({
 
   const isFormValid = validateInput(title, false) && validateInput(description, true);
 
-  // Общий стиль для округлых премиальных счетчиков
   const counterStyle = { fontFamily: "ui-rounded, 'SF Pro Rounded', system-ui, sans-serif" };
 
   return (
@@ -60,7 +59,7 @@ export default function RateView({
             )}
           </div>
           <p className="text-xs font-medium text-neutral-400 dark:text-neutral-500 leading-relaxed">
-            Йоу, оценивай конкретные вещи, бренды или события, которые тебя зацепили! Введи название и описание, а наш ИИ подгонит сочный визуал. Не зашло — поменяешь в один тап.
+            Йоу, оценивай конкретные вещи, бренды или события, которые тебя зацепили! Введи название и описание, а наш ИИ подгонит сочный визуал. Не зашло - поменяешь в один тап
           </p>
         </div>
 
