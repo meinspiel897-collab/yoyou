@@ -95,17 +95,11 @@ export default function TrendsGrid({ isLoading = false }: TrendsGridProps) {
               isTake ? "col-span-2 min-h-[125px] justify-between" : "col-span-1"
             }`}
           >
-            {/* Карточка Тейка (Вайб Threads) */}
+            {/* Карточка Тейка */}
             {isTake ? (
               <>
-                {/* Изящная маленькая вотермарка в углу */}
-                <img 
-                  src="/icons/logo.png" 
-                  className="absolute right-4 bottom-4 w-7 h-7 opacity-[0.05] dark:opacity-[0.03] pointer-events-none object-contain select-none z-0" 
-                  alt="" 
-                />
-
-                <div className="flex flex-col pr-14">
+                {/* Вотермарка удалена по фидбеку, текст теперь использует всю ширину */}
+                <div className="flex flex-col pr-1">
                   <h3 className="text-xs font-bold text-appleLight-text dark:text-appleDark-text truncate">
                     {item.title}
                   </h3>
